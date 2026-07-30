@@ -1,5 +1,48 @@
 import { PROJECT_CONFIG } from "../config.js";
+import { clamp } from "../utils/math.js";
 import { geoToCanvas } from "../utils/geo.js";
+
+export const vectorToCanvasDelta = (
+  { u, v },
+  scale = PROJECT_CONFIG.renderingConfig.fieldArrowVectorScale
+) => {
+  const config = PROJECT_CONFIG.renderingConfig;
+  const rawLength = Math.hypot(u, v) * scale;
+  const appliedScale =
+    rawLength > config.fieldArrowMaximumPixels
+      ? config.fieldArrowMaximumPixels / Math.max(rawLength, 1e-9)
+      : 1;
+
+  return Object.freeze({
+    x: u * scale * appliedScale,
+    y: -v * scale * appliedScale
+  });
+};
+
+const drawArrow = (context, start, vector, color, lineWidth = 1) => {
+  const end = {
+    x: start.x + vector.x,
+    y: start.y + vector.y
+  };
+  const angle = Math.atan2(vector.y, vector.x);
+  const head = PROJECT_CONFIG.renderingConfig.fieldArrowHeadPixels;
+
+  context.beginPath();
+  context.moveTo(start.x, start.y);
+  context.lineTo(end.x, end.y);
+  context.lineTo(
+    end.x - Math.cos(angle - Math.PI / 6) * head,
+    end.y - Math.sin(angle - Math.PI / 6) * head
+  );
+  context.moveTo(end.x, end.y);
+  context.lineTo(
+    end.x - Math.cos(angle + Math.PI / 6) * head,
+    end.y - Math.sin(angle + Math.PI / 6) * head
+  );
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.stroke();
+};
 
 export class FieldRenderer {
   #graticuleDegrees;
@@ -10,7 +53,7 @@ export class FieldRenderer {
     this.#graticuleDegrees = graticuleDegrees;
   }
 
-  draw({ bounds, context, height, padding, width }) {
+  draw({ bounds, context, environment, height, padding, width }) {
     const ocean = context.createLinearGradient(0, 0, width, height);
     ocean.addColorStop(0, "#061625");
     ocean.addColorStop(0.55, "#0a2a40");
@@ -18,6 +61,118 @@ export class FieldRenderer {
     context.fillStyle = ocean;
     context.fillRect(0, 0, width, height);
 
+    if (environment?.cells.length > 0) {
+      this.#drawTemperatureField({
+        bounds,
+        context,
+        environment,
+        height,
+        padding,
+        width
+      });
+    }
+
+    this.#drawGraticule({ bounds, context, height, padding, width });
+  }
+
+  drawOverlay({
+    bounds,
+    context,
+    environment,
+    height,
+    padding,
+    steeringDiagnostic,
+    typhoon,
+    width
+  }) {
+    if (!environment?.cells.length) {
+      return;
+    }
+
+    this.#drawPressureSystems({
+      bounds,
+      context,
+      environment,
+      height,
+      padding,
+      width
+    });
+    this.#drawSteeringArrows({
+      bounds,
+      context,
+      environment,
+      height,
+      padding,
+      width
+    });
+
+    if (steeringDiagnostic && typhoon) {
+      const start = geoToCanvas(typhoon, {
+        bounds,
+        height,
+        padding,
+        width
+      });
+      const vector = vectorToCanvasDelta(
+        steeringDiagnostic.actualVector,
+        PROJECT_CONFIG.renderingConfig.currentVectorDisplayScale
+      );
+      context.save();
+      context.shadowBlur = 6;
+      context.shadowColor = "#ffd27d";
+      drawArrow(context, start, vector, "#ffd27d", 2.5);
+      context.fillStyle = "#ffd27d";
+      context.font = "700 10px ui-monospace, monospace";
+      context.fillText("NEXT", start.x + vector.x + 5, start.y + vector.y - 4);
+      context.restore();
+    }
+  }
+
+  #drawTemperatureField({
+    bounds,
+    context,
+    environment,
+    height,
+    padding,
+    width
+  }) {
+    const spacing = PROJECT_CONFIG.renderingConfig.temperatureTileDegrees;
+    const minSST = PROJECT_CONFIG.environmentConfig.seaSurfaceTemperatureMinimum;
+    const maxSST = PROJECT_CONFIG.environmentConfig.baseSeaSurfaceTemperature;
+
+    context.save();
+
+    for (let lat = bounds.minLat; lat < bounds.maxLat; lat += spacing) {
+      for (let lon = bounds.minLon; lon < bounds.maxLon; lon += spacing) {
+        const cell = environment.sampleAt({
+          lat: lat + spacing / 2,
+          lon: lon + spacing / 2
+        });
+        const topLeft = geoToCanvas(
+          { lat: lat + spacing, lon },
+          { bounds, height, padding, width }
+        );
+        const bottomRight = geoToCanvas(
+          { lat, lon: lon + spacing },
+          { bounds, height, padding, width }
+        );
+        const heat = clamp((cell.SST - minSST) / (maxSST - minSST), 0, 1);
+        context.fillStyle =
+          `rgba(${Math.round(18 + heat * 36)}, ` +
+          `${Math.round(80 + heat * 45)}, ${Math.round(118 + heat * 52)}, 0.2)`;
+        context.fillRect(
+          topLeft.x,
+          topLeft.y,
+          bottomRight.x - topLeft.x,
+          bottomRight.y - topLeft.y
+        );
+      }
+    }
+
+    context.restore();
+  }
+
+  #drawGraticule({ bounds, context, height, padding, width }) {
     context.save();
     context.strokeStyle = "rgba(118, 228, 247, 0.18)";
     context.fillStyle = "rgba(217, 249, 255, 0.72)";
@@ -66,6 +221,134 @@ export class FieldRenderer {
 
       if (lat > bounds.minLat) {
         context.fillText(`${lat}°N`, 5, left.y - 3);
+      }
+    }
+
+    context.restore();
+  }
+
+  #drawPressureSystems({
+    bounds,
+    context,
+    environment,
+    height,
+    padding,
+    width
+  }) {
+    const config = PROJECT_CONFIG.renderingConfig;
+    const high = environment.subtropicalHigh;
+    const center = geoToCanvas(
+      {
+        lat: high.ridgeLatitude,
+        lon: Math.max(
+          high.westwardExtent +
+            PROJECT_CONFIG.environmentConfig.highInfluenceLongitudeSpan,
+          145
+        )
+      },
+      { bounds, height, padding, width }
+    );
+    const lonRadius =
+      (config.highRangeLongitudeRadius / (bounds.maxLon - bounds.minLon)) *
+      (width - padding.left - padding.right);
+    const latRadius =
+      (config.highRangeLatitudeRadius / (bounds.maxLat - bounds.minLat)) *
+      (height - padding.top - padding.bottom);
+
+    context.save();
+    context.fillStyle = `rgba(255, 210, 125, ${0.04 + high.intensity * 0.08})`;
+    context.strokeStyle = "rgba(255, 210, 125, 0.58)";
+    context.setLineDash([6, 5]);
+    context.beginPath();
+    context.ellipse(center.x, center.y, lonRadius, latRadius, 0, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    context.setLineDash([]);
+
+    for (let index = 1; index <= config.isobarCount; index += 1) {
+      const ratio = index / (config.isobarCount + 1);
+      context.beginPath();
+      context.ellipse(
+        center.x,
+        center.y,
+        lonRadius * ratio,
+        latRadius * ratio,
+        0,
+        0,
+        Math.PI * 2
+      );
+      context.strokeStyle = "rgba(255, 210, 125, 0.28)";
+      context.stroke();
+    }
+
+    context.fillStyle = "#ffd27d";
+    context.font = "800 11px system-ui, sans-serif";
+    context.fillText("副高 H", center.x - 18, center.y + 4);
+
+    const troughPoints = [105, 120, 135, 150].map((lon, index) =>
+      geoToCanvas(
+        {
+          lat: config.monsoonTroughLatitude + index * 0.7,
+          lon
+        },
+        { bounds, height, padding, width }
+      )
+    );
+    context.beginPath();
+    troughPoints.forEach((point, index) => {
+      if (index === 0) {
+        context.moveTo(point.x, point.y);
+      } else {
+        context.lineTo(point.x, point.y);
+      }
+    });
+    context.strokeStyle = "rgba(118, 232, 255, 0.62)";
+    context.lineWidth = 2;
+    context.setLineDash([3, 5]);
+    context.stroke();
+    context.setLineDash([]);
+    context.fillStyle = "#76e8ff";
+    context.fillText(
+      "季風槽",
+      troughPoints[1].x,
+      troughPoints[1].y + 14
+    );
+    context.restore();
+  }
+
+  #drawSteeringArrows({
+    bounds,
+    context,
+    environment,
+    height,
+    padding,
+    width
+  }) {
+    const spacing = PROJECT_CONFIG.renderingConfig.fieldArrowSpacingDegrees;
+
+    context.save();
+
+    for (
+      let lat = bounds.minLat + spacing;
+      lat < bounds.maxLat;
+      lat += spacing
+    ) {
+      for (
+        let lon = bounds.minLon + spacing;
+        lon < bounds.maxLon;
+        lon += spacing
+      ) {
+        const cell = environment.sampleAt({ lat, lon });
+        const start = geoToCanvas(
+          { lat, lon },
+          { bounds, height, padding, width }
+        );
+        drawArrow(
+          context,
+          start,
+          vectorToCanvasDelta(cell),
+          "rgba(217, 249, 255, 0.42)"
+        );
       }
     }
 

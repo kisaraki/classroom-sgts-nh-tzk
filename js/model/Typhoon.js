@@ -138,6 +138,19 @@ export class Typhoon {
     this.active = update.active;
   }
 
+  applyMovement({ heading, lat, lon, translationSpeed }) {
+    const { bounds } = PROJECT_CONFIG.geography;
+    this.lat = assertRange(lat, bounds.minLat, bounds.maxLat, "lat");
+    this.lon = assertRange(lon, bounds.minLon, bounds.maxLon, "lon");
+    this.heading = assertRange(heading, 0, 359.999_999, "heading");
+    this.translationSpeed = assertRange(
+      translationSpeed,
+      0,
+      PROJECT_CONFIG.steeringConfig.maximumTranslationSpeedKmh,
+      "translationSpeed"
+    );
+  }
+
   recordTrack({ simulationMinutes, stepIndex }) {
     assertFiniteNumber(simulationMinutes, "simulationMinutes");
     assertInteger(stepIndex, "stepIndex");

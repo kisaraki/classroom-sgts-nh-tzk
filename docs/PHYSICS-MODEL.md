@@ -3,11 +3,12 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 3 狀態
+## Phase 4 狀態
 
-Phase 3 已實作固定位置的強度、氣壓、暴風半徑、組織、對稱及五種結構。
-完整公式、常數類別、校準情境及限制見 `docs/INTENSITY-MODEL.md`。正式導引、
-環境網格、降雨、地形積分與動態冷水尾流仍未實作。
+Phase 4 已在 Phase 3 強度模型前加入環境網格與導引移動。強度公式見
+`docs/INTENSITY-MODEL.md`；環境、控制延遲、導引、β 漂移、座標位移及
+分段限制見 `docs/STEERING-MODEL.md`。降雨、地形積分、登陸事件與動態
+冷水尾流仍未實作。
 
 ## 模型定位
 
@@ -33,7 +34,7 @@ renderingConfig
 performanceConfig
 ```
 
-Phase 3 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通過而直接
+Phase 4 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通過而直接
 修改 `physicalConstants`。
 
 ## 每個模型的必要記錄
@@ -71,4 +72,7 @@ Phase 3 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通
 | 地形、冷水尾流、降雨及測站 | Phase 5 |
 | 關卡校準 | Phase 6～7 |
 
-Phase 3 的實際模型文件：`docs/INTENSITY-MODEL.md`。
+已實作模型文件：
+
+- `docs/INTENSITY-MODEL.md`
+- `docs/STEERING-MODEL.md`

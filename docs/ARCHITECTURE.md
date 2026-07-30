@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 3 completed，待使用者批准。
-- Phase 3 在既有地理與固定步進核心上加入颱風／環境資料契約、
-  版本化 PRNG、強度模型、結構遲滯、物理 fingerprint 及 Canvas 結構層。
+- 目前 Phase：Phase 4 completed，待使用者批准。
+- Phase 4 在強度模型之前加入環境目標反應、1° 網格更新、導引向量、
+  路徑分段與中心移動；Canvas 只讀同一環境及導引診斷值。
 
 ## 正式執行邊界
 
@@ -37,7 +37,10 @@ GameEngine／StateMachine／EventBus
 SimulationClock
   ↓ 每步固定 10 模擬分鐘
 Update callback
-  ↓ IntensityModel 只依固定步進更新 Typhoon
+  ↓ Environment 目標→實際→GridCell
+SteeringModel 移動 Typhoon
+  ↓ 新位置取樣
+IntensityModel 更新強度
 Render callback
   ↓ 只讀 snapshot
 CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashboard
@@ -52,8 +55,9 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `utils` 不得隱藏可變的全域模擬狀態。
 - 所有可調常數集中於 `js/config.js` 或後續明確拆分的設定模組。
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
+- `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 3 檔案責任
+## Phase 4 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -72,13 +76,16 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/data/stations.js` | 六站不可變位置與來源 |
 | `js/model/Typhoon.js` | 颱風完整欄位、結構 enum、路徑／事件歷史及物理 snapshot |
 | `js/model/GridCell.js` | 單一環境取樣點的數值範圍與單位契約 |
-| `js/model/Environment.js` | Phase 4 網格前的環境容器契約；本階段只含示範 cell |
+| `js/model/Environment.js` | 1° 網格、雙線性取樣、目標／實際控制與場更新 |
 | `js/simulation/IntensityModel.js` | 因子、發展潛勢、時間反應、上下限、遲滯與 fingerprint |
+| `js/simulation/SteeringModel.js` | 向量合成、平滑、球面位移、速度上限及路徑分段 |
 | `js/utils/geo.js` | 座標、測地線、polygon、segment 與最近站純函式 |
 | `js/utils/random.js` | `mulberry32-v1`、種子衍生、四子流及穩定 fingerprint |
 | `js/rendering/TyphoonRenderer.js` | 五種颱風結構的 Canvas 表現 |
 | `js/rendering/TrackRenderer.js` | 只讀 trackHistory 的路徑線 |
 | `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
+| `js/rendering/FieldRenderer.js` | SST 底圖、等壓線、副高、季風槽及導引箭頭 |
+| `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
 | `assets/maps/northwest-pacific.json` | 來源／授權完整的簡化地圖資料 |
 | `css/*.css` | tokens、桌面三區、平板／手機斷點、元件及無障礙 |
 | `scripts/serve.mjs` | 僅供本機的靜態伺服器 |
@@ -139,6 +146,34 @@ Canvas 與 DOM 儀表板（唯讀）
   Typhoon 物理欄位，不含畫格、Canvas 或粒子狀態。
 - 公式、校準情境及限制詳見 `docs/INTENSITY-MODEL.md`。
 
+## Phase 4 環境與移動資料流
+
+```text
+玩家滑桿
+  ↓ 僅更新 targetControls
+Environment.update（指數反應延遲）
+  ↓ 刷新 2,501 個 GridCell
+sampleAt(current position)
+  ↓ background + high + monsoon
+SteeringModel
+  ├─ + beta drift
+  ├─ + steering seeded perturbation
+  ├─ vector response smoothing
+  ├─ 45 km/h cap
+  └─ great-circle displacement / ≤3 km subsegments
+       ↓
+Typhoon.applyMovement
+  ↓ 新位置再次 sampleAt
+IntensityModel
+```
+
+- `steeringU > 0` 為向東，`steeringV > 0` 為向北，單位固定 m/s。
+- Canvas 場箭頭讀取 GridCell 的 U／V；黃色 `NEXT` 箭頭直接讀取本步
+  `actualVector`，不另算一套視覺方向。
+- Phase 4 只回報線段穿越的 region ID，不發送 LANDFALL／SEA_REENTRY；
+  正式事件與分段時間積分屬 Phase 5。
+- 公式、控制範圍與限制詳見 `docs/STEERING-MODEL.md`。
+
 ## GitHub Pages 路徑
 
 - 正式 base path：`/classroom-sgts-nh-tzk/`。
@@ -148,7 +183,7 @@ Canvas 與 DOM 儀表板（唯讀）
 
 ## 尚未實作
 
-下列均屬 Phase 4 以後，Phase 3 不提供假實作：
+下列均屬 Phase 5 以後，Phase 4 不提供假實作：
 
-- 正式 1° 環境網格、導引氣流與中心移動。
-- 動態冷水尾流、精細地形、降雨、測站觀測、關卡、沙盒、儲存及匯出。
+- LANDFALL／SEA_REENTRY、精細地形及海陸分段物理。
+- 動態冷水尾流、降雨、測站觀測、關卡、沙盒、儲存及匯出。

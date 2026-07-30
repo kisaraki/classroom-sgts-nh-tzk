@@ -6,11 +6,11 @@
 ## 版本
 
 - `schemaVersion`：資料形狀版本，第一版起始值為整數 `1`。
-- `modelVersion`：模型行為版本；Phase 3 為 `0.3.0-intensity`。
+- `modelVersion`：模型行為版本；Phase 4 為 `0.4.0-steering`。
 - PRNG 演算法版本：`mulberry32-v1`。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 3 已建立地圖、測站、Typhoon、GridCell 與 Environment 執行期契約。
+Phase 4 已建立地圖、測站、Typhoon、GridCell 與 Environment 執行期契約。
 Level 或儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
 
 ## 第一版單位字典
@@ -106,7 +106,7 @@ Phase 2 每站必要欄位：
 | `centralPressure` | 有限數，執行期模型限制 880～1010 hPa |
 | `galeRadius` | 有限數，執行期模型限制 45～420 km |
 | `heading` | 0～<360° |
-| `translationSpeed` | 0～150 km/h；Phase 3 示範值為 0 |
+| `translationSpeed` | Phase 4 模型限制 0～45 km/h |
 | `organization`、`symmetry`、`moisture` | 0～1 |
 | `structureStage` | `cluster`、`spiral`、`comma`、`eye`、`decaying` |
 | `isOverLand`、`active` | boolean |
@@ -115,16 +115,31 @@ Phase 2 每站必要欄位：
 
 ## `GridCell`
 
-Phase 3 單一示範 cell 欄位固定為 `lat`、`lon`、`SST`、`OHC`、
+Phase 4 每個 1° cell 欄位固定為 `lat`、`lon`、`SST`、`OHC`、
 `surfacePressure`、`steeringU`、`steeringV`、`verticalWindShear`、
 `relativeHumidity`、`terrainHeight`、`surfaceRoughness`、`landFraction`
-及 `coldWake`。數值需為有限值，比例欄位限制 0～1。Phase 3 不建立正式網格。
+及 `coldWake`。數值需為有限值，比例欄位限制 0～1。U 正值向東、V 正值
+向北，兩者單位為 m/s。
 
 ## `Environment`
 
 欄位固定為 `bounds`、`gridResolution`、`cells`、`subtropicalHigh`、
 `southwestMonsoon`、`controls`、`targetControls`。`cells` 只能包含
-`GridCell`；Phase 3 僅用一個固定位置示範 cell，Phase 4 才建立環境網格。
+`GridCell`。Phase 4 固定 `gridResolution = 1`，含 41×61＝2,501 cells；
+任意位置採四角雙線性取樣。
+
+`controls` 與 `targetControls` 固定包含：
+
+- `subtropicalHighIntensity`：0～1。
+- `subtropicalHighWestwardExtent`：112～150°E。
+- `subtropicalHighRidgeLatitude`：20～34°N。
+- `southwestMonsoonIntensity`：0～1。
+- `southwestMonsoonMoisture`：0.5～0.95。
+- `verticalWindShear`：0～30 m/s。
+
+`subtropicalHigh` 鏡像實際 intensity、westwardExtent、ridgeLatitude；
+`southwestMonsoon` 鏡像實際 intensity、moisture 與導引效果。滑桿只更新
+target，實際 controls 依固定步進延遲反應。
 
 ## 決定性與 fingerprint
 

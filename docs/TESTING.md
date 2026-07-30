@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～3 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～4 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -43,6 +43,15 @@ Phase 3：
 - `test:e2e` 驗證強度儀表板、fingerprint、粒子控制、瀏覽器 harness、
   響應式版面與既有地圖查詢回歸。
 
+Phase 4：
+
+- `test:unit` 驗證 1° 網格、控制器 target／actual 分離、導引向量合成、
+  方向換算、速度上限、平滑、移動細分、島嶼穿越及顯示向量一致。
+- `test:scenario` 驗證強西伸副高、西退轉向、強西南季風、水氣、弱場 β
+  drift、控制延遲、速度上限，以及相同種子／操作序列產生相同路徑。
+- `test:e2e` 驗證六個控制器、target／actual／trend、非瞬時反應、
+  2,501 格環境網格、實際移動、Pages 子路徑與既有地圖／強度回歸。
+
 ## Phase 0 需求追蹤
 
 | Requirement ID | 需求 | Phase | 測試／證據 | 狀態 |
@@ -75,11 +84,11 @@ Phase 3：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 3 狀態 | 說明 |
+| 環境 | Phase 4 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | Pages 子路徑、定點 storm、comma 結構、儀表板、粒子關閉後 fingerprint 不變、Console warning/error 0 |
-| 實際 Chrome | passed | 150.0.7871.187；5 個 Playwright E2E、Console error 0 |
+| Codex in-app Browser | passed | Pages 子路徑、六個控制器、延遲反應、2,501 格網格、移動／向量覆蓋、Console warning/error 0 |
+| 實際 Chrome | passed | 150.0.7871.187；6 個 Playwright E2E、Console error 0 |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
@@ -87,6 +96,44 @@ Phase 3：
 | GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 4 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| STR-GRID-001 | 100°E～160°E、0°N～40°N 的 1° 網格，共 2,501 cells | `environment-grid.test.js`、dashboard | passed |
+| STR-FIELD-001 | 背景場、副高、西南季風、β drift 與 seeded perturbation | unit／scenario tests、Canvas | passed |
+| STR-CONTROL-001 | 六個控制器只改 target，actual 依時間常數延遲 | unit／Chrome E2E／Browser smoke | passed |
+| STR-VECTOR-001 | U 向東、V 向北、m/s，顯示與物理向量一致 | steering／renderer tests、Canvas | passed |
+| STR-MOTION-001 | 經緯度位移、方向／速度平滑及 45 km/h 上限 | `steering-model.test.js` | passed |
+| STR-LAND-001 | 最長 3 km 子段及 segment-polygon 交會，不能跳過狹島 | steering／geo tests | passed |
+| STR-SCENARIO-001 | 強副高西行、西退轉向、強季風東北分量、弱場 β drift | `steering-scenarios.test.js` | passed |
+| STR-DETERMINISM-001 | 相同 seed／操作序列產生相同 path／fingerprint | unit／scenario tests | passed |
+| STR-UI-001 | 顯示 target／actual／trend、氣流箭頭、等壓線、季風槽及 NEXT | Chrome E2E／Browser smoke | passed |
+| STR-SCOPE-001 | 無硬編碼路徑；UI 不直接改座標；海陸正式效應留待 Phase 5 | architecture／code inspection | passed |
+| DEPLOY-PAGES-004 | 純靜態相對路徑及 Pages 子路徑 | integration／Chrome／Browser smoke | passed |
+
+## Phase 4 實際結果
+
+- 完成時間：2026-07-30T20:21:30+08:00。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- `npm ci`／audit：通過；74 個套件，0 vulnerabilities。
+- ESLint：通過，0 errors、0 warnings。
+- TypeScript：不適用；本專案目前為原生 ES Modules。
+- 單元測試：66 passed、0 failed。
+- 整合測試：2 passed、0 failed。
+- 情境測試：8 passed、0 failed。
+- 實際 Chrome E2E：6 passed、0 failed；包含控制延遲、位置非直接跳動、
+  2,501 格網格、Pages 子路徑及 Phase 2／3 回歸。
+- Browser harness：6/6 passed。
+- Codex in-app Browser：1280 px 無水平 overflow；副高 target 由 72%
+  改為 100% 時 actual 先維持 72%，24× 執行後漸進至 80%；位置由
+  15.00°N、135.00°E 移至 15.17°N、134.64°E；Canvas 顯示氣流箭頭、
+  等壓線、副高範圍、季風槽、NEXT 向量及移動路徑；Console
+  warning/error 0。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 3 需求追蹤
 

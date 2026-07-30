@@ -3,6 +3,8 @@ import { GameState, StateMachine } from "../js/core/StateMachine.js";
 import { computeCanvasDimensions } from "../js/ui/CanvasViewport.js";
 import { haversineDistanceKm } from "../js/utils/geo.js";
 import { SeededRandom } from "../js/utils/random.js";
+import { createEnvironmentGrid } from "../js/model/Environment.js";
+import { createRandomStreams } from "../js/utils/random.js";
 
 const results = document.querySelector("#test-results");
 const summary = document.querySelector("#test-summary");
@@ -65,6 +67,15 @@ test("相同種子的瀏覽器 PRNG 序列一致", () => {
   const second = new SeededRandom("browser-harness");
   equal(first.nextUint32(), second.nextUint32(), "first PRNG value");
   equal(first.nextUint32(), second.nextUint32(), "second PRNG value");
+});
+
+test("瀏覽器可建立完整 1 度環境網格", () => {
+  const streams = createRandomStreams("browser-grid");
+  const environment = createEnvironmentGrid({
+    random: streams.environment
+  });
+  equal(environment.cells.length, 2501, "grid cell count");
+  equal(environment.gridResolution, 1, "grid resolution");
 });
 
 let passed = 0;

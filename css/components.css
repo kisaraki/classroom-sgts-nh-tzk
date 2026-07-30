@@ -138,6 +138,69 @@ button:disabled {
   cursor: pointer;
 }
 
+.environment-controls {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.environment-controls h3 {
+  color: var(--color-cyan-100);
+  font-size: 0.92rem;
+}
+
+.environment-controls > p {
+  margin-top: -0.55rem;
+  color: var(--color-muted);
+  font-size: 0.74rem;
+}
+
+.environment-control {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.environment-control label {
+  color: var(--color-cyan-100);
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.environment-control input[type="range"] {
+  width: 100%;
+  min-height: 28px;
+  accent-color: var(--color-cyan-300);
+}
+
+.control-readout {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+}
+
+.control-readout output {
+  color: var(--color-cloud);
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+}
+
+.environment-control small {
+  color: var(--color-muted);
+  font-size: 0.66rem;
+}
+
+.environment-control small[data-trend="1"] {
+  color: var(--color-success);
+}
+
+.environment-control small[data-trend="-1"] {
+  color: var(--color-warning);
+}
+
 .particle-toggle input {
   width: 1.1rem;
   height: 1.1rem;
@@ -286,5 +349,10 @@ button:disabled {
 
   .panel {
     padding: 1rem;
+  }
+
+  .control-panel {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
   }
 }

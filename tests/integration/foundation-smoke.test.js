@@ -84,6 +84,15 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
   );
   assert.equal(mapData.metadata.formatVersion, "sgts-map-1");
 
+  const steeringResponse = await fetch(
+    `${baseUrl}/classroom-sgts-nh-tzk/js/simulation/SteeringModel.js`
+  );
+  assert.equal(steeringResponse.status, 200);
+  assert.match(
+    steeringResponse.headers.get("content-type") ?? "",
+    /text\/javascript/
+  );
+
   const missingResponse = await fetch(`${baseUrl}/missing-resource.json`);
   assert.equal(missingResponse.status, 404);
 });

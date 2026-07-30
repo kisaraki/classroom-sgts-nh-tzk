@@ -97,6 +97,35 @@ export class GridCell {
     this.coldWake = assertRange(coldWake, 0, 15, "coldWake");
   }
 
+  applyEnvironmentUpdate({
+    relativeHumidity,
+    steeringU,
+    steeringV,
+    surfacePressure,
+    verticalWindShear
+  }) {
+    this.surfacePressure = assertRange(
+      surfacePressure,
+      850,
+      1100,
+      "surfacePressure"
+    );
+    this.steeringU = assertRange(steeringU, -100, 100, "steeringU");
+    this.steeringV = assertRange(steeringV, -100, 100, "steeringV");
+    this.verticalWindShear = assertRange(
+      verticalWindShear,
+      0,
+      100,
+      "verticalWindShear"
+    );
+    this.relativeHumidity = assertRange(
+      relativeHumidity,
+      0,
+      1,
+      "relativeHumidity"
+    );
+  }
+
   snapshot() {
     return Object.freeze({
       OHC: this.OHC,

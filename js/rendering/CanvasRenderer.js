@@ -21,11 +21,13 @@ export const MAP_PADDING = Object.freeze({
 export class CanvasRenderer {
   #canvas;
   #fieldRenderer;
+  #environment = null;
   #geography = null;
   #mapRenderer;
   #particleRenderer;
   #selection = null;
   #stations;
+  #steeringDiagnostic = null;
   #trackRenderer;
   #typhoon = null;
   #typhoonRenderer;
@@ -57,6 +59,10 @@ export class CanvasRenderer {
     this.#geography = geography;
   }
 
+  setEnvironment(environment) {
+    this.#environment = environment;
+  }
+
   setSelection(selection) {
     this.#selection = selection;
   }
@@ -67,6 +73,10 @@ export class CanvasRenderer {
 
   setTyphoon(typhoon) {
     this.#typhoon = typhoon;
+  }
+
+  setSteeringDiagnostic(diagnostic) {
+    this.#steeringDiagnostic = diagnostic;
   }
 
   clientPointToGeo(event) {
@@ -97,6 +107,7 @@ export class CanvasRenderer {
     this.#fieldRenderer.draw({
       bounds: MAP_BOUNDS,
       context,
+      environment: this.#environment,
       height,
       padding: MAP_PADDING,
       width
@@ -110,6 +121,17 @@ export class CanvasRenderer {
         padding: MAP_PADDING,
         selection: this.#selection,
         stations: this.#stations,
+        width
+      });
+
+      this.#fieldRenderer.drawOverlay({
+        bounds: MAP_BOUNDS,
+        context,
+        environment: this.#environment,
+        height,
+        padding: MAP_PADDING,
+        steeringDiagnostic: this.#steeringDiagnostic,
+        typhoon: this.#typhoon,
         width
       });
 

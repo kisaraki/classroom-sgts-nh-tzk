@@ -4,17 +4,19 @@ import { GameState } from "./core/StateMachine.js";
 import { SimulationClock } from "./core/SimulationClock.js";
 import {
   describeGeographicPoint,
+  findLandRegion,
   loadGeography
 } from "./data/geography.js";
-import { Environment } from "./model/Environment.js";
-import { GridCell } from "./model/GridCell.js";
+import { createEnvironmentGrid } from "./model/Environment.js";
 import { Typhoon } from "./model/Typhoon.js";
 import { CanvasRenderer } from "./rendering/CanvasRenderer.js";
 import {
   IntensityModel,
   calculateEnvironmentalFactors
 } from "./simulation/IntensityModel.js";
+import { SteeringModel } from "./simulation/SteeringModel.js";
 import { formatSimulationTime } from "./ui/CanvasViewport.js";
+import { ControlPanel } from "./ui/ControlPanel.js";
 import { createRandomStreams } from "./utils/random.js";
 
 const requireElement = (selector) => {
@@ -27,38 +29,33 @@ const requireElement = (selector) => {
   return element;
 };
 
-const createDemoSession = () => {
+const createDemoSession = (mapData = null, { targetControls = {} } = {}) => {
   const demo = PROJECT_CONFIG.gameBalance.demoTyphoon;
-  const environmentConfig = PROJECT_CONFIG.gameBalance.demoEnvironment;
   const typhoon = new Typhoon({
     ...demo,
     active: true,
     eventHistory: [],
-    id: "demo-kosmos-03",
+    id: "demo-kosmos-04",
     isOverLand: false,
     trackHistory: []
   });
-  const cell = new GridCell({
-    OHC: environmentConfig.oceanHeatContent,
-    SST: environmentConfig.seaSurfaceTemperature,
-    coldWake: environmentConfig.coldWake,
-    landFraction: environmentConfig.landFraction,
-    lat: typhoon.lat,
-    lon: typhoon.lon,
-    relativeHumidity: environmentConfig.relativeHumidity,
-    steeringU: 0,
-    steeringV: 0,
-    surfacePressure: environmentConfig.surfacePressure,
-    surfaceRoughness: environmentConfig.surfaceRoughness,
-    terrainHeight: environmentConfig.terrainHeight,
-    verticalWindShear: environmentConfig.verticalWindShear
-  });
   const randomStreams = createRandomStreams(PROJECT_CONFIG.gameBalance.demoSeed);
+  const environment = createEnvironmentGrid({
+    isLandAt: (point) => Boolean(mapData && findLandRegion(point, mapData)),
+    random: randomStreams.environment,
+    targetControls
+  });
+  const cell = environment.sampleAt(typhoon);
   const intensityModel = new IntensityModel({
     randomStreams,
     seed: PROJECT_CONFIG.gameBalance.demoSeed
   });
-  const environment = new Environment({ cells: [cell] });
+  const steeringModel = new SteeringModel({
+    random: randomStreams.steering,
+    seed: PROJECT_CONFIG.gameBalance.demoSeed
+  });
+  const headingRadians = (typhoon.heading * Math.PI) / 180;
+  const initialSpeedMps = typhoon.translationSpeed / 3.6;
 
   typhoon.recordTrack({ simulationMinutes: 0, stepIndex: 0 });
 
@@ -69,6 +66,13 @@ const createDemoSession = () => {
     fingerprint: intensityModel.fingerprint(typhoon),
     intensityModel,
     randomStreams,
+    steeringDiagnostic: Object.freeze({
+      actualVector: Object.freeze({
+        u: Math.sin(headingRadians) * initialSpeedMps,
+        v: Math.cos(headingRadians) * initialSpeedMps
+      })
+    }),
+    steeringModel,
     targetWind: typhoon.maxWind,
     typhoon
   };
@@ -81,6 +85,8 @@ const bootstrap = async () => {
     engineState: requireElement("#engine-state"),
     error: requireElement("#app-error"),
     fps: requireElement("#fps-readout"),
+    environmentControls: requireElement("#environment-controls"),
+    environmentGridStatus: requireElement("#environment-grid-status"),
     mapDataStatus: requireElement("#map-data-status"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
@@ -92,12 +98,15 @@ const bootstrap = async () => {
     startButton: requireElement("#start-button"),
     stepCount: requireElement("#step-count"),
     stormFingerprint: requireElement("#storm-fingerprint"),
+    stormMotion: requireElement("#storm-motion"),
     stormOrganization: requireElement("#storm-organization"),
+    stormPosition: requireElement("#storm-position"),
     stormPressure: requireElement("#storm-pressure"),
     stormRadius: requireElement("#storm-radius"),
     stormStage: requireElement("#storm-stage"),
     stormSymmetry: requireElement("#storm-symmetry"),
     stormWind: requireElement("#storm-wind"),
+    steeringVector: requireElement("#steering-vector"),
     targetWind: requireElement("#target-wind"),
     updateCount: requireElement("#update-count"),
     visibility: requireElement("#visibility-status")
@@ -122,6 +131,7 @@ const bootstrap = async () => {
 
   const canvasRenderer = new CanvasRenderer(elements.canvas);
   let session = createDemoSession();
+  let controlPanel = null;
   let mapData = null;
   let mapReady = false;
   let updateCount = 0;
@@ -145,6 +155,15 @@ const bootstrap = async () => {
     elements.fps.textContent = Number.isFinite(fps) ? fps.toFixed(0) : "0";
     elements.updateCount.textContent = String(updateCount);
     elements.stormWind.textContent = `${storm.maxWind.toFixed(1)} m/s`;
+    elements.stormPosition.textContent =
+      `${storm.lat.toFixed(2)}°N, ${storm.lon.toFixed(2)}°E`;
+    elements.stormMotion.textContent =
+      `${storm.translationSpeed.toFixed(1)} km/h · ` +
+      `${storm.heading.toFixed(0)}°`;
+    const { actualVector } = session.steeringDiagnostic;
+    elements.steeringVector.textContent =
+      `U ${actualVector.u >= 0 ? "+" : ""}${actualVector.u.toFixed(2)} · ` +
+      `V ${actualVector.v >= 0 ? "+" : ""}${actualVector.v.toFixed(2)} m/s`;
     elements.stormPressure.textContent =
       `${storm.centralPressure.toFixed(0)} hPa`;
     elements.stormRadius.textContent = `${storm.galeRadius.toFixed(0)} km`;
@@ -160,6 +179,7 @@ const bootstrap = async () => {
       element.textContent =
         `${(session.factors[name] * 100).toFixed(0)}%`;
     }
+    controlPanel?.render();
     elements.visibility.textContent = clockState.isHidden
       ? "頁面隱藏｜停止累積"
       : "頁面可見";
@@ -182,6 +202,8 @@ const bootstrap = async () => {
     }
 
     canvasRenderer.setTyphoon(storm);
+    canvasRenderer.setEnvironment(session.environment);
+    canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
     canvasRenderer.draw({
       fps,
       simulationMinutes: clockState.simulationMinutes,
@@ -196,6 +218,16 @@ const bootstrap = async () => {
     render,
     update: (step) => {
       updateCount += 1;
+      session.environment.update(step.stepMinutes);
+      const steeringCell = session.environment.sampleAt(session.typhoon);
+      session.steeringDiagnostic = session.steeringModel.step({
+        cell: steeringCell,
+        environment: session.environment,
+        mapData,
+        stepMinutes: step.stepMinutes,
+        typhoon: session.typhoon
+      });
+      session.cell = session.environment.sampleAt(session.typhoon);
       const result = session.intensityModel.step({
         cell: session.cell,
         simulationMinutes: step.simulationMinutes,
@@ -215,6 +247,11 @@ const bootstrap = async () => {
     elements.error.textContent = `模擬器發生錯誤：${message}`;
     engine.enterError(error);
   };
+
+  controlPanel = new ControlPanel(elements.environmentControls, {
+    environment: session.environment,
+    onError: handleError
+  });
 
   const selectMapPoint = (point) => {
     if (!mapData) {
@@ -244,8 +281,16 @@ const bootstrap = async () => {
     try {
       elements.error.hidden = true;
       updateCount = 0;
-      session = createDemoSession();
+      session = createDemoSession(mapData, {
+        targetControls: session.environment.targetControls
+      });
+      controlPanel.setEnvironment(session.environment);
+      elements.environmentGridStatus.textContent =
+        `${session.environment.cells.length} cells · ` +
+        `${session.environment.gridResolution}°`;
       canvasRenderer.setTyphoon(session.typhoon);
+      canvasRenderer.setEnvironment(session.environment);
+      canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
       engine.startSimulation();
     } catch (error) {
       handleError(error);
@@ -309,6 +354,7 @@ const bootstrap = async () => {
     "pagehide",
     () => {
       canvasRenderer.destroy();
+      controlPanel.destroy();
       engine.destroy();
     },
     { once: true }
@@ -316,15 +362,27 @@ const bootstrap = async () => {
 
   engine.setVisibilityHidden(document.hidden);
   canvasRenderer.setTyphoon(session.typhoon);
+  canvasRenderer.setEnvironment(session.environment);
+  canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
   canvasRenderer.setParticlesEnabled(elements.particlesEnabled.checked);
   engine.boot();
 
   try {
     mapData = await loadGeography();
     canvasRenderer.setGeography(mapData);
+    session = createDemoSession(mapData, {
+      targetControls: session.environment.targetControls
+    });
+    controlPanel.setEnvironment(session.environment);
+    canvasRenderer.setEnvironment(session.environment);
+    canvasRenderer.setTyphoon(session.typhoon);
+    canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
     mapReady = true;
     elements.mapDataStatus.textContent =
       `${mapData.features.length} regions · v${mapData.metadata.formatVersion}`;
+    elements.environmentGridStatus.textContent =
+      `${session.environment.cells.length} cells · ` +
+      `${session.environment.gridResolution}°`;
     selectMapPoint({ lat: 23.7, lon: 121 });
   } catch (error) {
     elements.mapDataStatus.textContent = "載入失敗";

@@ -23,6 +23,10 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
     .toBeGreaterThan(0);
   await expect(page.locator("#storm-wind")).not.toHaveText("15.0 m/s");
   await expect(page.locator("#storm-fingerprint")).toHaveText(/^[0-9a-f]{8}$/u);
+  await expect(page.locator("#storm-position")).not.toHaveText(
+    "15.00°N, 135.00°E"
+  );
+  await expect(page.locator("#storm-motion")).toContainText("km/h");
 
   await page.locator("#pause-button").click();
   await expect(page.locator("#engine-state")).toHaveText("PAUSED");
@@ -73,7 +77,7 @@ test("standalone browser harness passes from the Pages subpath", async ({
     "data-test-status",
     "passed"
   );
-  await expect(page.locator("#test-summary")).toHaveText("5/5 tests passed");
+  await expect(page.locator("#test-summary")).toHaveText("6/6 tests passed");
 });
 
 test("particle control is explicitly visual-only and preserves the dashboard", async ({
@@ -90,6 +94,33 @@ test("particle control is explicitly visual-only and preserves the dashboard", a
     /%$/u
   );
   await expect(page.locator(".particle-toggle")).toContainText("不參與物理");
+});
+
+test("environment target changes are delayed and never directly move the storm", async ({
+  page
+}) => {
+  await page.goto("./");
+  await expect(page.locator("#environment-grid-status")).toHaveText(
+    "2501 cells · 1°"
+  );
+  const control = page.locator(
+    '[data-control-name="subtropicalHighIntensity"]'
+  );
+  const slider = control.locator("[data-environment-control]");
+  const positionBefore = await page.locator("#storm-position").textContent();
+
+  await slider.fill("1");
+  await expect(control.locator("[data-control-target]")).toHaveText("100%");
+  await expect(control.locator("[data-control-actual]")).toHaveText("72%");
+  await expect(page.locator("#storm-position")).toHaveText(positionBefore);
+
+  await page.locator("[data-speed='24']").click();
+  await page.locator("#start-button").click();
+  await expect
+    .poll(async () => control.locator("[data-control-actual]").textContent())
+    .not.toBe("72%");
+  await expect(control.locator("[data-control-actual]")).not.toHaveText("100%");
+  await expect(control.locator("[data-control-trend]")).toContainText("τ 12h");
 });
 
 test("map query identifies Taiwan and stays aligned after resize", async ({

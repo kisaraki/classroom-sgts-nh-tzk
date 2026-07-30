@@ -7,7 +7,7 @@ export const PROJECT_CONFIG = Object.freeze({
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
   schemaVersion: 1,
-  modelVersion: "0.3.0-intensity",
+  modelVersion: "0.4.0-steering",
   geography: Object.freeze({
     bounds: Object.freeze({
       maxLat: 40,
@@ -15,7 +15,8 @@ export const PROJECT_CONFIG = Object.freeze({
       minLat: 0,
       minLon: 100
     }),
-    graticuleDegrees: 5
+    graticuleDegrees: 5,
+    gridResolutionDegrees: 1
   }),
   simulation: Object.freeze({
     maxCatchUpSteps: 8,
@@ -87,6 +88,92 @@ export const PROJECT_CONFIG = Object.freeze({
     }),
     terrainPenaltyHeight: 2600
   }),
+  environmentConfig: Object.freeze({
+    backgroundFlowU: -1.2,
+    backgroundFlowV: 0.2,
+    baseOceanHeatContent: 0.88,
+    baseSeaSurfaceTemperature: 30,
+    baseSurfacePressure: 1010,
+    highEastwardTurnMaximum: 2.8,
+    highInfluenceLongitudeSpan: 12,
+    highInfluenceLatitudeSpan: 8,
+    highPressureAnomalyMaximum: 10,
+    highPolewardFlowMaximum: 2.5,
+    highWestwardFlowMaximum: 5.8,
+    humidityBase: 0.68,
+    humidityMonsoonContribution: 0.22,
+    latitudeOceanHeatLoss: 0.012,
+    latitudeTemperatureLoss: 0.13,
+    monsoonTroughPressureDropMaximum: 5,
+    monsoonUMaximum: 3.8,
+    monsoonVMaximum: 3.3,
+    oceanHeatContentMinimum: 0.25,
+    pressureNoiseMaximum: 0.45,
+    roughnessLand: 0.42,
+    roughnessOcean: 0.03,
+    seaSurfaceTemperatureMinimum: 24,
+    steeringNoiseMaximum: 0.12,
+    terrainPlaceholderLandHeight: 120
+  }),
+  environmentControls: Object.freeze({
+    subtropicalHighIntensity: Object.freeze({
+      defaultValue: 0.72,
+      maximum: 1,
+      minimum: 0,
+      responseHours: 12,
+      step: 0.05,
+      unit: "%"
+    }),
+    subtropicalHighWestwardExtent: Object.freeze({
+      defaultValue: 128,
+      maximum: 150,
+      minimum: 112,
+      responseHours: 18,
+      step: 1,
+      unit: "°E"
+    }),
+    subtropicalHighRidgeLatitude: Object.freeze({
+      defaultValue: 26,
+      maximum: 34,
+      minimum: 20,
+      responseHours: 18,
+      step: 1,
+      unit: "°N"
+    }),
+    southwestMonsoonIntensity: Object.freeze({
+      defaultValue: 0.38,
+      maximum: 1,
+      minimum: 0,
+      responseHours: 9,
+      step: 0.05,
+      unit: "%"
+    }),
+    southwestMonsoonMoisture: Object.freeze({
+      defaultValue: 0.78,
+      maximum: 0.95,
+      minimum: 0.5,
+      responseHours: 9,
+      step: 0.05,
+      unit: "%"
+    }),
+    verticalWindShear: Object.freeze({
+      defaultValue: 7,
+      maximum: 30,
+      minimum: 0,
+      responseHours: 6,
+      step: 1,
+      unit: "m/s"
+    })
+  }),
+  steeringConfig: Object.freeze({
+    betaDriftU: -0.45,
+    betaDriftV: 0.65,
+    maximumPathSegmentKm: 3,
+    maximumTranslationSpeedKmh: 45,
+    perturbationMaximumMps: 0.14,
+    responseHours: 3,
+    vectorDisplayScale: 5
+  }),
   gameBalance: Object.freeze({
     demoEnvironment: Object.freeze({
       coldWake: 0,
@@ -99,32 +186,42 @@ export const PROJECT_CONFIG = Object.freeze({
       terrainHeight: 0,
       verticalWindShear: 6
     }),
-    demoSeed: "sgts-nh-phase-3",
+    demoSeed: "sgts-nh-phase-4",
     demoTyphoon: Object.freeze({
       centralPressure: 1004,
       galeRadius: 80,
-      heading: 315,
+      heading: 285,
       lat: 15,
       lon: 135,
       maxWind: 15,
       moisture: 0.72,
-      name: "KOSMOS-03",
+      name: "KOSMOS-04",
       organization: 0.28,
       structureStage: "cluster",
       symmetry: 0.32,
-      translationSpeed: 0
+      translationSpeed: 8
     })
   }),
   renderingConfig: Object.freeze({
+    currentVectorDisplayScale: 8,
+    fieldArrowHeadPixels: 4,
+    fieldArrowMaximumPixels: 18,
+    fieldArrowSpacingDegrees: 5,
+    fieldArrowVectorScale: 3.2,
+    highRangeLatitudeRadius: 7,
+    highRangeLongitudeRadius: 15,
+    isobarCount: 3,
+    monsoonTroughLatitude: 13,
     particleAngularSpeed: 0.0018,
     particleCount: 140,
     particleMaximumRadiusScale: 1.35,
     particleMinimumRadiusScale: 0.28,
-    particleSeed: "sgts-nh-phase-3-visual",
+    particleSeed: "sgts-nh-phase-4-visual",
     particlesEnabled: true,
     stormMaximumPixelRadius: 64,
     stormMinimumPixelRadius: 18,
     stormRadiusKilometreScale: 7,
+    temperatureTileDegrees: 5,
     trackMaximumPoints: 360
   }),
   performanceConfig: Object.freeze({

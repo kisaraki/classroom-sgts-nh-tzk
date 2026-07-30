@@ -3,9 +3,10 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 3 狀態
+## Phase 4 狀態
 
-Phase 3 延續 Phase 2 地理來源，加入熱帶氣旋強度概念的科學參考。
+Phase 4 延續 Phase 2～3 地理與強度來源，加入熱帶氣旋移動、β 漂移、
+副熱帶高壓與西北太平洋季風槽概念的科學參考。
 公式是可解釋、可測試的教育遊戲近似，並非重現任何作業預報模型。
 正式網站仍沒有第三方執行期程式碼。
 
@@ -25,6 +26,10 @@ Phase 3 延續 Phase 2 地理來源，加入熱帶氣旋強度概念的科學參
 | Sellers et al. (1998), *The Tropical Cyclone of the Global Weather Experiment* | 同行評審綜述／觀測 | `https://www.aoml.noaa.gov/hrd/Landsea/Sellersetal_bulletinAMSJan1998.pdf` | 2026-07-30 | 生成有利條件：離赤道數度、暖海、深暖水、低風切與高溼 | NOAA/AOML 公開 PDF；僅引用概念 |
 | Shay, Goni & Black (2000), *Effects of a Warm Oceanic Feature on Hurricane Opal* | 同行評審論文 | `https://www.aoml.noaa.gov/ftp/phod/goni/web/Publications/Shay.pdf` | 2026-07-30 | 海洋熱含量／暖水深度會影響增強潛勢的概念 | NOAA/AOML 公開 PDF；僅引用概念 |
 | Schade (2000), *Tropical Cyclone Intensity and Sea Surface Temperature* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(2000)057%3C3122:TCIASS%3E2.0.CO;2` | 2026-07-30 | 海溫供能與風暴引發冷卻形成負回饋的概念 | 僅引用科學概念 |
+| Wang et al. (2004), *Assessing Impacts of Global Warming on Tropical Cyclone Tracks* | 同行評審論文 | `https://doi.org/10.1175/1520-0442(2004)017%3C1686:AIOGWO%3E2.0.CO;2` | 2026-07-30 | 颱風移動由大尺度導引與 β drift 組成 | 僅引用概念；未使用氣候預測結果 |
+| Wang et al. (2000), *A Potential Vorticity Tendency Diagnostic Approach for Tropical Cyclone Motion* | 同行評審論文 | `https://doi.org/10.1175/1520-0493(2000)128%3C1899:APVTDA%3E2.0.CO;2` | 2026-07-30 | β 漂移相對導引流提供弱西向／極向偏移 | 僅引用方向與尺度概念 |
+| Li & Chan (1999), *Momentum Transports Associated with Tropical Cyclone Recurvature* | 同行評審論文 | `https://doi.org/10.1175/1520-0493(1999)127%3C1021:MTAWTC%3E2.0.CO;2` | 2026-07-30 | 西北太平洋副高東退與轉向環境 | 僅引用概念 |
+| Peng et al. (2012), *Developing versus Nondeveloping Disturbances for Tropical Cyclone Formation. Part II: Western North Pacific* | 同行評審論文 | `https://doi.org/10.1175/2011MWR3618.1` | 2026-07-30 | 西北太平洋季風槽、西風與信風匯流的環境概念 | 僅引用概念 |
 
 本地衍生檔案：`assets/maps/northwest-pacific.json`。其 metadata 記錄
 來源、Public Domain 授權、手工簡化方式、產生日期、座標順序及精度限制。

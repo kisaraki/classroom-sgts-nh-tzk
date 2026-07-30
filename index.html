@@ -38,11 +38,11 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 03</p>
+        <p class="phase-badge">SGTS-NH · Phase 04</p>
         <h2 id="control-title">模擬控制</h2>
         <p class="panel-copy">
-          啟動固定時間步進引擎，觀察同一環境下颱風強度、組織與結構逐步演變；
-          也可直接點選地圖查詢座標、海陸與最近測站。
+          設定環境目標值，觀察副高、季風與風切經反應延遲後如何改變導引、
+          路徑與強度；UI 不會直接修改颱風座標。
         </p>
 
         <div class="control-stack">
@@ -62,6 +62,117 @@
           </div>
         </fieldset>
 
+        <section
+          id="environment-controls"
+          class="environment-controls"
+          aria-labelledby="environment-controls-title"
+        >
+          <h3 id="environment-controls-title">環境目標控制</h3>
+          <p>滑桿設定目標；實際環境依 τ 時間逐步反應。</p>
+
+          <div
+            class="environment-control"
+            data-control-name="subtropicalHighIntensity"
+          >
+            <label for="control-high-intensity">副高強度</label>
+            <input
+              id="control-high-intensity"
+              type="range"
+              data-environment-control="subtropicalHighIntensity"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+
+          <div
+            class="environment-control"
+            data-control-name="subtropicalHighWestwardExtent"
+          >
+            <label for="control-high-west">副高西伸邊界</label>
+            <input
+              id="control-high-west"
+              type="range"
+              data-environment-control="subtropicalHighWestwardExtent"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+
+          <div
+            class="environment-control"
+            data-control-name="subtropicalHighRidgeLatitude"
+          >
+            <label for="control-high-ridge">副高脊線緯度</label>
+            <input
+              id="control-high-ridge"
+              type="range"
+              data-environment-control="subtropicalHighRidgeLatitude"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+
+          <div
+            class="environment-control"
+            data-control-name="southwestMonsoonIntensity"
+          >
+            <label for="control-monsoon-intensity">西南季風強度</label>
+            <input
+              id="control-monsoon-intensity"
+              type="range"
+              data-environment-control="southwestMonsoonIntensity"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+
+          <div
+            class="environment-control"
+            data-control-name="southwestMonsoonMoisture"
+          >
+            <label for="control-monsoon-moisture">西南季風水氣</label>
+            <input
+              id="control-monsoon-moisture"
+              type="range"
+              data-environment-control="southwestMonsoonMoisture"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+
+          <div
+            class="environment-control"
+            data-control-name="verticalWindShear"
+          >
+            <label for="control-shear">垂直風切</label>
+            <input
+              id="control-shear"
+              type="range"
+              data-environment-control="verticalWindShear"
+            >
+            <div class="control-readout">
+              <span>目標 <output data-control-target>—</output></span>
+              <span>實際 <output data-control-actual>—</output></span>
+            </div>
+            <small data-control-trend>→ 穩定</small>
+          </div>
+        </section>
+
         <label class="particle-toggle">
           <input id="particles-enabled" type="checkbox" checked>
           <span>顯示視覺粒子（不參與物理）</span>
@@ -72,7 +183,8 @@
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
           <p>
-            本階段加入定點颱風與強度模型；正式環境網格及導引氣流屬 Phase 4。
+            本階段加入 1° 環境網格與導引移動；精細地形、登陸事件、
+            動態冷水尾流與降雨屬 Phase 5。
           </p>
         </aside>
       </section>
@@ -92,7 +204,7 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 03 西北太平洋颱風強度模擬；點選或觸控以查詢位置"
+            aria-label="Phase 04 西北太平洋環境導引模擬；點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -138,6 +250,10 @@
             <dt>地理資料</dt>
             <dd id="map-data-status">載入中</dd>
           </div>
+          <div>
+            <dt>環境網格</dt>
+            <dd id="environment-grid-status">建立中</dd>
+          </div>
         </dl>
 
         <section
@@ -145,8 +261,11 @@
           aria-labelledby="storm-dashboard-title"
           aria-live="polite"
         >
-          <h3 id="storm-dashboard-title">KOSMOS-03 強度</h3>
+          <h3 id="storm-dashboard-title">KOSMOS-04 強度與移動</h3>
           <dl class="storm-metrics">
+            <div><dt>中心位置</dt><dd id="storm-position">15.00°N, 135.00°E</dd></div>
+            <div><dt>移動</dt><dd id="storm-motion">8.0 km/h · 285°</dd></div>
+            <div><dt>導引向量</dt><dd id="steering-vector">—</dd></div>
             <div><dt>最大風速</dt><dd id="storm-wind">15.0 m/s</dd></div>
             <div><dt>中心氣壓</dt><dd id="storm-pressure">1004 hPa</dd></div>
             <div><dt>暴風半徑</dt><dd id="storm-radius">80 km</dd></div>
