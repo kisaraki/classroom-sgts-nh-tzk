@@ -16,7 +16,7 @@
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
 | 8 | approved | `phase/08-sandbox-export` | `c831f13` | `8642956` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
-| 9 | in_progress | `phase/09-release` |  |  | lint、108 unit、6 integration、16 scenario、15 Chrome E2E、Safari smoke、artifact passed；Edge／iPadOS not_verified；Actions／Pages not_run |  |  |  | 外部發布授權與完整跨瀏覽器證據待補 |
+| 9 | in_progress | `phase/09-release` |  |  | lint、109 unit、6 integration、16 scenario、15 Chrome E2E、Safari、Actions、Pages、公開站 passed；Edge／iPadOS not_verified |  |  |  | 完整跨瀏覽器證據待補 |
 | 10 | pending |  |  |  | not_run |  |  |  |  |
 
 ## Phase 0 執行授權
@@ -268,17 +268,20 @@
 - 本機實作：效能監測、300／700／1200 粒子、GeoJSON 與離屏地圖快取、
   reduced motion、Canvas 文字摘要、Pages allowlist artifact、最小權限
   deployment workflow，以及第一版文件更新。
-- 本機驗證：lint、108 unit、6 integration、16 scenario、15 actual Chrome
+- 本機驗證：lint、109 unit、6 integration、16 scenario、15 actual Chrome
   E2E、artifact test passed；中畫質效能門檻 passed。
 - macOS Safari 26.5.2：Pages 子路徑、Canvas／ES Modules、模擬步進、
   localStorage reload 與文字下載 passed。
 - Microsoft Edge：`not_verified`（本機未安裝）。
 - iPadOS Safari／平板效能：`not_verified`（無實體裝置證據）。
-- GitHub Actions：`not_run`（workflow 未 push）。
-- GitHub Pages API／部署：`not_deployed`。
-- 公開網站：`not_verified`。
-- 外部操作閘門：等待使用者明確批准 push、Pages 設定、部署及公開驗證。
-- 第 24 節阻擋：第 3、24、27、31 尚未全部滿足；因此不得宣稱 Phase 9
+- GitHub Actions：run `30556910585` 的 test、build、deploy 全部 passed；
+  source commit `03e1f12`。
+- GitHub Pages API／部署：deployment `5677601892` passed；公開、HTTPS
+  enforced，正式 URL 為
+  `https://kisaraki.github.io/classroom-sgts-nh-tzk/`。
+- 公開網站：HTTP 200；CSS、ES Module、map JSON、16 regions、品牌、
+  Not for Forecasting、模擬步進及無 Console warning／error 均 passed。
+- 第 24 節阻擋：第 24、27 尚未全部滿足；因此不得宣稱 Phase 9
   或第一版正式完成。
 
 ## Phase 9 發布授權
@@ -296,3 +299,17 @@
 - 範圍限制：不得安裝 Edge；iPadOS 暫不測試，兩者維持 `not_verified`。
 - 發布方式：最少必要狀態／diff 檢查、一次發布 commit、一次必要 push，
   再只追蹤目標 Actions／Pages／公開網站。
+
+## Phase 9 發布結果
+
+- 發布完成時間：2026-07-30T23:31:48+08:00。
+- 公開驗證時間：2026-07-30T23:32:24+08:00。
+- 發布 source：`03e1f12`；`main` 與 `phase/09-release` 已同步。
+- GitHub Actions：run `30556910585` passed；test job `90919618691`、
+  build job `90920160393`、deploy job `90920263507`。
+- GitHub Pages：deployment `5677601892` passed；正式 URL：
+  `https://kisaraki.github.io/classroom-sgts-nh-tzk/`。
+- CI 修正：runs `30556253124`、`30556482084` 揭露跨架構浮點低位差異；
+  DEC-0035 的 fingerprint 邊界正規化已由本機與 Linux x64 完整驗證。
+- 剩餘狀態：Edge 與 iPadOS 依使用者指示維持 `not_verified`；Phase 9
+  繼續為 `in_progress`，不得進入 Phase 10。

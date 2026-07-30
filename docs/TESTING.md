@@ -37,15 +37,26 @@ npm run serve
 | Schema／資料 | passed | 地圖快取、三關、沙盒、storage／匯入匯出既有契約；`schemaVersion=1` |
 | lint | passed | ESLint 0 errors、0 warnings |
 | TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
-| 單元 | passed | 108 passed、0 failed |
+| 單元 | passed | 109 passed、0 failed |
 | 整合 | passed | 6 passed、0 failed |
 | 情境／黃金重播 | passed | 16 passed、0 failed；三關 fixture 均通過 |
 | 實際 Chrome E2E | passed | 15 passed、0 failed |
 | Pages artifact | passed | 1 passed；只含 5 個允許根項目 |
 | build | passed | `dist/` 可重現建立，AppleDouble 已移除 |
-| GitHub Actions | not_run | workflow 已本機驗證，尚未獲 push 授權 |
-| Pages API／部署 | not_deployed | 尚未獲 Pages 設定／部署授權 |
-| 公開網站 | not_verified | 尚無 production deployment |
+| GitHub Actions | passed | run `30556910585`：test、build、deploy 全部成功 |
+| Pages API／部署 | passed | source `03e1f12`、deployment `5677601892`、HTTPS enforced |
+| 公開網站 | passed | HTTP 200；模組、CSS、map JSON、品牌、聲明、模擬步進、Console 均通過 |
+
+### 發布 CI 證據
+
+- runs `30556253124`、`30556482084` 揭露 ARM64 macOS 與 x64 Linux
+  三角函數低位差異導致完整浮點字串 fingerprint 不同。
+- fingerprint 僅在序列化邊界正規化至小數點後 8 位，未更動物理狀態、
+  結果、分數或匯出數值；本機完整 `npm run check` 與 Linux x64 run
+  `30556910585` 均通過。
+- 公開站於 2026-07-30T23:32:24+08:00 驗證：首頁與全部必要 CSS／JS／
+  map JSON 回應 200；實際 Chrome 載入 16 regions、模擬進至 step 1、
+  無水平 overflow，Console warning／error 0。
 
 ### 效能量測
 
@@ -101,8 +112,8 @@ success/ocean 13.91:1，均高於一般文字 4.5:1。
 | COMP-EDGE-001 | Edge 實機 smoke | 無環境 | not_verified |
 | COMP-IPAD-001 | iPadOS Safari 實機與效能 | 無環境 | not_verified |
 | DEPLOY-ARTIFACT-001 | 窄化且乾淨的 Pages artifact | build／artifact test | passed |
-| CI-PAGES-001 | 測試、build、deploy 分離且最小權限 | workflow unit inspection | passed_locally |
-| RELEASE-PUBLIC-001 | Actions、Pages、正式 URL 驗證 | 等待外部授權 | not_run |
+| CI-PAGES-001 | 測試、build、deploy 分離且最小權限 | workflow inspection、run `30556910585` | passed |
+| RELEASE-PUBLIC-001 | Actions、Pages、正式 URL 驗證 | run `30556910585`、deployment `5677601892`、公開 Chrome smoke | passed |
 
 Phase 2：
 
