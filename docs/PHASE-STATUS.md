@@ -15,7 +15,7 @@
 | 5 | approved | `phase/05-land-rain` | `131f891` | `0e1e0af` | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
-| 8 | approved | `phase/08-sandbox-export` | `c831f13` | `(本次批准紀錄 commit)` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
+| 8 | approved | `phase/08-sandbox-export` | `c831f13` | `8642956` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
 | 9 | in_progress | `phase/09-release` |  |  | not_run |  |  |  |  |
 | 10 | pending |  |  |  | not_run |  |  |  |  |
 
