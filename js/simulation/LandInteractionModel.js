@@ -145,8 +145,9 @@ export class LandInteractionModel {
   #seaRecoveryHours;
   #seaReentryCount = 0;
   #transitionSequence = 0;
+  #terrainMultiplier;
 
-  constructor({ eventBus = null } = {}) {
+  constructor({ eventBus = null, terrainMultiplier = 1 } = {}) {
     if (
       eventBus !== null &&
       (typeof eventBus.emit !== "function" ||
@@ -155,7 +156,16 @@ export class LandInteractionModel {
       throw new TypeError("LandInteractionModel eventBus is invalid.");
     }
 
+    if (
+      !Number.isFinite(terrainMultiplier) ||
+      terrainMultiplier < 0 ||
+      terrainMultiplier > 2
+    ) {
+      throw new RangeError("terrainMultiplier must be between 0 and 2.");
+    }
+
     this.#eventBus = eventBus;
+    this.#terrainMultiplier = terrainMultiplier;
     this.#seaRecoveryHours =
       PROJECT_CONFIG.landInteractionConfig.reorganizationDelayHours;
   }
@@ -259,7 +269,8 @@ export class LandInteractionModel {
           ? PROJECT_CONFIG.environmentConfig.roughnessOcean
           : roughnessDistance / landDistanceKm;
     const terrainSeverity = clamp(
-      terrainHeight / config.centralMountainHeight,
+      (terrainHeight / config.centralMountainHeight) *
+        this.#terrainMultiplier,
       0,
       1
     );

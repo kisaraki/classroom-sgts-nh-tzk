@@ -38,11 +38,11 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 07</p>
+        <p class="phase-badge">SGTS-NH · Phase 08</p>
         <h2 id="control-title">關卡控制</h2>
         <p class="panel-copy">
-          以環境目標引導初始擾動完成關卡；控制具有反應延遲，UI 不會
-          直接修改路徑、強度或測站數值。
+          選擇資料驅動關卡，或在無勝敗沙盒中設定初始環境並匯出結果。
+          所有控制仍具有反應延遲。
         </p>
 
         <label class="level-picker" for="level-select">
@@ -51,8 +51,34 @@
             <option value="naha-storm">01｜那霸風雨</option>
             <option value="mountain-shield">02｜護國神山</option>
             <option value="wayne-three-entries">03｜韋恩三進</option>
+            <option value="sandbox">04｜沙盒實驗室</option>
           </select>
         </label>
+
+        <details id="sandbox-settings" class="sandbox-settings" hidden>
+          <summary>沙盒初始設定</summary>
+          <div class="sandbox-grid">
+            <label>名稱<input data-sandbox-field="name" type="text" maxlength="48"></label>
+            <label>種子<input data-sandbox-field="seed" type="text" maxlength="128"></label>
+            <label>緯度 °N<input data-sandbox-field="lat" type="number" min="0" max="40" step="0.1"></label>
+            <label>經度 °E<input data-sandbox-field="lon" type="number" min="100" max="160" step="0.1"></label>
+            <label>初始風速 m/s<input data-sandbox-field="maxWind" type="number" min="5" max="85" step="1"></label>
+            <label>中心氣壓 hPa<input data-sandbox-field="centralPressure" type="number" min="880" max="1010" step="1"></label>
+            <label>組織度<input data-sandbox-field="organization" type="number" min="0" max="1" step="0.05"></label>
+            <label>對稱度<input data-sandbox-field="symmetry" type="number" min="0" max="1" step="0.05"></label>
+            <label>風暴水氣<input data-sandbox-field="moisture" type="number" min="0" max="1" step="0.05"></label>
+            <label>SST °C<input data-sandbox-field="seaSurfaceTemperature" type="number" min="24" max="34" step="0.5"></label>
+            <label>OHC<input data-sandbox-field="oceanHeatContent" type="number" min="0.2" max="1" step="0.05"></label>
+            <label>地形倍率<input data-sandbox-field="terrainMultiplier" type="number" min="0" max="2" step="0.1"></label>
+            <label>副高強度<input data-sandbox-field="subtropicalHighIntensity" type="number" min="0" max="1" step="0.05"></label>
+            <label>副高西界 °E<input data-sandbox-field="subtropicalHighWestwardExtent" type="number" min="112" max="150" step="1"></label>
+            <label>副高脊線 °N<input data-sandbox-field="subtropicalHighRidgeLatitude" type="number" min="20" max="34" step="1"></label>
+            <label>垂直風切 m/s<input data-sandbox-field="verticalWindShear" type="number" min="0" max="30" step="1"></label>
+            <label>西南季風<input data-sandbox-field="southwestMonsoonIntensity" type="number" min="0" max="1" step="0.05"></label>
+            <label>季風水氣<input data-sandbox-field="southwestMonsoonMoisture" type="number" min="0.5" max="0.95" step="0.05"></label>
+          </div>
+          <button id="apply-sandbox-button" type="button">套用並儲存沙盒設定</button>
+        </details>
 
         <div class="control-stack">
           <button id="start-button" class="primary-button" type="button">
@@ -199,13 +225,38 @@
           <span>顯示視覺粒子（不參與物理）</span>
         </label>
 
+        <fieldset class="layer-controls">
+          <legend>圖層切換</legend>
+          <label><input id="environment-layer" type="checkbox" checked>環境場</label>
+          <label><input id="track-layer" type="checkbox" checked>軌跡</label>
+          <label><input id="targets-layer" type="checkbox" checked>目標／警戒圈</label>
+        </fieldset>
+
+        <section class="export-panel" aria-labelledby="export-title">
+          <h3 id="export-title">儲存、匯入與匯出</h3>
+          <div class="export-actions">
+            <button type="button" data-export="csv">軌跡 CSV</button>
+            <button type="button" data-export="simulation-json">模擬 JSON</button>
+            <button type="button" data-export="preset-json">沙盒設定 JSON</button>
+            <button type="button" data-export="png">Canvas PNG</button>
+            <button type="button" data-export="summary">摘要文字</button>
+          </div>
+          <label class="import-picker">
+            匯入 JSON
+            <input id="import-json" type="file" accept="application/json,.json">
+          </label>
+          <p id="io-status" role="status" aria-live="polite">
+            匯出包含版本、種子、操作紀錄及 build commit。
+          </p>
+        </section>
+
         <div id="app-error" class="error-message" role="alert" hidden></div>
 
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
           <p>
-            三關共用同一套正式模擬、目標與失敗判定管線；警戒圈僅供
-            科學教育，不代表官方警報或預報。
+            沙盒沒有勝敗；localStorage 不保存敏感個資。所有輸出僅供
+            科學教育，Not for Forecasting。
           </p>
         </aside>
       </section>
@@ -232,7 +283,7 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 07 關卡地圖；點選或觸控以查詢位置"
+            aria-label="Phase 08 關卡與沙盒地圖；點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"

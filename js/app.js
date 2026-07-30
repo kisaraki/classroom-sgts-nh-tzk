@@ -16,10 +16,29 @@ import {
   NAHA_STORM_LEVEL,
   getLevelById
 } from "./data/levels.js";
+import {
+  DEFAULT_SANDBOX_PRESET,
+  createSandboxLevel,
+  validateSandboxPreset
+} from "./data/sandbox.js";
 import { getTerrainProfile } from "./data/terrain.js";
+import {
+  createPngBlob,
+  createSandboxPresetExport,
+  createSimulationExport,
+  createSimulationSummary,
+  createTrackCsv,
+  downloadBlob,
+  textBlob,
+  validateImportPackage
+} from "./io/SimulationIO.js";
 import { createEnvironmentGrid } from "./model/Environment.js";
 import { LevelState } from "./model/LevelState.js";
 import { Typhoon } from "./model/Typhoon.js";
+import {
+  StorageManager,
+  createDefaultStorageRecord
+} from "./persistence/StorageManager.js";
 import { CanvasRenderer } from "./rendering/CanvasRenderer.js";
 import {
   IntensityModel,
@@ -58,6 +77,7 @@ const createLevelSession = (
   {
     eventBus = null,
     level = NAHA_STORM_LEVEL,
+    sandboxPreset = null,
     targetControls = level.environmentPreset
   } = {}
 ) => {
@@ -67,11 +87,17 @@ const createLevelSession = (
     eventHistory: [],
     id: `${level.id}-cyclone`,
     isOverLand: false,
-    name: "KOSMOS-06",
+    name: sandboxPreset?.name ?? "KOSMOS-06",
     trackHistory: []
   });
   const randomStreams = createRandomStreams(level.seed);
   const environment = createEnvironmentGrid({
+    baseOceanHeatContent:
+      sandboxPreset?.oceanHeatContent ??
+      PROJECT_CONFIG.environmentConfig.baseOceanHeatContent,
+    baseSeaSurfaceTemperature:
+      sandboxPreset?.seaSurfaceTemperature ??
+      PROJECT_CONFIG.environmentConfig.baseSeaSurfaceTemperature,
     controls: level.environmentPreset,
     isLandAt: (point) => Boolean(mapData && findLandRegion(point, mapData)),
     random: randomStreams.environment,
@@ -90,7 +116,10 @@ const createLevelSession = (
     random: randomStreams.steering,
     seed: level.seed
   });
-  const landInteractionModel = new LandInteractionModel({ eventBus });
+  const landInteractionModel = new LandInteractionModel({
+    eventBus,
+    terrainMultiplier: sandboxPreset?.terrainMultiplier ?? 1
+  });
   const oceanCoolingModel = new OceanCoolingModel({
     coolingMultiplier: level.oceanCoolingMultiplier
   });
@@ -157,6 +186,7 @@ const createLevelSession = (
     oceanCoolingModel,
     oceanDiagnostic,
     randomStreams,
+    sandboxPreset,
     steeringDiagnostic: Object.freeze({
       actualVector: Object.freeze({
         u: Math.sin(headingRadians) * initialSpeedMps,
@@ -171,6 +201,7 @@ const createLevelSession = (
 
 const bootstrap = async () => {
   const elements = {
+    applySandboxButton: requireElement("#apply-sandbox-button"),
     canvas: requireElement("#simulation-canvas"),
     centerColdWake: requireElement("#center-cold-wake"),
     currentSpeed: requireElement("#current-speed"),
@@ -179,9 +210,12 @@ const bootstrap = async () => {
     error: requireElement("#app-error"),
     fps: requireElement("#fps-readout"),
     environmentControls: requireElement("#environment-controls"),
+    environmentLayer: requireElement("#environment-layer"),
     environmentGridStatus: requireElement("#environment-grid-status"),
     levelDashboard: requireElement("#level-dashboard"),
     levelSelect: requireElement("#level-select"),
+    importJson: requireElement("#import-json"),
+    ioStatus: requireElement("#io-status"),
     mapDataStatus: requireElement("#map-data-status"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
@@ -192,9 +226,14 @@ const bootstrap = async () => {
     resultDialog: requireElement("#result-dialog"),
     simulationTime: requireElement("#sim-time"),
     speedButtons: [...document.querySelectorAll("[data-speed]")],
+    sandboxFields: [
+      ...document.querySelectorAll("[data-sandbox-field]")
+    ],
+    sandboxSettings: requireElement("#sandbox-settings"),
     startButton: requireElement("#start-button"),
     stepCount: requireElement("#step-count"),
     stormFingerprint: requireElement("#storm-fingerprint"),
+    stormDashboardTitle: requireElement("#storm-dashboard-title"),
     stormSurface: requireElement("#storm-surface"),
     stormMotion: requireElement("#storm-motion"),
     stormOrganization: requireElement("#storm-organization"),
@@ -210,9 +249,12 @@ const bootstrap = async () => {
     terrainRecovery: requireElement("#terrain-recovery"),
     terrainZone: requireElement("#terrain-zone"),
     tutorial: requireElement("#tutorial-panel"),
+    targetsLayer: requireElement("#targets-layer"),
     targetWind: requireElement("#target-wind"),
     updateCount: requireElement("#update-count"),
-    visibility: requireElement("#visibility-status")
+    visibility: requireElement("#visibility-status"),
+    trackLayer: requireElement("#track-layer"),
+    exportButtons: [...document.querySelectorAll("[data-export]")]
   };
   const factorElements = Object.fromEntries(
     [
@@ -233,10 +275,26 @@ const bootstrap = async () => {
     throw new Error("Simulation speed controls are incomplete.");
   }
 
-  if (elements.levelSelect.options.length !== LEVELS.length) {
+  if (elements.levelSelect.options.length !== LEVELS.length + 1) {
     throw new Error("Level selector is incomplete.");
   }
 
+  if (elements.sandboxFields.length !== 18) {
+    throw new Error("Sandbox settings are incomplete.");
+  }
+
+  const storageManager = new StorageManager(window.localStorage);
+  let storageRecord;
+
+  try {
+    storageRecord = storageManager.load();
+  } catch {
+    storageRecord = Object.freeze(createDefaultStorageRecord());
+  }
+
+  let sandboxPreset = validateSandboxPreset(
+    storageRecord.lastSandboxPreset ?? DEFAULT_SANDBOX_PRESET
+  );
   const canvasRenderer = new CanvasRenderer(elements.canvas);
   const eventBus = new EventBus();
   let activeLevel = NAHA_STORM_LEVEL;
@@ -246,6 +304,7 @@ const bootstrap = async () => {
   let mapData = null;
   let mapReady = false;
   let updateCount = 0;
+  let importedReplay = null;
   const stationElements = new Map();
   const dashboard = new Dashboard(elements.levelDashboard, {
     level: activeLevel
@@ -253,6 +312,50 @@ const bootstrap = async () => {
   const tutorial = new Tutorial(elements.tutorial, {
     level: activeLevel
   });
+
+  const saveStorage = (overrides = {}) => {
+    const next = { ...storageRecord, ...overrides };
+
+    try {
+      storageRecord = storageManager.save(next);
+    } catch {
+      storageRecord = Object.freeze(next);
+    }
+    return storageRecord;
+  };
+
+  const writeSandboxFields = (preset) => {
+    for (const input of elements.sandboxFields) {
+      input.value = String(preset[input.dataset.sandboxField]);
+    }
+  };
+
+  const readSandboxFields = () =>
+    validateSandboxPreset(
+      Object.fromEntries(
+        elements.sandboxFields.map((input) => [
+          input.dataset.sandboxField,
+          input.type === "number" ? input.valueAsNumber : input.value
+        ])
+      )
+    );
+
+  const applyStoredSettings = () => {
+    const settings = storageRecord.settings;
+    elements.particlesEnabled.checked = settings.particlesEnabled;
+    elements.environmentLayer.checked = settings.environmentLayer;
+    elements.trackLayer.checked = settings.trackLayer;
+    elements.targetsLayer.checked = settings.targetsLayer;
+    canvasRenderer.setParticlesEnabled(settings.particlesEnabled);
+    canvasRenderer.setLayers({
+      environment: settings.environmentLayer,
+      targets: settings.targetsLayer,
+      track: settings.trackLayer
+    });
+  };
+
+  writeSandboxFields(sandboxPreset);
+  applyStoredSettings();
 
   const ensureStationElements = () => {
     for (const observation of session.observations) {
@@ -294,6 +397,15 @@ const bootstrap = async () => {
         `地形 ×${station.terrainCorrection.toFixed(2)}`;
     }
   };
+
+  const createActiveSession = ({ targetControls } = {}) =>
+    createLevelSession(mapData, {
+      eventBus,
+      level: activeLevel,
+      sandboxPreset:
+        activeLevel.id === "sandbox" ? sandboxPreset : null,
+      targetControls: targetControls ?? activeLevel.environmentPreset
+    });
 
   const clock = new SimulationClock({
     maxCatchUpSteps: PROJECT_CONFIG.simulation.maxCatchUpSteps,
@@ -374,6 +486,8 @@ const bootstrap = async () => {
       ![GameState.MENU, GameState.TUTORIAL].includes(state);
     elements.levelSelect.disabled =
       ![GameState.MENU, GameState.TUTORIAL].includes(state);
+    elements.applySandboxButton.disabled =
+      ![GameState.MENU, GameState.TUTORIAL].includes(state);
     elements.pauseButton.disabled = ![
       GameState.RUNNING,
       GameState.PAUSED
@@ -409,6 +523,20 @@ const bootstrap = async () => {
     render,
     update: (step) => {
       updateCount += 1;
+
+      for (const operation of importedReplay?.operations ?? []) {
+        if (operation.stepIndex === step.stepIndex) {
+          session.environment.setTargetControl(
+            operation.control,
+            operation.value
+          );
+          session.levelState.recordControlOperation({
+            ...operation,
+            simulationMinutes: step.simulationMinutes
+          });
+        }
+      }
+
       session.environment.update(step.stepMinutes);
       const steeringCell = session.environment.sampleAt(session.typhoon);
       session.steeringDiagnostic = session.steeringModel.step({
@@ -490,15 +618,20 @@ const bootstrap = async () => {
         stepIndex: step.stepIndex,
         typhoon: session.typhoon
       });
-      const objectiveResult = session.objectiveEvaluator.evaluate({
-        context: levelContext,
-        levelState: session.levelState
-      });
-      const failureResult = session.failureEvaluator.evaluate({
-        context: levelContext,
-        levelState: session.levelState
-      });
-      session.fingerprint = createFingerprint({
+      const isSandbox = session.level.id === "sandbox";
+      const objectiveResult = isSandbox
+        ? { allRequiredCompleted: false, newlyCompleted: [] }
+        : session.objectiveEvaluator.evaluate({
+          context: levelContext,
+          levelState: session.levelState
+        });
+      const failureResult = isSandbox
+        ? { anyTriggered: false, newlyTriggered: [] }
+        : session.failureEvaluator.evaluate({
+          context: levelContext,
+          levelState: session.levelState
+        });
+      const fingerprintPayload = {
         intensity: result.fingerprint,
         land: session.landInteractionModel.snapshot(),
         level: session.levelState.snapshot(),
@@ -506,7 +639,13 @@ const bootstrap = async () => {
         ocean: session.oceanDiagnostic,
         steering: session.steeringDiagnostic.fingerprint,
         typhoonEvents: session.typhoon.eventHistory
-      });
+      };
+
+      if (isSandbox) {
+        fingerprintPayload.sandboxPreset = session.sandboxPreset;
+      }
+
+      session.fingerprint = createFingerprint(fingerprintPayload);
 
       if (failureResult.anyTriggered) {
         const failureId = failureResult.newlyTriggered[0];
@@ -533,11 +672,36 @@ const bootstrap = async () => {
           stepIndex: step.stepIndex,
           typhoon: session.typhoon
         });
+        saveStorage({
+          bestScores: {
+            ...storageRecord.bestScores,
+            [session.level.id]: Math.max(
+              storageRecord.bestScores[session.level.id] ?? 0,
+              levelResult.score.total
+            )
+          },
+          unlockedLevels: [
+            ...new Set([
+              ...storageRecord.unlockedLevels,
+              session.level.id
+            ])
+          ]
+        });
         engine.completeLevel({
           levelId: session.level.id,
           score: levelResult.score.total
         });
         resultDialog?.open(levelResult, session.level);
+      } else if (
+        importedReplay &&
+        importedReplay.targetStep === step.stepIndex
+      ) {
+        engine.pauseSimulation();
+        const matches =
+          importedReplay.expectedFingerprint === session.fingerprint;
+        elements.ioStatus.textContent = matches
+          ? `重播完成：fingerprint ${session.fingerprint} 一致。`
+          : `重播完成，但 fingerprint 不一致：${session.fingerprint}。`;
       }
     }
   });
@@ -598,14 +762,27 @@ const bootstrap = async () => {
     canvasRenderer.setEnvironment(session.environment);
     canvasRenderer.setObservations(session.observations);
     canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
-    elements.startButton.textContent = `開始「${session.level.title}」`;
+    const isSandbox = session.level.id === "sandbox";
+    elements.startButton.textContent = isSandbox
+      ? "啟動沙盒實驗"
+      : `開始「${session.level.title}」`;
+    elements.stormDashboardTitle.textContent =
+      `${session.typhoon.name} ${isSandbox ? "沙盒風暴" : "關卡颱風"}`;
+    elements.sandboxSettings.hidden = !isSandbox;
+    elements.sandboxSettings.open = isSandbox;
+    elements.applySandboxButton.disabled = ![
+      GameState.MENU,
+      GameState.TUTORIAL
+    ].includes(engine.state);
     elements.levelDashboard.setAttribute(
       "aria-label",
-      `${session.level.title}目標`
+      isSandbox
+        ? "沙盒模式，沒有勝敗目標"
+        : `${session.level.title}目標`
     );
     elements.canvas.setAttribute(
       "aria-label",
-      `Phase 07「${session.level.title}」關卡地圖；點選或觸控以查詢位置`
+      `Phase 08「${session.level.title}」地圖；點選或觸控以查詢位置`
     );
   };
 
@@ -613,10 +790,8 @@ const bootstrap = async () => {
     elements.error.hidden = true;
     updateCount = 0;
     eventBus.reset();
-    session = createLevelSession(mapData, {
-      eventBus,
-      level: activeLevel
-    });
+    session = createActiveSession();
+    importedReplay = null;
     resultDialog?.reset();
     tutorial.reset();
     applySessionToView();
@@ -637,11 +812,7 @@ const bootstrap = async () => {
       const targetControls = { ...session.environment.targetControls };
       const pendingOperations = [...session.levelState.controlOperations];
       eventBus.reset();
-      session = createLevelSession(mapData, {
-        eventBus,
-        level: activeLevel,
-        targetControls
-      });
+      session = createActiveSession({ targetControls });
 
       for (const operation of pendingOperations) {
         session.levelState.recordControlOperation({
@@ -652,8 +823,22 @@ const bootstrap = async () => {
         });
       }
 
+      for (const operation of importedReplay?.operations ?? []) {
+        if (operation.stepIndex === 0) {
+          session.environment.setTargetControl(
+            operation.control,
+            operation.value
+          );
+          session.levelState.recordControlOperation({
+            ...operation,
+            simulationMinutes: 0
+          });
+        }
+      }
+
       resultDialog.reset();
       tutorial.reset();
+      saveStorage({ tutorialCompleted: true });
       applySessionToView();
       engine.startSimulation();
     } catch (error) {
@@ -683,7 +868,9 @@ const bootstrap = async () => {
 
   elements.levelSelect.addEventListener("change", () => {
     try {
-      const level = getLevelById(elements.levelSelect.value);
+      const level = elements.levelSelect.value === "sandbox"
+        ? createSandboxLevel(sandboxPreset)
+        : getLevelById(elements.levelSelect.value);
 
       if (!level) {
         throw new Error(`未知關卡：${elements.levelSelect.value}`);
@@ -691,10 +878,8 @@ const bootstrap = async () => {
 
       activeLevel = level;
       eventBus.reset();
-      session = createLevelSession(mapData, {
-        eventBus,
-        level: activeLevel
-      });
+      session = createActiveSession();
+      importedReplay = null;
       dashboard.setLevel(activeLevel);
       tutorial.setLevel(activeLevel);
       resultDialog.reset();
@@ -712,7 +897,11 @@ const bootstrap = async () => {
   for (const button of elements.speedButtons) {
     button.addEventListener("click", () => {
       try {
-        engine.setSpeed(Number(button.dataset.speed));
+        const speed = Number(button.dataset.speed);
+        engine.setSpeed(speed);
+        saveStorage({
+          settings: { ...storageRecord.settings, speed }
+        });
       } catch (error) {
         handleError(error);
       }
@@ -721,6 +910,214 @@ const bootstrap = async () => {
 
   elements.particlesEnabled.addEventListener("change", () => {
     canvasRenderer.setParticlesEnabled(elements.particlesEnabled.checked);
+    saveStorage({
+      settings: {
+        ...storageRecord.settings,
+        particlesEnabled: elements.particlesEnabled.checked
+      }
+    });
+  });
+
+  const updateLayers = () => {
+    const layers = {
+      environment: elements.environmentLayer.checked,
+      targets: elements.targetsLayer.checked,
+      track: elements.trackLayer.checked
+    };
+    canvasRenderer.setLayers(layers);
+    saveStorage({
+      settings: {
+        ...storageRecord.settings,
+        environmentLayer: layers.environment,
+        targetsLayer: layers.targets,
+        trackLayer: layers.track
+      }
+    });
+  };
+
+  for (const input of [
+    elements.environmentLayer,
+    elements.targetsLayer,
+    elements.trackLayer
+  ]) {
+    input.addEventListener("change", updateLayers);
+  }
+
+  elements.applySandboxButton.addEventListener("click", () => {
+    try {
+      if (
+        ![GameState.MENU, GameState.TUTORIAL].includes(engine.state)
+      ) {
+        throw new Error("請先重啟回到選單，再套用沙盒設定。");
+      }
+
+      sandboxPreset = readSandboxFields();
+      saveStorage({ lastSandboxPreset: { ...sandboxPreset } });
+      activeLevel = createSandboxLevel(sandboxPreset);
+      elements.levelSelect.value = "sandbox";
+      eventBus.reset();
+      session = createActiveSession();
+      importedReplay = null;
+      dashboard.setLevel(activeLevel);
+      tutorial.setLevel(activeLevel);
+      resultDialog.reset();
+      updateCount = 0;
+      applySessionToView();
+      engine.resetSimulation({
+        emitLevelRestarted: false,
+        levelId: activeLevel.id
+      });
+      elements.ioStatus.textContent = "沙盒設定已驗證、儲存並套用。";
+    } catch (error) {
+      elements.ioStatus.textContent =
+        `沙盒設定錯誤：${error instanceof Error ? error.message : error}`;
+    }
+  });
+
+  const currentSimulationExport = () =>
+    createSimulationExport({
+      environmentTargets: session.environment.targetControls,
+      fingerprint: session.fingerprint,
+      levelId: session.level.id,
+      mode: session.level.id === "sandbox" ? "sandbox" : "level",
+      observations: session.observations,
+      operations: session.levelState.controlOperations,
+      sandboxPreset:
+        session.level.id === "sandbox" ? sandboxPreset : null,
+      seed: session.level.seed,
+      simulationMinutes: clock.simulationMinutes,
+      stepIndex: clock.stepIndex,
+      storm: session.typhoon
+    });
+
+  const exportArtifact = async (kind) => {
+    const baseName =
+      `sgts-nh-${session.level.id}-step-${clock.stepIndex}`;
+
+    if (kind === "csv") {
+      downloadBlob(
+        textBlob(
+          createTrackCsv({
+            name: session.typhoon.name,
+            track: session.typhoon.trackHistory
+          }),
+          "text/csv"
+        ),
+        `${baseName}-track.csv`
+      );
+    } else if (kind === "simulation-json") {
+      downloadBlob(
+        textBlob(
+          JSON.stringify(currentSimulationExport(), null, 2),
+          "application/json"
+        ),
+        `${baseName}-simulation.json`
+      );
+    } else if (kind === "preset-json") {
+      downloadBlob(
+        textBlob(
+          JSON.stringify(createSandboxPresetExport(sandboxPreset), null, 2),
+          "application/json"
+        ),
+        "sgts-nh-sandbox-preset.json"
+      );
+    } else if (kind === "png") {
+      downloadBlob(
+        await createPngBlob(elements.canvas, {
+          name: session.typhoon.name,
+          simulationMinutes: clock.simulationMinutes
+        }),
+        `${baseName}.png`
+      );
+    } else if (kind === "summary") {
+      downloadBlob(
+        textBlob(
+          createSimulationSummary({
+            fingerprint: session.fingerprint,
+            levelTitle: session.level.title,
+            simulationMinutes: clock.simulationMinutes,
+            storm: session.typhoon
+          }),
+          "text/plain"
+        ),
+        `${baseName}-summary.txt`
+      );
+    } else {
+      throw new Error(`未知匯出格式：${kind}`);
+    }
+
+    elements.ioStatus.textContent = `已建立 ${kind} 匯出。`;
+  };
+
+  for (const button of elements.exportButtons) {
+    button.addEventListener("click", () => {
+      exportArtifact(button.dataset.export).catch((error) => {
+        elements.ioStatus.textContent =
+          `匯出失敗：${error instanceof Error ? error.message : error}`;
+      });
+    });
+  }
+
+  elements.importJson.addEventListener("change", async () => {
+    try {
+      const file = elements.importJson.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      const imported = validateImportPackage(await file.text());
+
+      if (imported.exportType === "sandbox-preset") {
+        sandboxPreset = imported.preset;
+        importedReplay = null;
+      } else {
+        if (imported.mode === "sandbox") {
+          sandboxPreset = imported.sandboxPreset;
+        }
+
+        const importedLevel = imported.mode === "sandbox"
+          ? createSandboxLevel(sandboxPreset)
+          : getLevelById(imported.levelId);
+
+        if (!importedLevel || importedLevel.seed !== imported.seed) {
+          throw new Error("匯入種子或關卡與目前版本不相容。");
+        }
+
+        activeLevel = importedLevel;
+        importedReplay = {
+          expectedFingerprint: imported.simulation.fingerprint,
+          operations: imported.operations,
+          targetStep: imported.simulation.stepIndex
+        };
+      }
+
+      saveStorage({ lastSandboxPreset: { ...sandboxPreset } });
+      writeSandboxFields(sandboxPreset);
+      activeLevel = imported.exportType === "sandbox-preset"
+        ? createSandboxLevel(sandboxPreset)
+        : activeLevel;
+      elements.levelSelect.value = activeLevel.id;
+      eventBus.reset();
+      session = createActiveSession();
+      dashboard.setLevel(activeLevel);
+      tutorial.setLevel(activeLevel);
+      resultDialog.reset();
+      updateCount = 0;
+      applySessionToView();
+      engine.resetSimulation({
+        emitLevelRestarted: false,
+        levelId: activeLevel.id
+      });
+      elements.ioStatus.textContent = importedReplay
+        ? `模擬 JSON 已驗證；開始後將重播至 step ${importedReplay.targetStep}。`
+        : "沙盒設定 JSON 已驗證並載入。";
+    } catch (error) {
+      elements.ioStatus.textContent =
+        `匯入失敗：${error instanceof Error ? error.message : error}`;
+    } finally {
+      elements.importJson.value = "";
+    }
   });
 
   elements.canvas.addEventListener("pointerup", (event) => {
@@ -768,14 +1165,13 @@ const bootstrap = async () => {
   canvasRenderer.setObservations(session.observations);
   canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
   canvasRenderer.setParticlesEnabled(elements.particlesEnabled.checked);
+  engine.setSpeed(storageRecord.settings.speed);
   engine.boot();
 
   try {
     mapData = await loadGeography();
     canvasRenderer.setGeography(mapData);
-    session = createLevelSession(mapData, {
-      eventBus,
-      level: activeLevel,
+    session = createActiveSession({
       targetControls: session.level.environmentPreset
     });
     applySessionToView();

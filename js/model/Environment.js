@@ -2,6 +2,7 @@ import { PROJECT_CONFIG } from "../config.js";
 import { clamp, lerp, smoothstep } from "../utils/math.js";
 import {
   assertExactObjectKeys,
+  assertFiniteNumber,
   assertPositiveNumber
 } from "../utils/validation.js";
 import { GridCell } from "./GridCell.js";
@@ -382,6 +383,9 @@ export class Environment {
 }
 
 export const createEnvironmentGrid = ({
+  baseOceanHeatContent = PROJECT_CONFIG.environmentConfig.baseOceanHeatContent,
+  baseSeaSurfaceTemperature =
+    PROJECT_CONFIG.environmentConfig.baseSeaSurfaceTemperature,
   controls = {},
   isLandAt = () => false,
   random,
@@ -400,6 +404,19 @@ export const createEnvironmentGrid = ({
     throw new TypeError("terrainAt must be a function.");
   }
 
+  assertFiniteNumber(baseOceanHeatContent, "baseOceanHeatContent");
+  assertFiniteNumber(baseSeaSurfaceTemperature, "baseSeaSurfaceTemperature");
+
+  if (baseOceanHeatContent < 0.2 || baseOceanHeatContent > 1) {
+    throw new RangeError("baseOceanHeatContent must be between 0.2 and 1.");
+  }
+
+  if (baseSeaSurfaceTemperature < 24 || baseSeaSurfaceTemperature > 34) {
+    throw new RangeError(
+      "baseSeaSurfaceTemperature must be between 24 and 34."
+    );
+  }
+
   const config = PROJECT_CONFIG.environmentConfig;
   const bounds = PROJECT_CONFIG.geography.bounds;
   const resolution = PROJECT_CONFIG.geography.gridResolutionDegrees;
@@ -414,13 +431,13 @@ export const createEnvironmentGrid = ({
       cells.push(
         new GridCell({
           OHC: clamp(
-            config.baseOceanHeatContent -
+            baseOceanHeatContent -
               Math.abs(lat - 15) * config.latitudeOceanHeatLoss,
             config.oceanHeatContentMinimum,
             1
           ),
           SST: clamp(
-            config.baseSeaSurfaceTemperature -
+            baseSeaSurfaceTemperature -
               Math.max(0, lat - 15) * config.latitudeTemperatureLoss,
             config.seaSurfaceTemperatureMinimum,
             40

@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～7 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～8 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -85,6 +85,15 @@ Phase 7：
 - `test:e2e` 驗證三關選擇器、全新 session、動態關卡 UI、警戒圈呈現及
   更新後的那霸黃金勝利。
 
+Phase 8：
+
+- `test:unit` 驗證沙盒 preset、SST／OHC、localStorage schema／回復／
+  migration、安全 JSON、CSV 注入防護、PNG footer 與摘要 metadata。
+- `test:integration` 將正式沙盒模擬匯出、重新匯入，再以相同 seed 與
+  step 操作重播至相同 track 與 fingerprint。
+- `test:e2e` 驗證沙盒無勝敗、設定套用、localStorage 重新整理恢復、
+  圖層、倍速、完整重設、CSV／JSON／PNG 下載及合法／非法 JSON 匯入。
+
 ## Phase 0 需求追蹤
 
 | Requirement ID | 需求 | Phase | 測試／證據 | 狀態 |
@@ -114,6 +123,41 @@ Phase 7：
 | UI-TOUCH-001 | 觸控目標至少 44 px | Chrome E2E | passed |
 | DEPLOY-PAGES-001 | 相對路徑及 Pages 子路徑 | foundation／integration／E2E | passed |
 | CI-TEST-001 | 最小權限 test workflow 定義 | `workflow.test.js` | passed locally |
+
+## Phase 8 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| SBX-PRESET-001 | 生成、風壓、結構、SST、OHC、環境、地形與 seed 設定 | unit／Chrome／Browser | passed |
+| SBX-NO-END-001 | 沙盒不設勝敗並沿用正式物理管線 | unit／integration／Chrome | passed |
+| SBX-CONTROL-001 | 暫停、倍速、重啟、圖層及環境檢視 | Chrome／Browser | passed |
+| STORE-V1-001 | 固定 localStorage v1 schema 與重新整理恢復 | unit／Chrome | passed |
+| STORE-SAFE-001 | 損壞資料安全回復及 migration 入口 | unit | passed |
+| STORE-PRIVACY-001 | 不保存敏感個資 | schema／code inspection | passed |
+| IO-CSV-001 | 完整軌跡欄位及試算表公式注入防護 | unit／Chrome | passed |
+| IO-JSON-001 | 模擬／preset JSON 匯出後可驗證匯入 | unit／integration／Chrome | passed |
+| IO-SAFE-001 | 拒絕非法、過大、過深、未知及原型污染欄位 | unit／Chrome | passed |
+| IO-PNG-001 | PNG 含原 Canvas、名稱、時間、品牌及預報免責 | unit／Chrome | passed |
+| IO-TRACE-001 | seed、操作、schema、model、PRNG、build commit 完整 | unit／integration | passed |
+| IO-REPLAY-001 | 相同 seed 與操作重現 track／fingerprint | integration | passed |
+| SBX-RESET-001 | 關卡與沙盒切換建立全新 session | Chrome E2E | passed |
+| DEPLOY-PAGES-008 | 純靜態瀏覽器 API 與 Pages 子路徑 | integration／Chrome／Browser | passed |
+
+## Phase 8 實際結果
+
+- 完成日期：2026-07-30；精確完成時間記錄於 `PHASE-STATUS.md`。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- ESLint：以最終 `npm run check` 結果為準。
+- TypeScript：不適用；本專案目前為原生 ES Modules。
+- 單元測試：102 passed、0 failed。
+- 整合測試：6 passed、0 failed。
+- 情境測試：16 passed、0 failed。
+- 實際 Chrome E2E：12 passed、0 failed。
+- Codex in-app Browser：Pages 子路徑、1280 px、無水平 overflow；
+  沙盒欄位、無勝敗標示、圖層與匯出區可見，輸入欄桌面單欄可讀。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證；本階段只有本機 Pages 子路徑驗證。
 
 ## Phase 7 需求追蹤
 
@@ -152,11 +196,11 @@ Phase 7：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 7 狀態 | 說明 |
+| 環境 | Phase 8 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | Pages 子路徑；三關切換、韋恩警戒圈、目標與聲明可見 |
-| 實際 Chrome | passed | 150.0.7871.187；10 個 Playwright E2E、0 failed |
+| Codex in-app Browser | passed | Pages 子路徑；沙盒、無勝敗、設定、圖層與匯出 UI 可見；無水平 overflow |
+| 實際 Chrome | passed | 150.0.7871.187；12 個 Playwright E2E、0 failed |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |

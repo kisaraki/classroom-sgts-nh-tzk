@@ -24,6 +24,11 @@ export class CanvasRenderer {
   #environment = null;
   #geography = null;
   #level = null;
+  #layers = {
+    environment: true,
+    targets: true,
+    track: true
+  };
   #mapRenderer;
   #observations = [];
   #particleRenderer;
@@ -67,6 +72,21 @@ export class CanvasRenderer {
 
   setLevel(level) {
     this.#level = level;
+  }
+
+  setLayers(layers) {
+    const next = { ...this.#layers, ...layers };
+
+    for (const [name, enabled] of Object.entries(next)) {
+      if (
+        !["environment", "targets", "track"].includes(name) ||
+        typeof enabled !== "boolean"
+      ) {
+        throw new TypeError(`Invalid Canvas layer setting: ${name}.`);
+      }
+    }
+
+    this.#layers = next;
   }
 
   setSelection(selection) {
@@ -140,17 +160,19 @@ export class CanvasRenderer {
         width
       });
 
-      this.#fieldRenderer.drawOverlay({
-        bounds: MAP_BOUNDS,
-        context,
-        environment: this.#environment,
-        height,
-        observations: this.#observations,
-        padding: MAP_PADDING,
-        steeringDiagnostic: this.#steeringDiagnostic,
-        typhoon: this.#typhoon,
-        width
-      });
+      if (this.#layers.environment) {
+        this.#fieldRenderer.drawOverlay({
+          bounds: MAP_BOUNDS,
+          context,
+          environment: this.#environment,
+          height,
+          observations: this.#observations,
+          padding: MAP_PADDING,
+          steeringDiagnostic: this.#steeringDiagnostic,
+          typhoon: this.#typhoon,
+          width
+        });
+      }
 
       if (this.#typhoon) {
         const shared = {
@@ -161,20 +183,24 @@ export class CanvasRenderer {
           typhoon: this.#typhoon,
           width
         };
-        this.#trackRenderer.draw({
-          ...shared,
-          trackHistory: this.#typhoon.trackHistory
-        });
+        if (this.#layers.track) {
+          this.#trackRenderer.draw({
+            ...shared,
+            trackHistory: this.#typhoon.trackHistory
+          });
+        }
         this.#typhoonRenderer.draw(shared);
         this.#particleRenderer.draw({
           ...shared,
           simulationMinutes
         });
-        this.#mapRenderer.drawTargets({
-          ...shared,
-          level: this.#level,
-          stations: this.#stations
-        });
+        if (this.#layers.targets) {
+          this.#mapRenderer.drawTargets({
+            ...shared,
+            level: this.#level,
+            stations: this.#stations
+          });
+        }
       }
     } else {
       context.fillStyle = "#d9f9ff";

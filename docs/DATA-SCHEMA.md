@@ -10,9 +10,8 @@
 - PRNG 演算法版本：`mulberry32-v1`。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 7 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
-海陸事件、地形分區、三關 Level 與警戒區事件的執行期契約。
-儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
+Phase 8 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
+海陸事件、三關 Level、沙盒 preset、localStorage v1 與匯入匯出契約。
 
 ## 第一版單位字典
 
@@ -231,6 +230,18 @@ metric、operator 與 aggregation 均為 enum；不得加入函式、任意屬�
 
 重啟不遷移舊 instance 的可變狀態，而是建立全新 `LevelState` 與模型
 session。
+
+## `SandboxPreset`、儲存與匯出
+
+`SandboxPreset` 固定 18 欄，涵蓋名稱、種子、生成座標、風壓、組織／
+對稱／水氣、SST、OHC、地形倍率及六個環境控制。所有數值使用既有
+Typhoon、Environment 與地圖 bounds 範圍。
+
+localStorage 固定為 version 1，頂層只能有 `version`、
+`unlockedLevels`、`bestScores`、`settings`、`lastSandboxPreset` 與
+`tutorialCompleted`。模擬 JSON schemaVersion 為 1，並固定記錄目前
+modelVersion、PRNG 版本及 build commit。完整欄位、安全限制及 CSV／PNG
+契約見 `docs/SANDBOX-EXPORT.md`。
 
 ## Schema 最低要求
 

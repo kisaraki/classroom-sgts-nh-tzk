@@ -3,7 +3,7 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 7 狀態
+## Phase 8 狀態
 
 Phase 7 沿用完整物理管線，於測站觀測後才記錄關卡統計與判定勝敗。
 三關共用相同模型與規則 resolver，不複製關卡專屬模擬器。關卡資料可
@@ -12,6 +12,11 @@ Phase 7 沿用完整物理管線，於測站觀測後才記錄關卡統計與判
 `docs/INTENSITY-MODEL.md`；環境、控制延遲、導引、β 漂移、座標位移及
 分段限制見 `docs/STEERING-MODEL.md`；Phase 5 完整公式、積分順序及限制
 見 `docs/LAND-RAIN-MODEL.md`；關卡契約見 `docs/LEVEL-SYSTEM.md`。
+
+Phase 8 沙盒不另建物理模型。SST、OHC 與地形倍率從受驗證 preset 注入
+既有 Environment／LandInteractionModel；預設參數為原值，因此三關
+黃金重播不變。新增的是可設定介面與 I/O 契約，模型行為版本仍為
+`0.7.0-taiwan-wayne`。
 
 ## 模型定位
 

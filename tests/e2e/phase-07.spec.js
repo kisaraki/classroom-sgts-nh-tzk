@@ -6,7 +6,7 @@ test("three data-driven levels switch without leaking dashboard state", async ({
   await page.goto("./");
   const levelSelect = page.locator("#level-select");
 
-  await expect(levelSelect.locator("option")).toHaveCount(3);
+  await expect(levelSelect.locator("option")).toHaveCount(4);
   await levelSelect.selectOption("mountain-shield");
   await expect(page.locator("#level-dashboard")).toContainText("護國神山");
   await expect(page.locator("#level-dashboard")).toContainText("2015 蘇迪勒");

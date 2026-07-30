@@ -37,14 +37,22 @@ export class Dashboard {
   }
 
   render({ levelState, simulationMinutes }) {
-    const remainingMinutes = Math.max(
-      0,
-      this.#level.durationHours * 60 - simulationMinutes
+    const remainingElement = this.#root.querySelector(
+      "[data-level-remaining]"
     );
-    const remainingHours = Math.floor(remainingMinutes / 60);
-    const remainingRemainder = remainingMinutes % 60;
-    this.#root.querySelector("[data-level-remaining]").textContent =
-      `${remainingHours}h ${String(remainingRemainder).padStart(2, "0")}m`;
+
+    if (this.#level.id === "sandbox") {
+      remainingElement.textContent = "無勝敗";
+    } else {
+      const remainingMinutes = Math.max(
+        0,
+        this.#level.durationHours * 60 - simulationMinutes
+      );
+      const remainingHours = Math.floor(remainingMinutes / 60);
+      const remainingRemainder = remainingMinutes % 60;
+      remainingElement.textContent =
+        `${remainingHours}h ${String(remainingRemainder).padStart(2, "0")}m`;
+    }
 
     for (const objective of levelState.objectivesSnapshot()) {
       const row = this.#objectiveRows.get(objective.id);
@@ -78,16 +86,22 @@ export class Dashboard {
     const remaining = document.createElement("p");
     const remainingValue = document.createElement("strong");
     eyebrow.className = "eyebrow";
-    const levelNumber = LEVELS.indexOf(this.#level) + 1;
-    eyebrow.textContent =
-      `LEVEL ${String(levelNumber).padStart(2, "0")} · ${this.#level.id}`;
+    const levelIndex = LEVELS.indexOf(this.#level);
+    eyebrow.textContent = this.#level.id === "sandbox"
+      ? "SANDBOX · NO WIN / LOSS"
+      : `LEVEL ${String(levelIndex + 1).padStart(2, "0")} · ${this.#level.id}`;
     title.textContent = this.#level.title;
     context.textContent =
       `${this.#level.historicalInspiration}｜${this.#level.disclaimer}`;
     remaining.className = "level-time";
-    remaining.append("剩餘時間 ");
+    remaining.append(
+      this.#level.id === "sandbox" ? "模式 " : "剩餘時間 "
+    );
     remainingValue.dataset.levelRemaining = "";
-    remainingValue.textContent = `${this.#level.durationHours}h 00m`;
+    remainingValue.textContent =
+      this.#level.id === "sandbox"
+        ? "無勝敗"
+        : `${this.#level.durationHours}h 00m`;
     remaining.append(remainingValue);
     heading.append(eyebrow, title, context, remaining);
     const list = document.createElement("ol");

@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 7 completed，待使用者批准。
-- Phase 7 沿用通用關卡統計與 resolver，加入中央山脈／岸側事件、
-  400 km 警戒區狀態機、內陸深度失敗及三關切換隔離。
+- 目前 Phase：Phase 8 completed，待使用者批准。
+- Phase 8 在相同物理 session 上加入無勝敗沙盒、localStorage v1、
+  安全匯入、重播及瀏覽器端 CSV／JSON／PNG／文字匯出。
 
 ## 正式執行邊界
 
@@ -65,7 +65,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 - `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 7 檔案責任
+## Phase 8 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -101,6 +101,9 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/rendering/FieldRenderer.js` | SST 底圖、等壓線、副高、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
 | `js/data/levels.js` | Level 等效 schema、DSL 白名單、站群／警戒區及三關資料 |
+| `js/data/sandbox.js` | 沙盒 preset schema、預設值及無勝敗 Level adapter |
+| `js/persistence/StorageManager.js` | localStorage v1 驗證、遷移入口與損壞回復 |
+| `js/io/SimulationIO.js` | 安全 JSON 匯入、重播資料及 CSV／JSON／PNG／文字匯出 |
 | `js/model/LevelState.js` | 目標／失敗、岸側／山脈／警戒事件、計分與不可變結果 |
 | `js/core/ObjectiveEvaluator.js` | 只以白名單 metric 計算目標及單次事件 |
 | `js/core/FailureEvaluator.js` | 邊界、消散、超時及區域順序失敗判定 |
@@ -246,6 +249,24 @@ one frozen result
 - `LevelState.finalize` 與結果 dialog 都是 idempotent。
 - 詳細契約、三關與黃金重播見 `docs/LEVEL-SYSTEM.md`。
 
+## Phase 8 沙盒與 I/O 資料流
+
+```text
+validated SandboxPreset
+  ↓ createSandboxLevel + common createLevelSession
+same Environment → Steering → Land → Ocean → Intensity → Observation
+  ↓ no Objective/Failure terminal evaluation
+track + operations + seed + versions
+  ├─ localStorage v1（設定／進度）
+  ├─ CSV／JSON／summary download
+  ├─ rendered Canvas → branded PNG
+  └─ safe JSON import → validate → deterministic replay
+```
+
+- 匯入資料永遠先通過大小、深度、原型污染與 exact-field 驗證。
+- 外部 JSON 不直接建構 HTML，也不寫入 DOM `innerHTML`。
+- 詳細格式與安全界線見 `docs/SANDBOX-EXPORT.md`。
+
 ## GitHub Pages 路徑
 
 - 正式 base path：`/classroom-sgts-nh-tzk/`。
@@ -255,6 +276,6 @@ one frozen result
 
 ## 尚未實作
 
-下列均屬 Phase 8 以後，Phase 7 不提供假實作：
+下列屬 Phase 9，Phase 8 不提供假實作：
 
-- 沙盒、玩家自訂初始條件、儲存、匯入及匯出。
+- 發布工作流、正式 Pages 部署、效能預算與 Safari／iPadOS 最終驗收。

@@ -22,7 +22,11 @@ import {
   createRandomStreams
 } from "../../js/utils/random.js";
 
-export const createHeadlessLevelSession = (level, mapData) => {
+export const createHeadlessLevelSession = (
+  level,
+  mapData,
+  { sandboxPreset = null } = {}
+) => {
   const eventBus = new EventBus();
   const events = [];
 
@@ -42,6 +46,10 @@ export const createHeadlessLevelSession = (level, mapData) => {
     trackHistory: []
   });
   const environment = createEnvironmentGrid({
+    baseOceanHeatContent:
+      sandboxPreset?.oceanHeatContent,
+    baseSeaSurfaceTemperature:
+      sandboxPreset?.seaSurfaceTemperature,
     controls: level.environmentPreset,
     random: randomStreams.environment,
     targetControls: level.environmentPreset,
@@ -59,7 +67,10 @@ export const createHeadlessLevelSession = (level, mapData) => {
       randomStreams,
       seed: level.seed
     }),
-    landInteractionModel: new LandInteractionModel({ eventBus }),
+    landInteractionModel: new LandInteractionModel({
+      eventBus,
+      terrainMultiplier: sandboxPreset?.terrainMultiplier ?? 1
+    }),
     level,
     levelState,
     objectiveEvaluator: new ObjectiveEvaluator({ eventBus }),
@@ -82,9 +93,12 @@ export const runLevelReplay = ({
   mapData,
   maximumSteps = level.durationHours * 6 + 1,
   onStep = null,
-  operations = []
+  operations = [],
+  sandboxPreset = null
 }) => {
-  const session = createHeadlessLevelSession(level, mapData);
+  const session = createHeadlessLevelSession(level, mapData, {
+    sandboxPreset
+  });
   const operationsByStep = new Map();
 
   for (const operation of operations) {
@@ -191,15 +205,20 @@ export const runLevelReplay = ({
       stepIndex,
       typhoon: session.typhoon
     });
-    const objectives = session.objectiveEvaluator.evaluate({
-      context,
-      levelState: session.levelState
-    });
-    const failures = session.failureEvaluator.evaluate({
-      context,
-      levelState: session.levelState
-    });
-    const fingerprint = createFingerprint({
+    const isSandbox = level.id === "sandbox";
+    const objectives = isSandbox
+      ? { allRequiredCompleted: false, newlyCompleted: [] }
+      : session.objectiveEvaluator.evaluate({
+        context,
+        levelState: session.levelState
+      });
+    const failures = isSandbox
+      ? { anyTriggered: false, newlyTriggered: [] }
+      : session.failureEvaluator.evaluate({
+        context,
+        levelState: session.levelState
+      });
+    const fingerprintPayload = {
       intensity: intensity.fingerprint,
       land: session.landInteractionModel.snapshot(),
       level: session.levelState.snapshot(),
@@ -207,7 +226,13 @@ export const runLevelReplay = ({
       ocean: oceanDiagnostic,
       steering: steeringDiagnostic.fingerprint,
       typhoonEvents: session.typhoon.eventHistory
-    });
+    };
+
+    if (isSandbox) {
+      fingerprintPayload.sandboxPreset = sandboxPreset;
+    }
+
+    const fingerprint = createFingerprint(fingerprintPayload);
     latest = {
       cell,
       failures,
