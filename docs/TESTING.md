@@ -147,7 +147,7 @@ Phase 8：
 
 - 完成日期：2026-07-30；精確完成時間記錄於 `PHASE-STATUS.md`。
 - Node.js：24.18.1 LTS；npm：11.16.0。
-- ESLint：以最終 `npm run check` 結果為準。
+- ESLint：通過，0 errors、0 warnings。
 - TypeScript：不適用；本專案目前為原生 ES Modules。
 - 單元測試：102 passed、0 failed。
 - 整合測試：6 passed、0 failed。

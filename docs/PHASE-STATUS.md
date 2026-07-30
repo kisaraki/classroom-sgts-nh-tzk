@@ -15,7 +15,7 @@
 | 5 | approved | `phase/05-land-rain` | `131f891` | `0e1e0af` | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
-| 8 | in_progress | `phase/08-sandbox-export` |  |  | not_run |  |  |  |  |
+| 8 | completed | `phase/08-sandbox-export` | `c831f13` |  | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 |  |  |  |
 | 9 | pending |  |  |  | not_run |  |  |  |  |
 | 10 | pending |  |  |  | not_run |  |  |  |  |
 
@@ -225,3 +225,26 @@
 
 - 解讀：Phase 7 驗收通過，批准執行 Phase 8。
 - 未授權：push、GitHub Pages 設定及部署。
+
+## Phase 8 完成紀錄
+
+- 完成時間：2026-07-30T22:43:45+08:00。
+- 狀態：`completed`，不等於 `approved`。
+- 分支：`phase/08-sandbox-export`。
+- 完成 commit：`c831f13`。
+- 本機檢查：ESLint、102 unit、6 integration、16 scenario、
+  12 實際 Chrome E2E 及 Browser smoke 均通過。
+- 沙盒：18 欄 preset、無勝敗、SST／OHC／地形倍率、暫停、倍速、重啟、
+  圖層與環境檢視均沿用正式物理 session。
+- 儲存：localStorage v1、嚴格 schema、損壞回復、migration 入口、
+  設定重新整理恢復及不保存敏感個資。
+- 匯入匯出：CSV、模擬 JSON、preset JSON、PNG、摘要、seed／操作重播；
+  拒絕過大、過深、未知與原型污染欄位，CSV 防公式注入。
+- 追蹤資訊：schemaVersion 1、modelVersion `0.7.0-taiwan-wayne`、
+  PRNG `mulberry32-v1`、build commit `c831f13`。
+- `npm audit --audit-level=high`：0 vulnerabilities。
+- GitHub Actions：workflow 未 push，因此未執行。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證；只完成本機 Pages 子路徑與 Browser 驗證。
+- 未授權：push、merge、GitHub Pages 設定及部署。
+- 下一階段：Phase 9「效能、相容性、發布與最終驗收」，尚未批准，不得執行。

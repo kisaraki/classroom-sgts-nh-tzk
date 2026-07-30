@@ -6,7 +6,7 @@ export const PROJECT_CONFIG = Object.freeze({
   brand: "KOSMOS TOOLKIT｜探真拓知酷",
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
-  buildCommit: "development",
+  buildCommit: "c831f13",
   schemaVersion: 1,
   modelVersion: "0.7.0-taiwan-wayne",
   geography: Object.freeze({
