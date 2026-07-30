@@ -8,6 +8,7 @@ export const RANDOM_STREAM_NAMES = Object.freeze([
 ]);
 
 const UINT32_RANGE = 0x1_0000_0000;
+const FINGERPRINT_DECIMAL_PLACES = 8;
 
 export const hashStringToUint32 = (value) => {
   const text = String(value);
@@ -103,6 +104,13 @@ const stableSerialize = (value) => {
       .sort()
       .map((key) => `${JSON.stringify(key)}:${stableSerialize(value[key])}`)
       .join(",")}}`;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const normalized = Number.isInteger(value)
+      ? value
+      : Number(value.toFixed(FINGERPRINT_DECIMAL_PLACES));
+    return JSON.stringify(Object.is(normalized, -0) ? 0 : normalized);
   }
 
   return JSON.stringify(value);

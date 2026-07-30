@@ -49,3 +49,15 @@ test("fingerprints ignore object key insertion order", () => {
     createFingerprint({ alpha: 1, beta: [2, 3] })
   );
 });
+
+test("fingerprints normalize insignificant cross-platform float drift", () => {
+  assert.equal(
+    createFingerprint({ value: 1.234567891 }),
+    createFingerprint({ value: 1.234567892 })
+  );
+  assert.notEqual(
+    createFingerprint({ value: 1.23456789 }),
+    createFingerprint({ value: 1.23456889 })
+  );
+  assert.equal(createFingerprint({ value: -0 }), createFingerprint({ value: 0 }));
+});
