@@ -101,3 +101,23 @@ test("runtime errors enter ERROR and render a readable error payload", () => {
   assert.equal(engine.state, GameState.ERROR);
   assert.equal(lastRender.frame.error.message, "Canvas unavailable");
 });
+
+test("reset returns to MENU and clears fixed-step time", () => {
+  const engine = new GameEngine({
+    cancelFrame: () => {},
+    requestFrame: () => 1
+  });
+
+  engine.boot({ startLoop: false });
+  engine.setSpeed(4);
+  engine.startSimulation();
+  engine.clock.advance(1000);
+  assert.equal(engine.clock.stepIndex, 1);
+
+  engine.resetSimulation();
+
+  assert.equal(engine.state, GameState.MENU);
+  assert.equal(engine.clock.stepIndex, 0);
+  assert.equal(engine.clock.simulationMinutes, 0);
+  assert.equal(engine.clock.isPaused, true);
+});

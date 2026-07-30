@@ -126,6 +126,10 @@ export class GridCell {
     );
   }
 
+  applyColdWake(coldWake) {
+    this.coldWake = assertRange(coldWake, 0, 15, "coldWake");
+  }
+
   snapshot() {
     return Object.freeze({
       OHC: this.OHC,

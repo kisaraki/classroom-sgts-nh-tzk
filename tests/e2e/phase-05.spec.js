@@ -14,6 +14,7 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
   await expect(page.locator("#engine-state")).toHaveText("MENU");
   await expect(page.locator("#simulation-canvas")).toBeVisible();
   await expect(page.locator("#map-data-status")).toContainText("regions");
+  const positionBefore = await page.locator("#storm-position").textContent();
 
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
@@ -23,9 +24,7 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
     .toBeGreaterThan(0);
   await expect(page.locator("#storm-wind")).not.toHaveText("15.0 m/s");
   await expect(page.locator("#storm-fingerprint")).toHaveText(/^[0-9a-f]{8}$/u);
-  await expect(page.locator("#storm-position")).not.toHaveText(
-    "15.00°N, 135.00°E"
-  );
+  await expect(page.locator("#storm-position")).not.toHaveText(positionBefore);
   await expect(page.locator("#storm-motion")).toContainText("km/h");
 
   await page.locator("#pause-button").click();
@@ -77,7 +76,7 @@ test("standalone browser harness passes from the Pages subpath", async ({
     "data-test-status",
     "passed"
   );
-  await expect(page.locator("#test-summary")).toHaveText("6/6 tests passed");
+  await expect(page.locator("#test-summary")).toHaveText("7/7 tests passed");
 });
 
 test("particle control is explicitly visual-only and preserves the dashboard", async ({
@@ -89,7 +88,7 @@ test("particle control is explicitly visual-only and preserves the dashboard", a
   await expect(toggle).toBeChecked();
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
-  await expect(page.locator("#storm-stage")).toHaveText("cluster");
+  await expect(page.locator("#storm-stage")).toHaveText("comma");
   await expect(page.locator('[data-factor="developmentPotential"]')).toHaveText(
     /%$/u
   );
@@ -151,4 +150,37 @@ test("map query identifies Taiwan and stays aligned after resize", async ({
     "23.70°N, 121.00°E"
   );
   await expect(page.locator("#probe-station")).toContainText("km");
+});
+
+test("cold wake and six model stations update, then reset completely", async ({
+  page
+}) => {
+  await page.goto("./");
+  await expect(page.locator("#station-observations article")).toHaveCount(6);
+  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+
+  await page.locator("[data-speed='24']").click();
+  await page.locator("#start-button").click();
+  await expect
+    .poll(async () => Number(await page.locator("#step-count").textContent()))
+    .toBeGreaterThan(8);
+  await expect(page.locator("#center-cold-wake")).not.toContainText("0.00 °C");
+  await expect(
+    page.locator('[data-station-rain="hualien"]')
+  ).toContainText("累積");
+  await expect(
+    page.locator('[data-station-wind="hualien"]')
+  ).toContainText("陣風");
+
+  await page.locator("#reset-button").click();
+  await expect(page.locator("#engine-state")).toHaveText("MENU");
+  await expect(page.locator("#step-count")).toHaveText("0");
+  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+  await expect(page.locator("#surface-events")).toHaveText("尚無海陸轉換");
+
+  for (const row of await page
+    .locator("#station-observations article")
+    .all()) {
+    await expect(row).toContainText("累積 0.0 mm");
+  }
 });

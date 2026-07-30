@@ -6,11 +6,12 @@
 ## 版本
 
 - `schemaVersion`：資料形狀版本，第一版起始值為整數 `1`。
-- `modelVersion`：模型行為版本；Phase 4 為 `0.4.0-steering`。
+- `modelVersion`：模型行為版本；Phase 5 為 `0.5.0-land-rain`。
 - PRNG 演算法版本：`mulberry32-v1`。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 4 已建立地圖、測站、Typhoon、GridCell 與 Environment 執行期契約。
+Phase 5 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
+海陸事件及地形分區執行期契約。
 Level 或儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
 
 ## 第一版單位字典
@@ -93,7 +94,29 @@ Phase 2 每站必要欄位：
 | `isVirtual` | 布林；目前六站均為 `false` |
 | `source` | authority、stationCode、URL |
 
-正式氣象觀測值尚未在 Phase 2 建立，測站資料不得包含寫死風雨數值。
+正式氣象觀測值尚未建立，測站資料不得包含寫死風雨答案。Phase 5 的
+風雨欄位是模擬執行期輸出，不得標示為官方觀測。
+
+### `WeatherStation`
+
+Phase 5 由靜態測站定義建立執行期物件；拒絕未知欄位。
+
+| 欄位 | 型別／規則 |
+|---|---|
+| 靜態欄位 | `id`、`name`、`lat`、`lon`、`elevation`、`exposure`、`region`、`isVirtual`、`source` |
+| `sustainedWind` | 0～150 m/s；Phase 5 模型輸出上限 75 m/s |
+| `gust` | 0～180 m/s；Phase 5 模型輸出上限 95 m/s |
+| `hourlyRainRate` | 0～500 mm/h；Phase 5 模型輸出上限 60 mm/h |
+| `accumulatedRain` | 0～100,000 mm；每步依 `rate × minutes / 60` 積分 |
+| `terrainCorrection` | 0～5；目前迎風／背風降雨因子 |
+| `updateSimulationMinutes` | 0～安全整數；最後更新的權威模擬時間 |
+
+### 地形分區
+
+`TerrainZone` 固定 enum：`ocean`、`generic-land`、`west-plain`、
+`central-mountains`、`east-rift-valley`、`coast-range`。每個 profile
+固定輸出 `zone`、`isLand`、`regionId`、`elevation`、`roughness` 與
+`slopeAspect`。
 
 ## `Typhoon`
 
@@ -113,19 +136,27 @@ Phase 2 每站必要欄位：
 | `trackHistory` | 只含座標、風壓與權威時間索引的有界陣列 |
 | `eventHistory` | 結構變更等具 `simulationMinutes`、`stepIndex` 的事件陣列 |
 
+Phase 5 海陸事件 `type` 固定為 `LANDFALL` 或 `SEA_REENTRY`，並保存
+`simulationMinutes`、`stepIndex`、`lat`、`lon`、`regionId`、
+`coastSide`、`maxWind`、`centralPressure`、`galeRadius`、`heading`、
+`translationSpeed`。同一表面轉換只記錄一次。
+
 ## `GridCell`
 
-Phase 4 每個 1° cell 欄位固定為 `lat`、`lon`、`SST`、`OHC`、
+Phase 5 每個 1° cell 欄位固定為 `lat`、`lon`、`SST`、`OHC`、
 `surfacePressure`、`steeringU`、`steeringV`、`verticalWindShear`、
 `relativeHumidity`、`terrainHeight`、`surfaceRoughness`、`landFraction`
 及 `coldWake`。數值需為有限值，比例欄位限制 0～1。U 正值向東、V 正值
 向北，兩者單位為 m/s。
 
+`coldWake` 是 0～5°C 的執行期可變狀態；`resetMutableState()` 必須把
+全部 cell 歸零。其餘環境欄位仍由受控的固定步進更新。
+
 ## `Environment`
 
 欄位固定為 `bounds`、`gridResolution`、`cells`、`subtropicalHigh`、
 `southwestMonsoon`、`controls`、`targetControls`。`cells` 只能包含
-`GridCell`。Phase 4 固定 `gridResolution = 1`，含 41×61＝2,501 cells；
+`GridCell`。Phase 5 延用固定 `gridResolution = 1`，含 41×61＝2,501 cells；
 任意位置採四角雙線性取樣。
 
 `controls` 與 `targetControls` 固定包含：

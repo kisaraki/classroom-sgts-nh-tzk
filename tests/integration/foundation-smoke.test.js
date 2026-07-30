@@ -93,6 +93,24 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
     /text\/javascript/
   );
 
+  for (const modulePath of [
+    "js/model/WeatherStation.js",
+    "js/simulation/LandInteractionModel.js",
+    "js/simulation/OceanCoolingModel.js",
+    "js/simulation/RainfallModel.js",
+    "js/simulation/ObservationModel.js"
+  ]) {
+    const response = await fetch(
+      `${baseUrl}/classroom-sgts-nh-tzk/${modulePath}`
+    );
+    assert.equal(response.status, 200, modulePath);
+    assert.match(
+      response.headers.get("content-type") ?? "",
+      /text\/javascript/,
+      modulePath
+    );
+  }
+
   const missingResponse = await fetch(`${baseUrl}/missing-resource.json`);
   assert.equal(missingResponse.status, 404);
 });

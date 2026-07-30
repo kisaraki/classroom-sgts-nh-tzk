@@ -38,11 +38,11 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 04</p>
+        <p class="phase-badge">SGTS-NH · Phase 05</p>
         <h2 id="control-title">模擬控制</h2>
         <p class="panel-copy">
-          設定環境目標值，觀察副高、季風與風切經反應延遲後如何改變導引、
-          路徑與強度；UI 不會直接修改颱風座標。
+          設定環境目標值，觀察導引、地形、冷水尾流與降雨如何在固定步進中
+          共同改變颱風；UI 不會直接修改颱風座標或測站數值。
         </p>
 
         <div class="control-stack">
@@ -50,6 +50,7 @@
             啟動模擬
           </button>
           <button id="pause-button" type="button" disabled>暫停</button>
+          <button id="reset-button" type="button" disabled>重啟並清除狀態</button>
         </div>
 
         <fieldset class="speed-picker">
@@ -183,8 +184,8 @@
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
           <p>
-            本階段加入 1° 環境網格與導引移動；精細地形、登陸事件、
-            動態冷水尾流與降雨屬 Phase 5。
+            本階段加入海陸事件、臺灣地形、冷水尾流、降雨與六站觀測；
+            關卡目標、勝敗與計分屬 Phase 6。
           </p>
         </aside>
       </section>
@@ -204,7 +205,7 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 04 西北太平洋環境導引模擬；點選或觸控以查詢位置"
+            aria-label="Phase 05 西北太平洋海陸、冷水尾流與降雨模擬；點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -261,18 +262,24 @@
           aria-labelledby="storm-dashboard-title"
           aria-live="polite"
         >
-          <h3 id="storm-dashboard-title">KOSMOS-04 強度與移動</h3>
+          <h3 id="storm-dashboard-title">KOSMOS-05 海陸與強度</h3>
           <dl class="storm-metrics">
-            <div><dt>中心位置</dt><dd id="storm-position">15.00°N, 135.00°E</dd></div>
-            <div><dt>移動</dt><dd id="storm-motion">8.0 km/h · 285°</dd></div>
+            <div><dt>中心位置</dt><dd id="storm-position">23.50°N, 124.50°E</dd></div>
+            <div><dt>移動</dt><dd id="storm-motion">12.0 km/h · 275°</dd></div>
             <div><dt>導引向量</dt><dd id="steering-vector">—</dd></div>
-            <div><dt>最大風速</dt><dd id="storm-wind">15.0 m/s</dd></div>
-            <div><dt>中心氣壓</dt><dd id="storm-pressure">1004 hPa</dd></div>
-            <div><dt>暴風半徑</dt><dd id="storm-radius">80 km</dd></div>
-            <div><dt>目標風速</dt><dd id="target-wind">15.0 m/s</dd></div>
-            <div><dt>組織度</dt><dd id="storm-organization">28%</dd></div>
-            <div><dt>對稱度</dt><dd id="storm-symmetry">32%</dd></div>
-            <div><dt>結構</dt><dd id="storm-stage">cluster</dd></div>
+            <div><dt>最大風速</dt><dd id="storm-wind">42.0 m/s</dd></div>
+            <div><dt>中心氣壓</dt><dd id="storm-pressure">955 hPa</dd></div>
+            <div><dt>暴風半徑</dt><dd id="storm-radius">180 km</dd></div>
+            <div><dt>目標風速</dt><dd id="target-wind">42.0 m/s</dd></div>
+            <div><dt>組織度</dt><dd id="storm-organization">78%</dd></div>
+            <div><dt>對稱度</dt><dd id="storm-symmetry">74%</dd></div>
+            <div><dt>結構</dt><dd id="storm-stage">comma</dd></div>
+            <div><dt>海陸</dt><dd id="storm-surface">海洋</dd></div>
+            <div><dt>地形區</dt><dd id="terrain-zone">ocean · 0 m</dd></div>
+            <div><dt>中心冷水尾流</dt><dd id="center-cold-wake">0.00 °C</dd></div>
+            <div><dt>有效海溫</dt><dd id="effective-sst">—</dd></div>
+            <div><dt>出海重組</dt><dd id="terrain-recovery">100% · 9.0 h</dd></div>
+            <div><dt>最近海陸事件</dt><dd id="surface-events">尚無海陸轉換</dd></div>
             <div><dt>Fingerprint</dt><dd id="storm-fingerprint">—</dd></div>
           </dl>
           <h4>環境因子</h4>
@@ -285,11 +292,21 @@
             <div><dt>海陸</dt><dd data-factor="land">—</dd></div>
             <div><dt>地形</dt><dd data-factor="terrain">—</dd></div>
             <div><dt>冷水尾流</dt><dd data-factor="coldWake">—</dd></div>
+            <div><dt>出海重組</dt><dd data-factor="reorganization">—</dd></div>
             <div class="potential">
               <dt>發展潛勢</dt>
               <dd data-factor="developmentPotential">—</dd>
             </div>
           </dl>
+        </section>
+
+        <section
+          class="station-dashboard"
+          aria-labelledby="station-dashboard-title"
+        >
+          <h3 id="station-dashboard-title">六站模型觀測</h3>
+          <p>持續風／陣風為 m/s；雨率為 mm/h，累積雨量為 mm。</p>
+          <div id="station-observations" class="station-observations"></div>
         </section>
 
         <section

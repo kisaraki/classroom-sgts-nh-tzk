@@ -352,6 +352,12 @@ export class Environment {
     });
   }
 
+  resetMutableState() {
+    for (const cell of this.cells) {
+      cell.applyColdWake(0);
+    }
+  }
+
   #refreshCells() {
     for (const cell of this.cells) {
       cell.applyEnvironmentUpdate(
@@ -379,7 +385,8 @@ export const createEnvironmentGrid = ({
   controls = {},
   isLandAt = () => false,
   random,
-  targetControls = {}
+  targetControls = {},
+  terrainAt = null
 } = {}) => {
   if (!random || typeof random.nextRange !== "function") {
     throw new TypeError("Environment grid requires a seeded random stream.");
@@ -389,6 +396,10 @@ export const createEnvironmentGrid = ({
     throw new TypeError("isLandAt must be a function.");
   }
 
+  if (terrainAt !== null && typeof terrainAt !== "function") {
+    throw new TypeError("terrainAt must be a function.");
+  }
+
   const config = PROJECT_CONFIG.environmentConfig;
   const bounds = PROJECT_CONFIG.geography.bounds;
   const resolution = PROJECT_CONFIG.geography.gridResolutionDegrees;
@@ -396,7 +407,10 @@ export const createEnvironmentGrid = ({
 
   for (let lat = bounds.minLat; lat <= bounds.maxLat; lat += resolution) {
     for (let lon = bounds.minLon; lon <= bounds.maxLon; lon += resolution) {
-      const landFraction = isLandAt({ lat, lon }) ? 1 : 0;
+      const point = { lat, lon };
+      const terrain = terrainAt?.(point) ?? null;
+      const landFraction =
+        terrain?.isLand === true || isLandAt(point) ? 1 : 0;
       cells.push(
         new GridCell({
           OHC: clamp(
@@ -431,10 +445,10 @@ export const createEnvironmentGrid = ({
               config.pressureNoiseMaximum
             ),
           surfaceRoughness: landFraction
-            ? config.roughnessLand
+            ? terrain?.roughness ?? config.roughnessLand
             : config.roughnessOcean,
           terrainHeight: landFraction
-            ? config.terrainPlaceholderLandHeight
+            ? terrain?.elevation ?? config.terrainPlaceholderLandHeight
             : 0,
           verticalWindShear:
             PROJECT_CONFIG.environmentControls.verticalWindShear.defaultValue

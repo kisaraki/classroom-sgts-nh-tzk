@@ -1,3 +1,8 @@
+import {
+  TAIWAN_TERRAIN_LABELS,
+  TerrainZone,
+  taiwanRidgeLongitude
+} from "../data/terrain.js";
 import { geoToCanvas } from "../utils/geo.js";
 
 const COAST_COLORS = Object.freeze({
@@ -71,6 +76,10 @@ export class MapRenderer {
       (feature) => feature.properties.regionId === "taiwan-main"
     );
 
+    if (taiwan) {
+      this.#drawTaiwanTerrain(context, taiwan, viewport, width);
+    }
+
     for (const segment of taiwan?.properties.coastSegments ?? []) {
       context.beginPath();
       traceLine(context, segment.coordinates, viewport);
@@ -127,5 +136,63 @@ export class MapRenderer {
     }
 
     context.restore();
+  }
+
+  #drawTaiwanTerrain(context, taiwan, viewport, width) {
+    const ring = taiwan.geometry.coordinates[0];
+    const west = geoToCanvas(
+      { lat: 23.5, lon: 120 },
+      viewport
+    );
+    const east = geoToCanvas(
+      { lat: 23.5, lon: 121.9 },
+      viewport
+    );
+    const gradient = context.createLinearGradient(west.x, 0, east.x, 0);
+    gradient.addColorStop(0, "rgba(216, 190, 111, 0.42)");
+    gradient.addColorStop(0.45, "rgba(104, 78, 52, 0.82)");
+    gradient.addColorStop(0.68, "rgba(83, 126, 85, 0.48)");
+    gradient.addColorStop(1, "rgba(134, 86, 66, 0.66)");
+
+    context.save();
+    context.beginPath();
+    traceRing(context, ring, viewport);
+    context.clip();
+    context.fillStyle = gradient;
+    context.fillRect(
+      Math.min(west.x, east.x),
+      0,
+      Math.abs(east.x - west.x),
+      viewport.height
+    );
+
+    const ridgePoints = [22.1, 22.7, 23.3, 23.9, 24.5, 25.1].map((lat) =>
+      geoToCanvas(
+        { lat, lon: taiwanRidgeLongitude(lat) },
+        viewport
+      )
+    );
+    context.beginPath();
+    ridgePoints.forEach((point, index) => {
+      if (index === 0) {
+        context.moveTo(point.x, point.y);
+      } else {
+        context.lineTo(point.x, point.y);
+      }
+    });
+    context.strokeStyle = "rgba(255, 225, 167, 0.9)";
+    context.lineWidth = 2.2;
+    context.stroke();
+    context.restore();
+
+    if (width >= 900) {
+      const central = TAIWAN_TERRAIN_LABELS.find(
+        (entry) => entry.zone === TerrainZone.CENTRAL_MOUNTAINS
+      );
+      const point = geoToCanvas(central, viewport);
+      context.fillStyle = "#ffe1a7";
+      context.font = "800 8px ui-monospace, monospace";
+      context.fillText("CMR", point.x + 4, point.y - 2);
+    }
   }
 }

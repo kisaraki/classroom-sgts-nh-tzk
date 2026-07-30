@@ -27,7 +27,11 @@ const approach = (current, target, responseHours, stepHours, maximumChange) => {
   );
 };
 
-export const calculateEnvironmentalFactors = (typhoon, cell) => {
+export const calculateEnvironmentalFactors = (
+  typhoon,
+  cell,
+  { reorganizationFactor = 1 } = {}
+) => {
   if (!(typhoon instanceof Typhoon) || !(cell instanceof GridCell)) {
     throw new TypeError("Environmental factors require Typhoon and GridCell.");
   }
@@ -74,6 +78,7 @@ export const calculateEnvironmentalFactors = (typhoon, cell) => {
   const structure =
     parameters.structurePotentialFloor +
     (1 - parameters.structurePotentialFloor) * typhoon.organization;
+  const reorganization = clamp(reorganizationFactor);
   const developmentPotential = clamp(
     heat *
       oceanDepth *
@@ -83,7 +88,8 @@ export const calculateEnvironmentalFactors = (typhoon, cell) => {
       land *
       terrain *
       coldWake *
-      structure
+      structure *
+      reorganization
   );
 
   return Object.freeze({
@@ -95,6 +101,7 @@ export const calculateEnvironmentalFactors = (typhoon, cell) => {
     land,
     moisture,
     oceanDepth,
+    reorganization,
     shear,
     structure,
     terrain
@@ -205,6 +212,7 @@ export class IntensityModel {
 
   step({
     cell,
+    landInteraction = null,
     simulationMinutes = this.#stepCount * PROJECT_CONFIG.simulation.stepMinutes,
     stepIndex = this.#stepCount + 1,
     stepMinutes = PROJECT_CONFIG.simulation.stepMinutes,
@@ -217,7 +225,10 @@ export class IntensityModel {
     assertPositiveNumber(stepMinutes, "stepMinutes");
     const parameters = PROJECT_CONFIG.modelParameters;
     const stepHours = stepMinutes / 60;
-    const factors = calculateEnvironmentalFactors(typhoon, cell);
+    const factors = calculateEnvironmentalFactors(typhoon, cell, {
+      reorganizationFactor:
+        landInteraction?.reorganizationFactor ?? 1
+    });
     const targetWind =
       parameters.minimumWind +
       (parameters.maximumWind - parameters.minimumWind) *
@@ -297,7 +308,8 @@ export class IntensityModel {
       active,
       centralPressure: mapWindToPressure(maxWind, organization),
       galeRadius,
-      isOverLand: cell.landFraction >= 0.5,
+      isOverLand:
+        landInteraction?.isOverLand ?? cell.landFraction >= 0.5,
       maxWind,
       moisture,
       organization,

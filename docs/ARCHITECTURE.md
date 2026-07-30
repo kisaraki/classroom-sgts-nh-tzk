@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 4 completed，待使用者批准。
-- Phase 4 在強度模型之前加入環境目標反應、1° 網格更新、導引向量、
-  路徑分段與中心移動；Canvas 只讀同一環境及導引診斷值。
+- 目前 Phase：Phase 5 completed，待使用者批准。
+- Phase 5 在導引移動後加入海陸分段、臺灣地形、冷水尾流、降雨及測站
+  觀測；Canvas 與 DOM 只讀同一組模型診斷值。
 
 ## 正式執行邊界
 
@@ -39,8 +39,12 @@ SimulationClock
 Update callback
   ↓ Environment 目標→實際→GridCell
 SteeringModel 移動 Typhoon
-  ↓ 新位置取樣
+  ↓ LandInteractionModel 依路徑積分
+OceanCoolingModel 更新全網格尾流
+  ↓ 新位置及分段地形取樣
 IntensityModel 更新強度
+  ↓
+ObservationModel 更新六站風雨
 Render callback
   ↓ 只讀 snapshot
 CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashboard
@@ -57,7 +61,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 - `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 4 檔案責任
+## Phase 5 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -77,8 +81,14 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/model/Typhoon.js` | 颱風完整欄位、結構 enum、路徑／事件歷史及物理 snapshot |
 | `js/model/GridCell.js` | 單一環境取樣點的數值範圍與單位契約 |
 | `js/model/Environment.js` | 1° 網格、雙線性取樣、目標／實際控制與場更新 |
+| `js/data/terrain.js` | 海陸後的臺灣解析式地形分區、高度、粗糙度及坡向 |
+| `js/model/WeatherStation.js` | 六站執行期 schema、風雨狀態、10 分鐘累積及 reset |
 | `js/simulation/IntensityModel.js` | 因子、發展潛勢、時間反應、上下限、遲滯與 fingerprint |
 | `js/simulation/SteeringModel.js` | 向量合成、平滑、球面位移、速度上限及路徑分段 |
+| `js/simulation/LandInteractionModel.js` | 0.5 km 再取樣、海陸事件、地形／摩擦積分及再組織延遲 |
+| `js/simulation/OceanCoolingModel.js` | 暴風半徑內尾流累積、OHC／移速效應及全網格恢復 |
+| `js/simulation/RainfallModel.js` | 徑向雨率、季風、迎風抬升、雨影及尾流降雨回饋 |
+| `js/simulation/ObservationModel.js` | 測站距離風場、陣風、降雨計算與 snapshot |
 | `js/utils/geo.js` | 座標、測地線、polygon、segment 與最近站純函式 |
 | `js/utils/random.js` | `mulberry32-v1`、種子衍生、四子流及穩定 fingerprint |
 | `js/rendering/TyphoonRenderer.js` | 五種颱風結構的 Canvas 表現 |
@@ -171,8 +181,32 @@ IntensityModel
 - Canvas 場箭頭讀取 GridCell 的 U／V；黃色 `NEXT` 箭頭直接讀取本步
   `actualVector`，不另算一套視覺方向。
 - Phase 4 只回報線段穿越的 region ID，不發送 LANDFALL／SEA_REENTRY；
-  正式事件與分段時間積分屬 Phase 5。
+  Phase 5 的 `LandInteractionModel` 取用這些路徑點後正式發送事件並做
+  分段時間積分。
 - 公式、控制範圍與限制詳見 `docs/STEERING-MODEL.md`。
+
+## Phase 5 海陸、尾流與觀測資料流
+
+```text
+SteeringModel.pathPoints
+  ↓ 0.5 km sampling / terrain profile
+LandInteractionModel
+  ├─ LANDFALL / SEA_REENTRY → EventBus + Typhoon.eventHistory
+  ├─ land fraction / roughness / terrain loss → Typhoon
+  └─ reorganization factor → IntensityModel
+
+Environment.cells + Typhoon
+  ↓
+OceanCoolingModel → each GridCell.coldWake
+  ↓
+RainfallModel + ObservationModel
+  └─ six WeatherStation snapshots → Canvas + DOM dashboard
+```
+
+- 更新順序為正式物理契約；UI 不得另算或寫回風雨值。
+- 冷水尾流保存於 2,501 個既有 cell，重啟時全部歸零。
+- 測站累積雨量只使用 10 分鐘固定步進；倍速與 FPS 不改變積分。
+- 公式、常數、校準情境及限制詳見 `docs/LAND-RAIN-MODEL.md`。
 
 ## GitHub Pages 路徑
 
@@ -183,7 +217,7 @@ IntensityModel
 
 ## 尚未實作
 
-下列均屬 Phase 5 以後，Phase 4 不提供假實作：
+下列均屬 Phase 6 以後，Phase 5 不提供假實作：
 
-- LANDFALL／SEA_REENTRY、精細地形及海陸分段物理。
-- 動態冷水尾流、降雨、測站觀測、關卡、沙盒、儲存及匯出。
+- 關卡目標、勝敗判定、教學腳本及歷史情境校準。
+- 沙盒、玩家自訂初始條件、儲存、匯入及匯出。

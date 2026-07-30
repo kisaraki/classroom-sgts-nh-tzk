@@ -5,6 +5,7 @@ import { haversineDistanceKm } from "../js/utils/geo.js";
 import { SeededRandom } from "../js/utils/random.js";
 import { createEnvironmentGrid } from "../js/model/Environment.js";
 import { createRandomStreams } from "../js/utils/random.js";
+import { integrateRainfall } from "../js/simulation/RainfallModel.js";
 
 const results = document.querySelector("#test-results");
 const summary = document.querySelector("#test-summary");
@@ -76,6 +77,10 @@ test("瀏覽器可建立完整 1 度環境網格", () => {
   });
   equal(environment.cells.length, 2501, "grid cell count");
   equal(environment.gridResolution, 1, "grid resolution");
+});
+
+test("10 分鐘雨量使用每小時雨率的六分之一", () => {
+  equal(integrateRainfall(10, 24, 10), 14, "rainfall integration");
 });
 
 let passed = 0;

@@ -133,6 +133,24 @@ export class GameEngine {
     this.#eventBus.emit(EventType.SIMULATION_RESUMED, {}, this.#eventMetadata());
   }
 
+  resetSimulation() {
+    this.#clock.reset({ paused: true, speed: this.#clock.speed });
+
+    if (this.state !== GameState.MENU) {
+      this.#stateMachine.transition(GameState.MENU, {
+        reason: "simulation-reset"
+      });
+    }
+
+    this.#lastTimestamp = null;
+    this.#renderFrame({
+      clampedDeltaMs: 0,
+      droppedSteps: 0,
+      executedSteps: 0,
+      interpolationAlpha: 0
+    });
+  }
+
   setSpeed(speed) {
     return this.#clock.setSpeed(speed);
   }

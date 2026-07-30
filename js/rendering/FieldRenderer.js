@@ -70,6 +70,14 @@ export class FieldRenderer {
         padding,
         width
       });
+      this.#drawColdWakeField({
+        bounds,
+        context,
+        environment,
+        height,
+        padding,
+        width
+      });
     }
 
     this.#drawGraticule({ bounds, context, height, padding, width });
@@ -80,6 +88,7 @@ export class FieldRenderer {
     context,
     environment,
     height,
+    observations = [],
     padding,
     steeringDiagnostic,
     typhoon,
@@ -89,6 +98,14 @@ export class FieldRenderer {
       return;
     }
 
+    this.#drawRainfall({
+      bounds,
+      context,
+      height,
+      observations,
+      padding,
+      width
+    });
     this.#drawPressureSystems({
       bounds,
       context,
@@ -126,6 +143,105 @@ export class FieldRenderer {
       context.fillText("NEXT", start.x + vector.x + 5, start.y + vector.y - 4);
       context.restore();
     }
+  }
+
+  #drawColdWakeField({
+    bounds,
+    context,
+    environment,
+    height,
+    padding,
+    width
+  }) {
+    const minimum = PROJECT_CONFIG.renderingConfig.coldWakeTileMinimum;
+    const maximum = PROJECT_CONFIG.oceanCoolingConfig.maximumColdWake;
+    const resolution = environment.gridResolution;
+
+    context.save();
+
+    for (const cell of environment.cells) {
+      if (cell.landFraction >= 0.5 || cell.coldWake < minimum) {
+        continue;
+      }
+
+      const topLeft = geoToCanvas(
+        {
+          lat: Math.min(bounds.maxLat, cell.lat + resolution / 2),
+          lon: Math.max(bounds.minLon, cell.lon - resolution / 2)
+        },
+        { bounds, height, padding, width }
+      );
+      const bottomRight = geoToCanvas(
+        {
+          lat: Math.max(bounds.minLat, cell.lat - resolution / 2),
+          lon: Math.min(bounds.maxLon, cell.lon + resolution / 2)
+        },
+        { bounds, height, padding, width }
+      );
+      const intensity = clamp(cell.coldWake / maximum, 0, 1);
+      context.fillStyle =
+        `rgba(${Math.round(38 + intensity * 58)}, ` +
+        `${Math.round(104 + intensity * 40)}, 216, ` +
+        `${0.15 + intensity * 0.5})`;
+      context.fillRect(
+        topLeft.x,
+        topLeft.y,
+        bottomRight.x - topLeft.x,
+        bottomRight.y - topLeft.y
+      );
+    }
+
+    context.restore();
+  }
+
+  #drawRainfall({
+    bounds,
+    context,
+    height,
+    observations,
+    padding,
+    width
+  }) {
+    const displayMaximum =
+      PROJECT_CONFIG.renderingConfig.rainfallMaximumDisplayRate;
+
+    context.save();
+    context.globalCompositeOperation = "screen";
+
+    for (const observation of observations) {
+      const station = observation.station;
+      const rate = station.hourlyRainRate;
+
+      if (rate < 0.1) {
+        continue;
+      }
+
+      const point = geoToCanvas(station, {
+        bounds,
+        height,
+        padding,
+        width
+      });
+      const intensity = clamp(rate / displayMaximum, 0, 1);
+      const radius = 5 + intensity * 15;
+      const gradient = context.createRadialGradient(
+        point.x,
+        point.y,
+        0,
+        point.x,
+        point.y,
+        radius
+      );
+      gradient.addColorStop(0, `rgba(123, 239, 255, ${0.3 + intensity * 0.5})`);
+      gradient.addColorStop(0.62, `rgba(74, 141, 255, ${0.16 + intensity * 0.34})`);
+      gradient.addColorStop(1, "rgba(74, 141, 255, 0)");
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(point.x, point.y, radius, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    context.restore();
   }
 
   #drawTemperatureField({

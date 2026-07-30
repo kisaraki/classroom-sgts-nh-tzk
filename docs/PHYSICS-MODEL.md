@@ -3,12 +3,13 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 4 狀態
+## Phase 5 狀態
 
-Phase 4 已在 Phase 3 強度模型前加入環境網格與導引移動。強度公式見
+Phase 5 已在 Phase 4 環境與導引之後加入海陸分段、臺灣教育地形、動態
+冷水尾流、降雨及測站觀測。強度公式見
 `docs/INTENSITY-MODEL.md`；環境、控制延遲、導引、β 漂移、座標位移及
-分段限制見 `docs/STEERING-MODEL.md`。降雨、地形積分、登陸事件與動態
-冷水尾流仍未實作。
+分段限制見 `docs/STEERING-MODEL.md`；Phase 5 完整公式、積分順序及限制
+見 `docs/LAND-RAIN-MODEL.md`。
 
 ## 模型定位
 
@@ -34,7 +35,9 @@ renderingConfig
 performanceConfig
 ```
 
-Phase 4 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通過而直接
+Phase 5 已依上述分類集中在 `js/config.js`，並新增
+`landInteractionConfig`、`oceanCoolingConfig`、`rainfallConfig` 與
+`observationConfig`。不得為讓單一關卡通過而直接
 修改 `physicalConstants`。
 
 ## 每個模型的必要記錄
@@ -76,3 +79,4 @@ Phase 4 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通
 
 - `docs/INTENSITY-MODEL.md`
 - `docs/STEERING-MODEL.md`
+- `docs/LAND-RAIN-MODEL.md`

@@ -7,7 +7,7 @@ export const PROJECT_CONFIG = Object.freeze({
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
   schemaVersion: 1,
-  modelVersion: "0.4.0-steering",
+  modelVersion: "0.5.0-land-rain",
   geography: Object.freeze({
     bounds: Object.freeze({
       maxLat: 40,
@@ -174,6 +174,55 @@ export const PROJECT_CONFIG = Object.freeze({
     responseHours: 3,
     vectorDisplayScale: 5
   }),
+  landInteractionConfig: Object.freeze({
+    centralMountainHeight: 2600,
+    coastRangeHeight: 1200,
+    eastRiftValleyHeight: 350,
+    genericLandHeight: 120,
+    maximumPathSamples: 96,
+    minimumReorganizationFactor: 0.35,
+    organizationLossPerHour: 0.055,
+    pathSampleKm: 0.5,
+    reorganizationDelayHours: 9,
+    roughness: Object.freeze({
+      centralMountains: 0.82,
+      coastRange: 0.68,
+      eastRiftValley: 0.48,
+      genericLand: 0.42,
+      westPlain: 0.58
+    }),
+    symmetryLossPerHour: 0.08,
+    westPlainHeight: 120,
+    windLossPerHour: 1.65
+  }),
+  oceanCoolingConfig: Object.freeze({
+    coolingRateCelsiusPerHour: 0.34,
+    coverageRadiusMultiplier: 1,
+    maximumColdWake: 5,
+    minimumCoverageRadiusKm: 70,
+    minimumEffectiveSST: 22,
+    recoveryHours: 240,
+    referenceWindMps: 50,
+    slowSpeedScaleKmh: 12
+  }),
+  rainfallConfig: Object.freeze({
+    asymmetryFloor: 0.72,
+    coldWakeRainPenaltyMaximum: 0.35,
+    maximumRainRateMmPerHour: 60,
+    minimumRainRadiusKm: 120,
+    monsoonContribution: 0.45,
+    radialRadiusMultiplier: 2.2,
+    rainShadowMinimum: 0.42,
+    terrainLiftMaximum: 2.2
+  }),
+  observationConfig: Object.freeze({
+    gustFactor: 1.32,
+    innerWindRadiusFraction: 0.62,
+    maximumGustMps: 95,
+    maximumSustainedWindMps: 75,
+    terrainShelterMaximum: 0.45,
+    windDecayRadiusMultiplier: 1.35
+  }),
   gameBalance: Object.freeze({
     demoEnvironment: Object.freeze({
       coldWake: 0,
@@ -186,20 +235,20 @@ export const PROJECT_CONFIG = Object.freeze({
       terrainHeight: 0,
       verticalWindShear: 6
     }),
-    demoSeed: "sgts-nh-phase-4",
+    demoSeed: "sgts-nh-phase-5",
     demoTyphoon: Object.freeze({
-      centralPressure: 1004,
-      galeRadius: 80,
-      heading: 285,
-      lat: 15,
-      lon: 135,
-      maxWind: 15,
-      moisture: 0.72,
-      name: "KOSMOS-04",
-      organization: 0.28,
-      structureStage: "cluster",
-      symmetry: 0.32,
-      translationSpeed: 8
+      centralPressure: 955,
+      galeRadius: 180,
+      heading: 275,
+      lat: 23.5,
+      lon: 124.5,
+      maxWind: 42,
+      moisture: 0.82,
+      name: "KOSMOS-05",
+      organization: 0.78,
+      structureStage: "comma",
+      symmetry: 0.74,
+      translationSpeed: 12
     })
   }),
   renderingConfig: Object.freeze({
@@ -216,7 +265,9 @@ export const PROJECT_CONFIG = Object.freeze({
     particleCount: 140,
     particleMaximumRadiusScale: 1.35,
     particleMinimumRadiusScale: 0.28,
-    particleSeed: "sgts-nh-phase-4-visual",
+    particleSeed: "sgts-nh-phase-5-visual",
+    coldWakeTileMinimum: 0.04,
+    rainfallMaximumDisplayRate: 45,
     particlesEnabled: true,
     stormMaximumPixelRadius: 64,
     stormMinimumPixelRadius: 18,

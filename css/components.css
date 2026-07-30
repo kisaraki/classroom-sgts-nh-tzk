@@ -255,7 +255,8 @@ button:disabled {
 }
 
 .map-probe,
-.storm-dashboard {
+.storm-dashboard,
+.station-dashboard {
   margin-top: 1rem;
   padding: 0.85rem;
   border: 1px solid var(--color-border);
@@ -265,7 +266,9 @@ button:disabled {
 
 .map-probe h3,
 .storm-dashboard h3,
-.storm-dashboard h4 {
+.storm-dashboard h4,
+.station-dashboard h3,
+.station-dashboard h4 {
   margin: 0 0 0.45rem;
   color: var(--color-cyan-100);
   font-size: 0.92rem;
@@ -311,6 +314,40 @@ button:disabled {
   border-bottom-color: rgb(255 210 125 / 36%);
 }
 
+.station-dashboard {
+  margin-top: 1rem;
+}
+
+.station-dashboard > p {
+  margin: -0.2rem 0 0.65rem;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+}
+
+.station-observations {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.station-observations article {
+  padding: 0.48rem 0.55rem;
+  border-left: 2px solid rgb(118 232 255 / 48%);
+  background: rgb(13 43 64 / 56%);
+}
+
+.station-observations article h4 {
+  margin: 0 0 0.12rem;
+  color: var(--color-cyan-100);
+  font-size: 0.75rem;
+}
+
+.station-observations article p {
+  color: var(--color-muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
 .map-probe dl {
   display: grid;
   gap: 0.5rem;
@@ -352,6 +389,11 @@ button:disabled {
   }
 
   .control-panel {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  .diagnostics-panel {
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
   }

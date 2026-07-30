@@ -24,6 +24,7 @@ export class CanvasRenderer {
   #environment = null;
   #geography = null;
   #mapRenderer;
+  #observations = [];
   #particleRenderer;
   #selection = null;
   #stations;
@@ -69,6 +70,16 @@ export class CanvasRenderer {
 
   setParticlesEnabled(enabled) {
     this.#particleRenderer.setEnabled(enabled);
+  }
+
+  setObservations(observations) {
+    this.#observations = Array.isArray(observations) ? observations : [];
+
+    if (this.#observations.length > 0) {
+      this.#stations = this.#observations.map(
+        (observation) => observation.station
+      );
+    }
   }
 
   setTyphoon(typhoon) {
@@ -129,6 +140,7 @@ export class CanvasRenderer {
         context,
         environment: this.#environment,
         height,
+        observations: this.#observations,
         padding: MAP_PADDING,
         steeringDiagnostic: this.#steeringDiagnostic,
         typhoon: this.#typhoon,

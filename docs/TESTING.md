@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～4 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～5 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -52,6 +52,18 @@ Phase 4：
 - `test:e2e` 驗證六個控制器、target／actual／trend、非瞬時反應、
   2,501 格環境網格、實際移動、Pages 子路徑與既有地圖／強度回歸。
 
+Phase 5：
+
+- `test:unit` 驗證臺灣四種地形、0.5 km 路徑取樣、海陸事件 dedupe、
+  分段損耗、再組織、尾流面積／累積／恢復、雨影、10 分鐘雨量積分、
+  WeatherStation schema 及完整 reset。
+- `test:integration` 驗證 Environment → Steering → Land → Ocean →
+  Intensity → Observation 的正式更新順序與 Pages 子路徑模組載入。
+- `test:scenario` 量化陸地停留、臺灣東西穿越、強慢／弱快尾流、OHC、
+  再組織及迎風／背風雨量。
+- `test:e2e` 驗證六站風雨、動態尾流、海陸事件、完整重啟、實際 Chrome
+  操作、Pages 子路徑及 Phase 2～4 回歸。
+
 ## Phase 0 需求追蹤
 
 | Requirement ID | 需求 | Phase | 測試／證據 | 狀態 |
@@ -84,11 +96,11 @@ Phase 4：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 4 狀態 | 說明 |
+| 環境 | Phase 5 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | Pages 子路徑、六個控制器、延遲反應、2,501 格網格、移動／向量覆蓋、Console warning/error 0 |
-| 實際 Chrome | passed | 150.0.7871.187；6 個 Playwright E2E、Console error 0 |
+| Codex in-app Browser | passed | Pages 子路徑、三天以上模擬、海陸事件、動態尾流、六站風雨、完整重啟、Console warning/error 0 |
+| 實際 Chrome | passed | 150.0.7871.187；7 個 Playwright E2E、Console error 0 |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
@@ -96,6 +108,45 @@ Phase 4：
 | GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 5 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| LND-TERRAIN-001 | 西部平原、中央山脈、東部縱谷、海岸山脈分區 | `land-interaction.test.js`、Canvas | passed |
+| LND-PATH-001 | 海岸跨越採 0.5 km 取樣及同一步陸地時間比例 | unit／scenario tests | passed |
+| LND-EVENT-001 | LANDFALL／SEA_REENTRY 含完整欄位且不重複 | unit／integration／Browser smoke | passed |
+| LND-LOSS-001 | 摩擦、地形、組織與對稱損耗依固定時間積分 | unit／scenario tests | passed |
+| LND-REORG-001 | 出海後有 9 小時再組織延遲 | unit／scenario tests、dashboard | passed |
+| OCN-WAKE-001 | 尾流隨強度、移速、OHC、半徑及停留時間改變 | `ocean-cooling.test.js`、scenario tests | passed |
+| OCN-WAKE-002 | 尾流覆蓋暴風半徑內多格並以 240 小時常數恢復 | unit／integration／Canvas | passed |
+| RAIN-TERRAIN-001 | 迎風抬升、背風雨影與季風／尾流因子 | rainfall／scenario tests | passed |
+| OBS-STATION-001 | 六站持續風、陣風、雨率及 10 分鐘累積 | unit／integration／Chrome E2E | passed |
+| RESET-SESSION-001 | 重啟清除時鐘、事件、尾流、測站與路徑 | engine／Chrome／Browser smoke | passed |
+| DEPLOY-PAGES-005 | 純靜態相對路徑及 Pages 子路徑 | integration／Chrome／Browser smoke | passed |
+| LND-SCOPE-001 | 不建立 Phase 6 關卡目標或勝敗判定 | architecture／code inspection | passed |
+
+## Phase 5 實際結果
+
+- 完成時間：2026-07-30T20:48:33+08:00。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- `npm ci`／audit：通過；74 個套件，0 vulnerabilities。
+- ESLint：通過，0 errors、0 warnings。
+- TypeScript：不適用；本專案目前為原生 ES Modules。
+- 單元測試：76 passed、0 failed。
+- 整合測試：3 passed、0 failed。
+- 情境測試：12 passed、0 failed。
+- 實際 Chrome E2E：7 passed、0 failed；包含六站模型風雨、動態尾流、
+  session reset、Pages 子路徑及 Phase 2～4 回歸。
+- Browser harness：7/7 passed。
+- Codex in-app Browser：1280×720、無水平 overflow；24× 執行 548 steps
+  至 3 天 19 小時 20 分，實際路徑產生 Ishigaki `SEA_REENTRY`；尾流曾達
+  中心 0.26°C／7 cells，六站值隨模型變化；Canvas 顯示地形、尾流、
+  雨量 halo、測站與路徑；重啟後 MENU、step 0、尾流／事件／六站累積量
+  全歸零；Console warning/error 0。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 4 需求追蹤
 

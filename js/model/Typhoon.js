@@ -151,6 +151,18 @@ export class Typhoon {
     );
   }
 
+  applyLandInteraction({
+    isOverLand,
+    maxWind,
+    organization,
+    symmetry
+  }) {
+    this.maxWind = assertRange(maxWind, 0, 120, "maxWind");
+    this.organization = assertRange(organization, 0, 1, "organization");
+    this.symmetry = assertRange(symmetry, 0, 1, "symmetry");
+    this.isOverLand = Boolean(isOverLand);
+  }
+
   recordTrack({ simulationMinutes, stepIndex }) {
     assertFiniteNumber(simulationMinutes, "simulationMinutes");
     assertInteger(stepIndex, "stepIndex");
