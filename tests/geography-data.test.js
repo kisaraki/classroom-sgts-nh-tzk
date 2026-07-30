@@ -45,7 +45,7 @@ test("map includes every required first-edition geography group", async () => {
 
   for (const id of [
     "taiwan-main",
-    "china-southeast",
+    "china-mainland",
     "vietnam-north",
     "hainan",
     "philippines-luzon",

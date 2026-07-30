@@ -38,16 +38,16 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 05</p>
-        <h2 id="control-title">模擬控制</h2>
+        <p class="phase-badge">SGTS-NH · Phase 06</p>
+        <h2 id="control-title">第一關控制</h2>
         <p class="panel-copy">
-          設定環境目標值，觀察導引、地形、冷水尾流與降雨如何在固定步進中
-          共同改變颱風；UI 不會直接修改颱風座標或測站數值。
+          以環境目標引導初始擾動前往那霸；控制具有反應延遲，UI 不會
+          直接修改路徑、強度或測站數值。
         </p>
 
         <div class="control-stack">
           <button id="start-button" class="primary-button" type="button">
-            啟動模擬
+            開始「那霸風雨」
           </button>
           <button id="pause-button" type="button" disabled>暫停</button>
           <button id="reset-button" type="button" disabled>重啟並清除狀態</button>
@@ -62,6 +62,17 @@
             <button type="button" data-speed="24" aria-pressed="false">24×</button>
           </div>
         </fieldset>
+
+        <section
+          id="tutorial-panel"
+          class="tutorial-panel"
+          aria-labelledby="tutorial-panel-title"
+          aria-live="polite"
+        >
+          <p class="eyebrow">教學提示</p>
+          <h3 id="tutorial-panel-title" data-tutorial-title>先觀察副高</h3>
+          <p data-tutorial-body></p>
+        </section>
 
         <section
           id="environment-controls"
@@ -184,8 +195,8 @@
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
           <p>
-            本階段加入海陸事件、臺灣地形、冷水尾流、降雨與六站觀測；
-            關卡目標、勝敗與計分屬 Phase 6。
+            本階段只建立第一關「那霸風雨」及通用關卡引擎；第二、三關
+            屬 Phase 7，尚未實作。
           </p>
         </aside>
       </section>
@@ -202,10 +213,17 @@
           </p>
         </div>
 
+        <section
+          id="level-dashboard"
+          class="level-dashboard"
+          aria-label="那霸風雨目標"
+          aria-live="polite"
+        ></section>
+
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 05 西北太平洋海陸、冷水尾流與降雨模擬；點選或觸控以查詢位置"
+            aria-label="Phase 06 第一關那霸風雨；顯示那霸目標區，點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -262,18 +280,18 @@
           aria-labelledby="storm-dashboard-title"
           aria-live="polite"
         >
-          <h3 id="storm-dashboard-title">KOSMOS-05 海陸與強度</h3>
+          <h3 id="storm-dashboard-title">KOSMOS-06 關卡颱風</h3>
           <dl class="storm-metrics">
-            <div><dt>中心位置</dt><dd id="storm-position">23.50°N, 124.50°E</dd></div>
-            <div><dt>移動</dt><dd id="storm-motion">12.0 km/h · 275°</dd></div>
+            <div><dt>中心位置</dt><dd id="storm-position">14.00°N, 145.00°E</dd></div>
+            <div><dt>移動</dt><dd id="storm-motion">12.0 km/h · 305°</dd></div>
             <div><dt>導引向量</dt><dd id="steering-vector">—</dd></div>
-            <div><dt>最大風速</dt><dd id="storm-wind">42.0 m/s</dd></div>
-            <div><dt>中心氣壓</dt><dd id="storm-pressure">955 hPa</dd></div>
-            <div><dt>暴風半徑</dt><dd id="storm-radius">180 km</dd></div>
-            <div><dt>目標風速</dt><dd id="target-wind">42.0 m/s</dd></div>
-            <div><dt>組織度</dt><dd id="storm-organization">78%</dd></div>
-            <div><dt>對稱度</dt><dd id="storm-symmetry">74%</dd></div>
-            <div><dt>結構</dt><dd id="storm-stage">comma</dd></div>
+            <div><dt>最大風速</dt><dd id="storm-wind">15.0 m/s</dd></div>
+            <div><dt>中心氣壓</dt><dd id="storm-pressure">1005 hPa</dd></div>
+            <div><dt>暴風半徑</dt><dd id="storm-radius">80 km</dd></div>
+            <div><dt>目標風速</dt><dd id="target-wind">15.0 m/s</dd></div>
+            <div><dt>組織度</dt><dd id="storm-organization">28%</dd></div>
+            <div><dt>對稱度</dt><dd id="storm-symmetry">34%</dd></div>
+            <div><dt>結構</dt><dd id="storm-stage">cluster</dd></div>
             <div><dt>海陸</dt><dd id="storm-surface">海洋</dd></div>
             <div><dt>地形區</dt><dd id="terrain-zone">ocean · 0 m</dd></div>
             <div><dt>中心冷水尾流</dt><dd id="center-cold-wake">0.00 °C</dd></div>
@@ -341,6 +359,39 @@
         </div>
       </aside>
     </main>
+
+    <section
+      id="result-dialog"
+      class="result-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="result-title"
+      hidden
+    >
+      <div class="result-card">
+        <p class="eyebrow">LEVEL RESULT</p>
+        <h2 id="result-title" data-result-title>關卡結算</h2>
+        <p data-result-summary></p>
+        <dl class="result-metrics">
+          <div><dt>模擬時間</dt><dd data-result-time>—</dd></div>
+          <div><dt>最大風速</dt><dd data-result-wind>—</dd></div>
+          <div><dt>最低氣壓</dt><dd data-result-pressure>—</dd></div>
+          <div><dt>路徑</dt><dd data-result-path>—</dd></div>
+          <div><dt>那霸測站</dt><dd data-result-station>—</dd></div>
+          <div><dt>總分</dt><dd data-result-score>—</dd></div>
+        </dl>
+        <h3>分數明細</h3>
+        <ul data-result-breakdown class="score-breakdown"></ul>
+        <p class="result-disclaimer">
+          歷史靈感關卡，非歷史重建；結果不可用於預報或防災決策。
+        </p>
+        <button
+          class="primary-button"
+          type="button"
+          data-result-restart
+        >重啟第一關</button>
+      </div>
+    </section>
 
     <footer class="site-footer">
       <p class="brand-mark">© KOSMOS TOOLKIT｜探真拓知酷</p>

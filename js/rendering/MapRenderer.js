@@ -3,7 +3,7 @@ import {
   TerrainZone,
   taiwanRidgeLongitude
 } from "../data/terrain.js";
-import { geoToCanvas } from "../utils/geo.js";
+import { destinationPoint, geoToCanvas } from "../utils/geo.js";
 
 const COAST_COLORS = Object.freeze({
   east: "#76e4f7",
@@ -132,6 +132,99 @@ export class MapRenderer {
       context.lineTo(point.x + 11, point.y);
       context.moveTo(point.x, point.y - 11);
       context.lineTo(point.x, point.y + 11);
+      context.stroke();
+    }
+
+    context.restore();
+  }
+
+  drawTargets({
+    bounds,
+    context,
+    height,
+    level,
+    padding,
+    stations,
+    width
+  }) {
+    if (!level?.referenceZones) {
+      return;
+    }
+
+    const viewport = { bounds, height, padding, width };
+    context.save();
+
+    for (const zone of level.referenceZones) {
+      const station = stations.find((entry) => entry.id === zone.stationId);
+
+      if (!station) {
+        continue;
+      }
+
+      const center = geoToCanvas(station, viewport);
+      const east = geoToCanvas(
+        destinationPoint(station, zone.radiusKm, 90),
+        viewport
+      );
+      const north = geoToCanvas(
+        destinationPoint(station, zone.radiusKm, 0),
+        viewport
+      );
+      context.beginPath();
+      context.ellipse(
+        center.x,
+        center.y,
+        Math.abs(east.x - center.x),
+        Math.abs(north.y - center.y),
+        0,
+        0,
+        Math.PI * 2
+      );
+      context.fillStyle = "rgba(118, 228, 247, 0.07)";
+      context.fill();
+      context.setLineDash([5, 4]);
+      context.strokeStyle = "rgba(118, 228, 247, 0.9)";
+      context.lineWidth = 1.5;
+      context.stroke();
+      context.setLineDash([]);
+      context.fillStyle = "#d9f9ff";
+      context.font = "750 9px ui-monospace, monospace";
+      context.fillText(
+        `${zone.id.toUpperCase()} ${zone.radiusKm} km`,
+        center.x + 8,
+        center.y - 10
+      );
+    }
+
+    const proximity = level.objectives.find(
+      (objective) =>
+        objective.metric === "storm.distanceToStation" &&
+        objective.subject === "naha"
+    );
+    const station = stations.find((entry) => entry.id === proximity?.subject);
+
+    if (station && Number.isFinite(proximity.threshold)) {
+      const center = geoToCanvas(station, viewport);
+      const east = geoToCanvas(
+        destinationPoint(station, proximity.threshold, 90),
+        viewport
+      );
+      const north = geoToCanvas(
+        destinationPoint(station, proximity.threshold, 0),
+        viewport
+      );
+      context.beginPath();
+      context.ellipse(
+        center.x,
+        center.y,
+        Math.abs(east.x - center.x),
+        Math.abs(north.y - center.y),
+        0,
+        0,
+        Math.PI * 2
+      );
+      context.strokeStyle = "#ffd27d";
+      context.lineWidth = 2;
       context.stroke();
     }
 

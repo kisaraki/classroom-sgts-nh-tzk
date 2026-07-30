@@ -207,6 +207,115 @@ button:disabled {
   accent-color: var(--color-cyan-300);
 }
 
+.tutorial-panel,
+.level-dashboard {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: rgb(6 17 31 / 58%);
+}
+
+.tutorial-panel h3,
+.level-dashboard h2 {
+  margin-block: 0.35rem;
+  color: var(--color-cyan-100);
+  font-size: 1rem;
+}
+
+.tutorial-panel > p:last-child,
+.level-heading > p {
+  color: var(--color-muted);
+  font-size: 0.76rem;
+}
+
+.level-heading {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 1rem;
+  align-items: end;
+}
+
+.level-heading .eyebrow,
+.level-heading > p {
+  grid-column: 1;
+}
+
+.level-heading h2 {
+  grid-column: 1;
+}
+
+.level-heading .level-time {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  text-align: right;
+}
+
+.level-time strong {
+  display: block;
+  color: var(--color-warning);
+  font-family: ui-monospace, monospace;
+  font-size: 1.05rem;
+}
+
+.objective-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+  padding: 0;
+  list-style: none;
+}
+
+.objective-list li {
+  min-width: 0;
+  padding: 0.55rem;
+  border: 1px solid rgb(118 232 255 / 18%);
+  border-left: 3px solid var(--color-muted);
+  border-radius: 0.5rem;
+  background: rgb(13 43 64 / 54%);
+}
+
+.objective-list li[data-status="in_progress"] {
+  border-left-color: var(--color-warning);
+}
+
+.objective-list li[data-status="completed"] {
+  border-left-color: var(--color-success);
+}
+
+.objective-list li[data-status="failed"] {
+  border-left-color: var(--color-danger);
+}
+
+.objective-list li > div {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.objective-list strong,
+.objective-list span {
+  color: var(--color-cyan-100);
+  font-size: 0.72rem;
+}
+
+.objective-list p {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  color: var(--color-muted);
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+
+.objective-list progress {
+  width: 100%;
+  height: 0.4rem;
+  margin-top: 0.35rem;
+  accent-color: var(--color-cyan-300);
+}
+
 .scope-note,
 .disclaimer {
   margin-top: 1.25rem;
@@ -377,6 +486,107 @@ button:disabled {
 .brand-mark {
   color: var(--color-cyan-100);
   font-weight: 700;
+}
+
+.result-dialog {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(1 8 18 / 82%);
+  backdrop-filter: blur(10px);
+}
+
+.result-dialog[hidden] {
+  display: none;
+}
+
+.result-card {
+  width: min(34rem, 100%);
+  max-height: calc(100vh - 2rem);
+  padding: clamp(1rem, 3vw, 1.6rem);
+  overflow-y: auto;
+  border: 1px solid var(--color-cyan-300);
+  border-radius: 1rem;
+  background: var(--color-ocean-900);
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 55%);
+}
+
+.result-card h2 {
+  color: var(--color-cyan-100);
+}
+
+.result-card > p {
+  margin-block: 0.4rem 0.8rem;
+  color: var(--color-muted);
+}
+
+.result-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1rem;
+  margin-block: 1rem;
+}
+
+.result-metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.result-metrics dt {
+  color: var(--color-muted);
+}
+
+.result-metrics dd {
+  text-align: right;
+  font-family: ui-monospace, monospace;
+}
+
+.score-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 1rem;
+  margin-block: 0.5rem 1rem;
+  padding-left: 1.1rem;
+  color: var(--color-cyan-100);
+  font-family: ui-monospace, monospace;
+  font-size: 0.76rem;
+}
+
+.result-card .result-disclaimer {
+  color: var(--color-warning);
+  font-size: 0.75rem;
+}
+
+.result-card > button {
+  width: 100%;
+}
+
+@media (width < 900px) {
+  .objective-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width < 540px) {
+  .level-heading {
+    display: block;
+  }
+
+  .level-heading .level-time {
+    margin-top: 0.4rem;
+    text-align: left;
+  }
+
+  .objective-list,
+  .result-metrics,
+  .score-breakdown {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (height <= 760px) and (width >= 1100px) {

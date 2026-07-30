@@ -94,11 +94,18 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
   );
 
   for (const modulePath of [
+    "js/data/levels.js",
+    "js/model/LevelState.js",
+    "js/core/ObjectiveEvaluator.js",
+    "js/core/FailureEvaluator.js",
     "js/model/WeatherStation.js",
     "js/simulation/LandInteractionModel.js",
     "js/simulation/OceanCoolingModel.js",
     "js/simulation/RainfallModel.js",
-    "js/simulation/ObservationModel.js"
+    "js/simulation/ObservationModel.js",
+    "js/ui/Dashboard.js",
+    "js/ui/ResultDialog.js",
+    "js/ui/Tutorial.js"
   ]) {
     const response = await fetch(
       `${baseUrl}/classroom-sgts-nh-tzk/${modulePath}`

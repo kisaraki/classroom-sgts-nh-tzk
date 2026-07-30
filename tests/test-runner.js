@@ -1,5 +1,8 @@
 import { SimulationClock } from "../js/core/SimulationClock.js";
+import { ObjectiveEvaluator } from "../js/core/ObjectiveEvaluator.js";
 import { GameState, StateMachine } from "../js/core/StateMachine.js";
+import { NAHA_STORM_LEVEL } from "../js/data/levels.js";
+import { LevelState } from "../js/model/LevelState.js";
 import { computeCanvasDimensions } from "../js/ui/CanvasViewport.js";
 import { haversineDistanceKm } from "../js/utils/geo.js";
 import { SeededRandom } from "../js/utils/random.js";
@@ -81,6 +84,34 @@ test("瀏覽器可建立完整 1 度環境網格", () => {
 
 test("10 分鐘雨量使用每小時雨率的六分之一", () => {
   equal(integrateRainfall(10, 24, 10), 14, "rainfall integration");
+});
+
+test("那霸關卡白名單目標可由正式資料欄位完成", () => {
+  const levelState = new LevelState(NAHA_STORM_LEVEL);
+  const evaluator = new ObjectiveEvaluator();
+  const result = evaluator.evaluate({
+    context: {
+      observations: [
+        {
+          distanceKm: 25,
+          station: {
+            accumulatedRain: 300,
+            gust: 50,
+            id: "naha"
+          }
+        }
+      ],
+      simulationMinutes: 10,
+      stepIndex: 1,
+      typhoon: {
+        maxWind: 35
+      }
+    },
+    levelState
+  });
+
+  equal(result.allRequiredCompleted, true, "Naha required objectives");
+  equal(result.newlyCompleted.length, 4, "completed objective count");
 });
 
 let passed = 0;

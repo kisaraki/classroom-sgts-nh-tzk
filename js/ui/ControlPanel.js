@@ -26,10 +26,19 @@ export const describeControlTrend = (trend) =>
 
 export class ControlPanel {
   #environment;
+  #onControlChange;
   #onError;
   #records;
 
-  constructor(root, { environment, onError = () => {} }) {
+  constructor(
+    root,
+    {
+      allowedControls = Object.keys(PROJECT_CONFIG.environmentControls),
+      environment,
+      onControlChange = () => {},
+      onError = () => {}
+    }
+  ) {
     if (!root || typeof root.querySelectorAll !== "function") {
       throw new TypeError("ControlPanel requires a DOM root.");
     }
@@ -38,11 +47,15 @@ export class ControlPanel {
       throw new TypeError("ControlPanel requires an Environment.");
     }
 
-    if (typeof onError !== "function") {
-      throw new TypeError("ControlPanel onError must be a function.");
+    if (
+      typeof onError !== "function" ||
+      typeof onControlChange !== "function"
+    ) {
+      throw new TypeError("ControlPanel callbacks must be functions.");
     }
 
     this.#environment = environment;
+    this.#onControlChange = onControlChange;
     this.#onError = onError;
     const inputs = [...root.querySelectorAll("[data-environment-control]")];
     const expectedCount = Object.keys(PROJECT_CONFIG.environmentControls).length;
@@ -75,7 +88,9 @@ export class ControlPanel {
       input.step = String(definition.step);
       const listener = () => {
         try {
-          this.#environment.setTargetControl(name, Number(input.value));
+          const value = Number(input.value);
+          this.#environment.setTargetControl(name, value);
+          this.#onControlChange({ control: name, value });
           this.render();
         } catch (error) {
           this.#onError(error);
@@ -86,6 +101,7 @@ export class ControlPanel {
       return { actual, input, listener, name, target, trend };
     });
 
+    this.setAllowedControls(allowedControls);
     this.render({ syncInputs: true });
   }
 
@@ -96,6 +112,23 @@ export class ControlPanel {
 
     this.#environment = environment;
     this.render({ syncInputs: true });
+  }
+
+  setAllowedControls(allowedControls) {
+    if (!Array.isArray(allowedControls)) {
+      throw new TypeError("allowedControls must be an array.");
+    }
+
+    const allowed = new Set(allowedControls);
+
+    for (const record of this.#records) {
+      const isAllowed = allowed.has(record.name);
+      record.input.disabled = !isAllowed;
+      record.input.closest("[data-control-name]")?.setAttribute(
+        "data-control-allowed",
+        String(isAllowed)
+      );
+    }
   }
 
   render({ syncInputs = false } = {}) {

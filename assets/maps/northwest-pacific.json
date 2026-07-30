@@ -28,7 +28,7 @@
     {
       "type": "Feature",
       "properties": {
-        "regionId": "china-southeast",
+        "regionId": "china-mainland",
         "name": "中國東南沿岸"
       },
       "geometry": {

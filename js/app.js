@@ -1,6 +1,8 @@
 import { PROJECT_CONFIG } from "./config.js";
 import { EventBus } from "./core/EventBus.js";
+import { FailureEvaluator } from "./core/FailureEvaluator.js";
 import { GameEngine } from "./core/GameEngine.js";
+import { ObjectiveEvaluator } from "./core/ObjectiveEvaluator.js";
 import { GameState } from "./core/StateMachine.js";
 import { SimulationClock } from "./core/SimulationClock.js";
 import {
@@ -8,8 +10,10 @@ import {
   findLandRegion,
   loadGeography
 } from "./data/geography.js";
+import { NAHA_STORM_LEVEL } from "./data/levels.js";
 import { getTerrainProfile } from "./data/terrain.js";
 import { createEnvironmentGrid } from "./model/Environment.js";
+import { LevelState } from "./model/LevelState.js";
 import { Typhoon } from "./model/Typhoon.js";
 import { CanvasRenderer } from "./rendering/CanvasRenderer.js";
 import {
@@ -26,6 +30,9 @@ import { RainfallModel } from "./simulation/RainfallModel.js";
 import { SteeringModel } from "./simulation/SteeringModel.js";
 import { formatSimulationTime } from "./ui/CanvasViewport.js";
 import { ControlPanel } from "./ui/ControlPanel.js";
+import { Dashboard } from "./ui/Dashboard.js";
+import { ResultDialog } from "./ui/ResultDialog.js";
+import { Tutorial } from "./ui/Tutorial.js";
 import {
   createFingerprint,
   createRandomStreams
@@ -41,21 +48,26 @@ const requireElement = (selector) => {
   return element;
 };
 
-const createDemoSession = (
+const createLevelSession = (
   mapData = null,
-  { eventBus = null, targetControls = {} } = {}
+  {
+    eventBus = null,
+    level = NAHA_STORM_LEVEL,
+    targetControls = level.environmentPreset
+  } = {}
 ) => {
-  const demo = PROJECT_CONFIG.gameBalance.demoTyphoon;
   const typhoon = new Typhoon({
-    ...demo,
+    ...level.spawn,
     active: true,
     eventHistory: [],
-    id: "demo-kosmos-05",
+    id: `${level.id}-cyclone`,
     isOverLand: false,
+    name: "KOSMOS-06",
     trackHistory: []
   });
-  const randomStreams = createRandomStreams(PROJECT_CONFIG.gameBalance.demoSeed);
+  const randomStreams = createRandomStreams(level.seed);
   const environment = createEnvironmentGrid({
+    controls: level.environmentPreset,
     isLandAt: (point) => Boolean(mapData && findLandRegion(point, mapData)),
     random: randomStreams.environment,
     targetControls,
@@ -66,16 +78,19 @@ const createDemoSession = (
   const cell = environment.sampleAt(typhoon);
   const intensityModel = new IntensityModel({
     randomStreams,
-    seed: PROJECT_CONFIG.gameBalance.demoSeed
+    seed: level.seed
   });
   const steeringModel = new SteeringModel({
     random: randomStreams.steering,
-    seed: PROJECT_CONFIG.gameBalance.demoSeed
+    seed: level.seed
   });
   const landInteractionModel = new LandInteractionModel({ eventBus });
   const oceanCoolingModel = new OceanCoolingModel();
   const rainfallModel = new RainfallModel();
   const observationModel = new ObservationModel({ rainfallModel });
+  const levelState = new LevelState(level);
+  const objectiveEvaluator = new ObjectiveEvaluator({ eventBus });
+  const failureEvaluator = new FailureEvaluator({ eventBus });
   const endProfile = getTerrainProfile(typhoon, mapData);
   const landDiagnostic = Object.freeze({
     endProfile,
@@ -120,11 +135,15 @@ const createDemoSession = (
     cell,
     environment,
     factors: calculateEnvironmentalFactors(typhoon, cell),
+    failureEvaluator,
     fingerprint: intensityModel.fingerprint(typhoon),
     intensityModel,
     landDiagnostic,
     landInteractionModel,
     latestSurfaceEvent: null,
+    level,
+    levelState,
+    objectiveEvaluator,
     observationModel,
     observations,
     oceanCoolingModel,
@@ -153,6 +172,7 @@ const bootstrap = async () => {
     fps: requireElement("#fps-readout"),
     environmentControls: requireElement("#environment-controls"),
     environmentGridStatus: requireElement("#environment-grid-status"),
+    levelDashboard: requireElement("#level-dashboard"),
     mapDataStatus: requireElement("#map-data-status"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
@@ -160,6 +180,7 @@ const bootstrap = async () => {
     probeStation: requireElement("#probe-station"),
     probeSurface: requireElement("#probe-surface"),
     resetButton: requireElement("#reset-button"),
+    resultDialog: requireElement("#result-dialog"),
     simulationTime: requireElement("#sim-time"),
     speedButtons: [...document.querySelectorAll("[data-speed]")],
     startButton: requireElement("#start-button"),
@@ -179,6 +200,7 @@ const bootstrap = async () => {
     surfaceEvents: requireElement("#surface-events"),
     terrainRecovery: requireElement("#terrain-recovery"),
     terrainZone: requireElement("#terrain-zone"),
+    tutorial: requireElement("#tutorial-panel"),
     targetWind: requireElement("#target-wind"),
     updateCount: requireElement("#update-count"),
     visibility: requireElement("#visibility-status")
@@ -204,12 +226,19 @@ const bootstrap = async () => {
 
   const canvasRenderer = new CanvasRenderer(elements.canvas);
   const eventBus = new EventBus();
-  let session = createDemoSession(null, { eventBus });
+  let session = createLevelSession(null, { eventBus });
   let controlPanel = null;
+  let resultDialog = null;
   let mapData = null;
   let mapReady = false;
   let updateCount = 0;
   const stationElements = new Map();
+  const dashboard = new Dashboard(elements.levelDashboard, {
+    level: NAHA_STORM_LEVEL
+  });
+  const tutorial = new Tutorial(elements.tutorial, {
+    level: NAHA_STORM_LEVEL
+  });
 
   const ensureStationElements = () => {
     for (const observation of session.observations) {
@@ -316,6 +345,11 @@ const bootstrap = async () => {
         `${(session.factors[name] * 100).toFixed(0)}%`;
     }
     renderStationObservations();
+    dashboard.render({
+      levelState: session.levelState,
+      simulationMinutes: clockState.simulationMinutes
+    });
+    tutorial.render(clockState.stepIndex);
     controlPanel?.render();
     elements.visibility.textContent = clockState.isHidden
       ? "頁面隱藏｜停止累積"
@@ -340,6 +374,7 @@ const bootstrap = async () => {
     }
 
     canvasRenderer.setTyphoon(storm);
+    canvasRenderer.setLevel(session.level);
     canvasRenderer.setEnvironment(session.environment);
     canvasRenderer.setObservations(session.observations);
     canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
@@ -404,14 +439,73 @@ const bootstrap = async () => {
       session.latestSurfaceEvent =
         session.landDiagnostic.events.at(-1) ??
         session.latestSurfaceEvent;
+      session.levelState.recordStep({
+        landDiagnostic: session.landDiagnostic,
+        observations: session.observations,
+        oceanDiagnostic: session.oceanDiagnostic,
+        simulationMinutes: step.simulationMinutes,
+        steeringDiagnostic: session.steeringDiagnostic,
+        stepIndex: step.stepIndex,
+        typhoon: session.typhoon
+      });
+      const levelContext = Object.freeze({
+        enteredRegions:
+          session.levelState.statistics.enteredRegionsThisStep,
+        observations: session.observations,
+        simulationMinutes: step.simulationMinutes,
+        steeringDiagnostic: session.steeringDiagnostic,
+        stepIndex: step.stepIndex,
+        typhoon: session.typhoon
+      });
+      const objectiveResult = session.objectiveEvaluator.evaluate({
+        context: levelContext,
+        levelState: session.levelState
+      });
+      const failureResult = session.failureEvaluator.evaluate({
+        context: levelContext,
+        levelState: session.levelState
+      });
       session.fingerprint = createFingerprint({
         intensity: result.fingerprint,
         land: session.landInteractionModel.snapshot(),
+        level: session.levelState.snapshot(),
         observations: session.observationModel.snapshot(),
         ocean: session.oceanDiagnostic,
         steering: session.steeringDiagnostic.fingerprint,
         typhoonEvents: session.typhoon.eventHistory
       });
+
+      if (failureResult.anyTriggered) {
+        const failureId = failureResult.newlyTriggered[0];
+        const levelResult = session.levelState.finalize({
+          failureId,
+          fingerprint: session.fingerprint,
+          observations: session.observations,
+          outcome: "failure",
+          simulationMinutes: step.simulationMinutes,
+          stepIndex: step.stepIndex,
+          typhoon: session.typhoon
+        });
+        engine.failLevel({
+          failureId,
+          levelId: session.level.id
+        });
+        resultDialog?.open(levelResult, session.level);
+      } else if (objectiveResult.allRequiredCompleted) {
+        const levelResult = session.levelState.finalize({
+          fingerprint: session.fingerprint,
+          observations: session.observations,
+          outcome: "victory",
+          simulationMinutes: step.simulationMinutes,
+          stepIndex: step.stepIndex,
+          typhoon: session.typhoon
+        });
+        engine.completeLevel({
+          levelId: session.level.id,
+          score: levelResult.score.total
+        });
+        resultDialog?.open(levelResult, session.level);
+      }
     }
   });
 
@@ -423,7 +517,16 @@ const bootstrap = async () => {
   };
 
   controlPanel = new ControlPanel(elements.environmentControls, {
+    allowedControls: NAHA_STORM_LEVEL.allowedControls,
     environment: session.environment,
+    onControlChange: ({ control, value }) => {
+      session.levelState.recordControlOperation({
+        control,
+        simulationMinutes: clock.simulationMinutes,
+        stepIndex: clock.stepIndex,
+        value
+      });
+    },
     onError: handleError
   });
 
@@ -451,23 +554,60 @@ const bootstrap = async () => {
     canvasRenderer.setSelection(description);
   };
 
+  const applySessionToView = () => {
+    controlPanel.setEnvironment(session.environment);
+    elements.environmentGridStatus.textContent =
+      `${session.environment.cells.length} cells · ` +
+      `${session.environment.gridResolution}°`;
+    canvasRenderer.setLevel(session.level);
+    canvasRenderer.setTyphoon(session.typhoon);
+    canvasRenderer.setEnvironment(session.environment);
+    canvasRenderer.setObservations(session.observations);
+    canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
+  };
+
+  const resetLevel = () => {
+    elements.error.hidden = true;
+    updateCount = 0;
+    eventBus.reset();
+    session = createLevelSession(mapData, { eventBus });
+    resultDialog?.reset();
+    tutorial.reset();
+    applySessionToView();
+    engine.resetSimulation({
+      emitLevelRestarted: true,
+      levelId: session.level.id
+    });
+  };
+
+  resultDialog = new ResultDialog(elements.resultDialog, {
+    onRestart: resetLevel
+  });
+
   elements.startButton.addEventListener("click", () => {
     try {
       elements.error.hidden = true;
       updateCount = 0;
+      const targetControls = { ...session.environment.targetControls };
+      const pendingOperations = [...session.levelState.controlOperations];
       eventBus.reset();
-      session = createDemoSession(mapData, {
+      session = createLevelSession(mapData, {
         eventBus,
-        targetControls: session.environment.targetControls
+        targetControls
       });
-      controlPanel.setEnvironment(session.environment);
-      elements.environmentGridStatus.textContent =
-        `${session.environment.cells.length} cells · ` +
-        `${session.environment.gridResolution}°`;
-      canvasRenderer.setTyphoon(session.typhoon);
-      canvasRenderer.setEnvironment(session.environment);
-      canvasRenderer.setObservations(session.observations);
-      canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
+
+      for (const operation of pendingOperations) {
+        session.levelState.recordControlOperation({
+          control: operation.control,
+          simulationMinutes: 0,
+          stepIndex: 0,
+          value: operation.value
+        });
+      }
+
+      resultDialog.reset();
+      tutorial.reset();
+      applySessionToView();
       engine.startSimulation();
     } catch (error) {
       handleError(error);
@@ -488,19 +628,7 @@ const bootstrap = async () => {
 
   elements.resetButton.addEventListener("click", () => {
     try {
-      elements.error.hidden = true;
-      updateCount = 0;
-      eventBus.reset();
-      session = createDemoSession(mapData, {
-        eventBus,
-        targetControls: session.environment.targetControls
-      });
-      controlPanel.setEnvironment(session.environment);
-      canvasRenderer.setEnvironment(session.environment);
-      canvasRenderer.setObservations(session.observations);
-      canvasRenderer.setTyphoon(session.typhoon);
-      canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
-      engine.resetSimulation();
+      resetLevel();
     } catch (error) {
       handleError(error);
     }
@@ -552,6 +680,7 @@ const bootstrap = async () => {
     () => {
       canvasRenderer.destroy();
       controlPanel.destroy();
+      resultDialog?.destroy();
       engine.destroy();
     },
     { once: true }
@@ -559,6 +688,7 @@ const bootstrap = async () => {
 
   engine.setVisibilityHidden(document.hidden);
   canvasRenderer.setTyphoon(session.typhoon);
+  canvasRenderer.setLevel(session.level);
   canvasRenderer.setEnvironment(session.environment);
   canvasRenderer.setObservations(session.observations);
   canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
@@ -568,9 +698,9 @@ const bootstrap = async () => {
   try {
     mapData = await loadGeography();
     canvasRenderer.setGeography(mapData);
-    session = createDemoSession(mapData, {
+    session = createLevelSession(mapData, {
       eventBus,
-      targetControls: session.environment.targetControls
+      targetControls: session.level.environmentPreset
     });
     controlPanel.setEnvironment(session.environment);
     canvasRenderer.setEnvironment(session.environment);

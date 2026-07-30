@@ -12,8 +12,8 @@
 | 2 | approved | `phase/02-map-geography` | `2a426c4` | `26cde99` | lint、44 unit、2 integration、4 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:25:29+08:00 | 2026-07-30T19:46:24+08:00 | 批准 Phase 2，並進入 Phase 3 |  |
 | 3 | approved | `phase/03-intensity` | `4a1bb3c` | `2d16589` | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 | 2026-07-30T20:03:14+08:00 | 批准 Phase 3，並進入 Phase 4 |  |
 | 4 | approved | `phase/04-steering` | `c3c7d51` | `3924d30` | lint、66 unit、2 integration、8 scenario、6 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:21:30+08:00 | 2026-07-30T20:24:56+08:00 | 批准 Phase 4，並進入 Phase 5 |  |
-| 5 | approved | `phase/05-land-rain` | `131f891` | pending | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
-| 6 | pending |  |  |  | not_run |  |  |  |  |
+| 5 | approved | `phase/05-land-rain` | `131f891` | `0e1e0af` | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
+| 6 | in_progress | `phase/06-level-naha` |  |  | not_run |  |  |  |  |
 | 7 | pending |  |  |  | not_run |  |  |  |  |
 | 8 | pending |  |  |  | not_run |  |  |  |  |
 | 9 | pending |  |  |  | not_run |  |  |  |  |

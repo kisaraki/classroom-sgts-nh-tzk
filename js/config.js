@@ -7,7 +7,7 @@ export const PROJECT_CONFIG = Object.freeze({
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
   schemaVersion: 1,
-  modelVersion: "0.5.0-land-rain",
+  modelVersion: "0.6.0-level-naha",
   geography: Object.freeze({
     bounds: Object.freeze({
       maxLat: 40,
@@ -265,7 +265,7 @@ export const PROJECT_CONFIG = Object.freeze({
     particleCount: 140,
     particleMaximumRadiusScale: 1.35,
     particleMinimumRadiusScale: 0.28,
-    particleSeed: "sgts-nh-phase-5-visual",
+    particleSeed: "sgts-nh-phase-6-visual",
     coldWakeTileMinimum: 0.04,
     rainfallMaximumDisplayRate: 45,
     particlesEnabled: true,

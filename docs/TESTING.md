@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～5 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～6 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -64,6 +64,18 @@ Phase 5：
 - `test:e2e` 驗證六站風雨、動態尾流、海陸事件、完整重啟、實際 Chrome
   操作、Pages 子路徑及 Phase 2～4 回歸。
 
+Phase 6：
+
+- `test:unit` 驗證 Level 等效 schema、未知欄位／metric／可執行內容拒絕、
+  四個目標、強度／雨量不足、12 小時消散、超時、區域順序、單次事件、
+  計分與新 `LevelState`。
+- `test:integration` 以正式 Environment → Steering → Land → Ocean →
+  Intensity → Observation → Level pipeline 驗證單次結算、Pages 子路徑
+  模組載入及全新 session。
+- `test:scenario` 驗證固定合法輸入勝利黃金重播，以及未通過那霸的失敗路徑。
+- `test:e2e` 驗證目標面板、教學、目標區、861 步勝利、結果分數、停止補算、
+  單次結算、完整重啟、Pages 子路徑與 Phase 2～5 回歸。
+
 ## Phase 0 需求追蹤
 
 | Requirement ID | 需求 | Phase | 測試／證據 | 狀態 |
@@ -96,11 +108,11 @@ Phase 5：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 5 狀態 | 說明 |
+| 環境 | Phase 6 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | Pages 子路徑、三天以上模擬、海陸事件、動態尾流、六站風雨、完整重啟、Console warning/error 0 |
-| 實際 Chrome | passed | 150.0.7871.187；7 個 Playwright E2E、Console error 0 |
+| Codex in-app Browser | passed | Pages 子路徑、1280×720、無水平 overflow；目標面板、教學、50／150 km 目標區、聲明及初始模型值可見 |
+| 實際 Chrome | passed | 150.0.7871.187；9 個 Playwright E2E、Console error 0 |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
@@ -108,6 +120,44 @@ Phase 5：
 | GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 6 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| LVL-SCHEMA-001 | 通用 Level 格式、嚴格驗證及唯一 ID | `level-data.test.js` | passed |
+| LVL-DSL-001 | Objective／Failure 白名單 DSL，不執行任意程式碼 | level data／evaluator tests | passed |
+| LVL-NAHA-001 | 生成點、15 m/s、1005 hPa、168 小時及四主要目標 | unit／E2E／Browser smoke | passed |
+| LVL-FAIL-001 | 邊界、12 小時消散、超時及中國大陸順序失敗 | `level-evaluators.test.js` | passed |
+| LVL-STATE-001 | 四種目標狀態、正式模型統計及一次結果 | unit／integration／E2E | passed |
+| LVL-EVENT-001 | 目標、失敗、結算及補算停止不重複 | evaluator／engine／integration tests | passed |
+| LVL-SCORE-001 | 透明計分項目、上限、扣分及結算明細 | level data／scenario／E2E | passed |
+| LVL-GOLDEN-001 | 版本化合法輸入黃金重播 fixture | scenario／integration／Chrome E2E | passed |
+| LVL-RESET-001 | 重啟清除目標、結果、事件、控制、尾流及測站 | unit／integration／Chrome E2E | passed |
+| LVL-MODEL-001 | 目標值只取正式物理與測站模型 | helper pipeline／scenario／code inspection | passed |
+| DEPLOY-PAGES-006 | 純靜態相對路徑及 Pages 子路徑 | integration／browser harness／Chrome | passed |
+| LVL-SCOPE-001 | 不建立 Phase 7 第二、三關 | `LEVELS` count／code inspection | passed |
+
+## Phase 6 實際結果
+
+- 完成日期：2026-07-30；精確完成時間記錄於 `PHASE-STATUS.md`。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- ESLint：通過，0 errors、0 warnings。
+- TypeScript：不適用；本專案目前為原生 ES Modules。
+- 單元測試：87 passed、0 failed。
+- 整合測試：5 passed、0 failed。
+- 情境測試：14 passed、0 failed。
+- 實際 Chrome E2E：9 passed、0 failed；包含 861 步黃金重播、
+  VICTORY 單次結算、5,519／6,250 計分及全狀態重啟。
+- Browser harness：8/8 passed。
+- 黃金重播：合法 UI 操作為風切 4 m/s、副高 85%；勝利 step 861，
+  fingerprint `9bb637a1`，四個目標各完成一次。
+- Codex in-app Browser：1280×720、Pages 子路徑、無水平 overflow；
+  初始 MENU、168h、四個 pending 目標、教學與模型免責聲明可見；
+  Canvas 顯示生成點、那霸 50 km 與琉球 150 km 目標區。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 5 需求追蹤
 

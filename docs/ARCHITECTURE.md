@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 5 completed，待使用者批准。
-- Phase 5 在導引移動後加入海陸分段、臺灣地形、冷水尾流、降雨及測站
-  觀測；Canvas 與 DOM 只讀同一組模型診斷值。
+- 目前 Phase：Phase 6 completed，待使用者批准。
+- Phase 6 在正式物理與測站觀測後加入通用關卡統計、白名單目標／失敗
+  判定、單次結算及完整重啟；Canvas 與 DOM 只讀同一組模型診斷值。
 
 ## 正式執行邊界
 
@@ -45,6 +45,10 @@ OceanCoolingModel 更新全網格尾流
 IntensityModel 更新強度
   ↓
 ObservationModel 更新六站風雨
+  ↓ LevelState 記錄正式模型統計
+ObjectiveEvaluator／FailureEvaluator
+  ↓ 勝利或失敗只結算一次
+GameEngine VICTORY／FAILURE
 Render callback
   ↓ 只讀 snapshot
 CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashboard
@@ -61,7 +65,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 - `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 5 檔案責任
+## Phase 6 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -96,6 +100,13 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
 | `js/rendering/FieldRenderer.js` | SST 底圖、等壓線、副高、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
+| `js/data/levels.js` | Level 等效 schema 驗證、DSL 白名單與那霸風雨資料 |
+| `js/model/LevelState.js` | 目標／失敗狀態、模型統計、操作序列、計分與不可變結果 |
+| `js/core/ObjectiveEvaluator.js` | 只以白名單 metric 計算目標及單次事件 |
+| `js/core/FailureEvaluator.js` | 邊界、消散、超時及區域順序失敗判定 |
+| `js/ui/Dashboard.js` | 關卡時間與四狀態目標面板 |
+| `js/ui/Tutorial.js` | 依固定步數顯示資料驅動提示 |
+| `js/ui/ResultDialog.js` | 單次結算、模型統計、分數明細與重啟 |
 | `assets/maps/northwest-pacific.json` | 來源／授權完整的簡化地圖資料 |
 | `css/*.css` | tokens、桌面三區、平板／手機斷點、元件及無障礙 |
 | `scripts/serve.mjs` | 僅供本機的靜態伺服器 |
@@ -208,6 +219,33 @@ RainfallModel + ObservationModel
 - 測站累積雨量只使用 10 分鐘固定步進；倍速與 FPS 不改變積分。
 - 公式、常數、校準情境及限制詳見 `docs/LAND-RAIN-MODEL.md`。
 
+## Phase 6 關卡資料流
+
+```text
+validated Level + official model snapshots
+  ↓
+LevelState.recordStep
+  ├─ model-derived statistics
+  ├─ reference-zone history
+  └─ ordered control operations
+       ↓
+ObjectiveEvaluator + FailureEvaluator
+  ├─ fixed metric resolver tables
+  ├─ EventBus dedupe
+  └─ failure-priority terminal arbitration
+       ↓
+one frozen result
+  ├─ GameEngine VICTORY / FAILURE
+  ├─ Dashboard / ResultDialog / Tutorial
+  └─ Canvas target zones
+```
+
+- 規則資料不得包含函式，也不得由字串執行程式碼。
+- UI 不自行判斷勝敗、重算測站值或計分。
+- 終端步進會立即暫停時鐘，不繼續執行同畫格剩餘補算。
+- `LevelState.finalize` 與結果 dialog 都是 idempotent。
+- 詳細契約、第一關與黃金重播見 `docs/LEVEL-SYSTEM.md`。
+
 ## GitHub Pages 路徑
 
 - 正式 base path：`/classroom-sgts-nh-tzk/`。
@@ -217,7 +255,7 @@ RainfallModel + ObservationModel
 
 ## 尚未實作
 
-下列均屬 Phase 6 以後，Phase 5 不提供假實作：
+下列均屬 Phase 7 以後，Phase 6 不提供假實作：
 
-- 關卡目標、勝敗判定、教學腳本及歷史情境校準。
+- 第二關「護國神山」與第三關「韋恩三進」。
 - 沙盒、玩家自訂初始條件、儲存、匯入及匯出。

@@ -111,7 +111,8 @@ export class SimulationClock {
 
     while (
       this.#accumulatorMs + STEP_EPSILON_MS >= this.#realStepMs &&
-      executedSteps < this.#maxCatchUpSteps
+      executedSteps < this.#maxCatchUpSteps &&
+      !this.#paused
     ) {
       this.#accumulatorMs = Math.max(
         0,

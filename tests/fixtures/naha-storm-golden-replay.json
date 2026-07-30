@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "0.6.0-level-naha",
+  "prngVersion": "mulberry32-v1",
+  "levelId": "naha-storm",
+  "seed": "naha-storm-201809",
+  "initialEnvironment": {
+    "subtropicalHighIntensity": 0.82,
+    "subtropicalHighWestwardExtent": 124,
+    "subtropicalHighRidgeLatitude": 28,
+    "southwestMonsoonIntensity": 0.52,
+    "southwestMonsoonMoisture": 0.9,
+    "verticalWindShear": 5
+  },
+  "legalControlRanges": {
+    "subtropicalHighIntensity": [0, 1],
+    "subtropicalHighWestwardExtent": [112, 150],
+    "subtropicalHighRidgeLatitude": [20, 34],
+    "southwestMonsoonIntensity": [0, 1],
+    "southwestMonsoonMoisture": [0.5, 0.95],
+    "verticalWindShear": [0, 30]
+  },
+  "operations": [
+    {
+      "stepIndex": 0,
+      "sequence": 1,
+      "control": "verticalWindShear",
+      "value": 4
+    },
+    {
+      "stepIndex": 0,
+      "sequence": 2,
+      "control": "subtropicalHighIntensity",
+      "value": 0.85
+    }
+  ],
+  "expected": {
+    "outcome": "victory",
+    "victoryStep": 861,
+    "simulationMinutes": 8610,
+    "resultFingerprint": "9bb637a1",
+    "score": 5519,
+    "objectiveCompletionSteps": {
+      "naha-rain": 759,
+      "naha-gust": 798,
+      "naha-strength": 813,
+      "naha-proximity": 861
+    },
+    "minimumNahaDistanceKm": 48.9323238690862,
+    "maximumNahaGustMps": 53.86922134698026,
+    "nahaAccumulatedRainMm": 865.3074154513162,
+    "maximumWindMps": 57.998476341697476,
+    "minimumPressureHpa": 940.8781214799297
+  },
+  "tolerance": {
+    "sameEngineAbsolute": 1e-9,
+    "crossBrowserAbsolute": 1e-6,
+    "eventsAndOutcomeExact": true
+  }
+}

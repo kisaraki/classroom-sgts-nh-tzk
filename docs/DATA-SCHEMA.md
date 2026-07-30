@@ -6,13 +6,13 @@
 ## 版本
 
 - `schemaVersion`：資料形狀版本，第一版起始值為整數 `1`。
-- `modelVersion`：模型行為版本；Phase 5 為 `0.5.0-land-rain`。
+- `modelVersion`：模型行為版本；Phase 6 為 `0.6.0-level-naha`。
 - PRNG 演算法版本：`mulberry32-v1`。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 5 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
-海陸事件及地形分區執行期契約。
-Level 或儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
+Phase 6 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
+海陸事件、地形分區及 Level 的執行期契約。
+儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
 
 ## 第一版單位字典
 
@@ -179,6 +179,53 @@ target，實際 controls 依固定步進延遲反應。
 - `visual` 的消耗量不得改變三個物理子流。
 - 物理 fingerprint 使用排序鍵的穩定序列化與 32-bit FNV-1a，屬重現性
   識別碼，不是密碼學雜湊，也不作安全用途。
+
+## `Level` 與規則
+
+Phase 6 以 `validateLevel` 作為主規格允許的等效 schema 驗證。頂層固定
+欄位為：
+
+```text
+schemaVersion, id, title, historicalInspiration, disclaimer,
+durationHours, seed, spawn, environmentPreset, allowedControls,
+objectives, bonusObjectives, failureConditions, referenceZones,
+scoring, tutorialMessages
+```
+
+- 未知欄位一律拒絕。
+- `id` 與所有規則 ID 需唯一且為 kebab-case。
+- `spawn` 必須落在地圖 bounds；風壓、半徑、方向、移速與 0～1 組織
+  欄位都有有限上下限。
+- `environmentPreset` 必須完整包含六個已知控制，數值在既有控制範圍內。
+- `allowedControls` 只能引用六個白名單控制且不得重複。
+- 所有陣列、字串及數值均有最大大小；`schemaVersion` 必須為 `1`。
+
+Objective／Failure 規則固定欄位包含：
+
+```text
+id, label, description, metric, operator, aggregation, threshold,
+subject, reference, prerequisite, duringEvent, radiusKm,
+durationSteps, windowSteps, unit, once
+```
+
+metric、operator 與 aggregation 均為 enum；不得加入函式、任意屬性路徑
+或可執行內容。Objective metric 與 Failure metric 白名單、第一關數值、
+計分 schema 及黃金 fixture 契約詳見 `docs/LEVEL-SYSTEM.md`。
+
+## `LevelState`
+
+`LevelState` 保存：
+
+- 每個目標／失敗的 current、aggregated value、progress、streak、
+  completed／triggered step 及狀態。
+- elapsed minutes、steps、maximum wind、minimum pressure、path length、
+  maximum cold wake、各站極值與已抵達 reference zones。
+- 具 sequence、stepIndex、simulationMinutes 的合法控制操作。
+- 最多一份不可變 result；包含 outcome、failureId、fingerprint、path、
+  observations、statistics 及 score。
+
+重啟不遷移舊 instance 的可變狀態，而是建立全新 `LevelState` 與模型
+session。
 
 ## Schema 最低要求
 

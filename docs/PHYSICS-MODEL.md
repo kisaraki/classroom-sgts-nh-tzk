@@ -3,13 +3,13 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 5 狀態
+## Phase 6 狀態
 
-Phase 5 已在 Phase 4 環境與導引之後加入海陸分段、臺灣教育地形、動態
-冷水尾流、降雨及測站觀測。強度公式見
+Phase 6 沿用 Phase 5 完整物理管線，於測站觀測後才記錄關卡統計與判定
+勝敗。關卡系統不改寫颱風、環境、地形、海洋或測站模型。強度公式見
 `docs/INTENSITY-MODEL.md`；環境、控制延遲、導引、β 漂移、座標位移及
 分段限制見 `docs/STEERING-MODEL.md`；Phase 5 完整公式、積分順序及限制
-見 `docs/LAND-RAIN-MODEL.md`。
+見 `docs/LAND-RAIN-MODEL.md`；關卡契約見 `docs/LEVEL-SYSTEM.md`。
 
 ## 模型定位
 
@@ -73,10 +73,12 @@ Phase 5 已依上述分類集中在 `js/config.js`，並新增
 | 強度、氣壓、半徑及結構 | Phase 3 |
 | 環境網格及導引 | Phase 4 |
 | 地形、冷水尾流、降雨及測站 | Phase 5 |
-| 關卡校準 | Phase 6～7 |
+| 通用關卡統計、目標／失敗與結算 | Phase 6 |
+| 後續關卡校準 | Phase 7 |
 
 已實作模型文件：
 
 - `docs/INTENSITY-MODEL.md`
 - `docs/STEERING-MODEL.md`
 - `docs/LAND-RAIN-MODEL.md`
+- `docs/LEVEL-SYSTEM.md`

@@ -1,5 +1,5 @@
 # SGTS-NH 架構決策紀錄
-## Phase 0～5 架構決策
+## Phase 0～6 架構決策
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
@@ -189,3 +189,34 @@
   模型及 renderer session，而不是逐一遺漏式清欄位。
 - 理由：確保時鐘、事件 dedupe、網格尾流、測站累積量、路徑及視覺狀態
   一次回到模型初始條件。
+
+## DEC-0022｜白名單資料規則與等效 Level schema
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：Phase 6 使用嚴格 `validateLevel` 等效 schema；目標與失敗只允許
+  固定 metric、operator、aggregation 及 resolver table。
+- 安全界線：未知欄位／metric 拒絕，不使用 `eval`、`Function`、動態
+  import 或任意字串屬性路徑。
+- 理由：關卡可資料驅動與重用，同時不讓內容資料變成程式執行入口。
+
+## DEC-0023｜失敗優先、單次結算與黃金重播
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：同一步先更新全部正式模型，再評估目標與失敗；若兩者同時成立，
+  失敗優先。終端後立即暫停 fixed-step catch-up，結果與 dialog 只建立一次。
+- 黃金基準：固定版本、seed、初始環境、合法 UI 步進操作、完成事件、
+  fingerprint、分數及容差都寫入 fixture。
+- 理由：避免同一步出現 VICTORY／FAILURE 雙重終端，也讓模型與 UI
+  迴歸有可稽核基準。
+
+## DEC-0024｜中國大陸穩定 region ID 與琉球參考區
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：將原有東南中國簡化 polygon 的穩定 ID 統一為
+  `china-mainland`；琉球成功區使用 `ryukyu-` region prefix 或那霸
+  150 km reference zone。
+- 理由：失敗規則必須使用穩定識別而非顯示名稱，且不能依單一低精度
+  polygon 判斷玩家是否已抵達琉球。

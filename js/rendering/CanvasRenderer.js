@@ -23,6 +23,7 @@ export class CanvasRenderer {
   #fieldRenderer;
   #environment = null;
   #geography = null;
+  #level = null;
   #mapRenderer;
   #observations = [];
   #particleRenderer;
@@ -62,6 +63,10 @@ export class CanvasRenderer {
 
   setEnvironment(environment) {
     this.#environment = environment;
+  }
+
+  setLevel(level) {
+    this.#level = level;
   }
 
   setSelection(selection) {
@@ -164,6 +169,11 @@ export class CanvasRenderer {
         this.#particleRenderer.draw({
           ...shared,
           simulationMinutes
+        });
+        this.#mapRenderer.drawTargets({
+          ...shared,
+          level: this.#level,
+          stations: this.#stations
         });
       }
     } else {

@@ -76,7 +76,7 @@ test("standalone browser harness passes from the Pages subpath", async ({
     "data-test-status",
     "passed"
   );
-  await expect(page.locator("#test-summary")).toHaveText("7/7 tests passed");
+  await expect(page.locator("#test-summary")).toHaveText("8/8 tests passed");
 });
 
 test("particle control is explicitly visual-only and preserves the dashboard", async ({
@@ -88,7 +88,7 @@ test("particle control is explicitly visual-only and preserves the dashboard", a
   await expect(toggle).toBeChecked();
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
-  await expect(page.locator("#storm-stage")).toHaveText("comma");
+  await expect(page.locator("#storm-stage")).toHaveText("cluster");
   await expect(page.locator('[data-factor="developmentPotential"]')).toHaveText(
     /%$/u
   );
@@ -110,14 +110,14 @@ test("environment target changes are delayed and never directly move the storm",
 
   await slider.fill("1");
   await expect(control.locator("[data-control-target]")).toHaveText("100%");
-  await expect(control.locator("[data-control-actual]")).toHaveText("72%");
+  await expect(control.locator("[data-control-actual]")).toHaveText("82%");
   await expect(page.locator("#storm-position")).toHaveText(positionBefore);
 
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
   await expect
     .poll(async () => control.locator("[data-control-actual]").textContent())
-    .not.toBe("72%");
+    .not.toBe("82%");
   await expect(control.locator("[data-control-actual]")).not.toHaveText("100%");
   await expect(control.locator("[data-control-trend]")).toContainText("τ 12h");
 });
@@ -183,4 +183,80 @@ test("cold wake and six model stations update, then reset completely", async ({
     .all()) {
     await expect(row).toContainText("累積 0.0 mm");
   }
+});
+
+test("Naha objectives expose thresholds, progress, and time metadata", async ({
+  page
+}) => {
+  await page.goto("./");
+
+  await expect(page.locator("#level-dashboard")).toContainText("那霸風雨");
+  await expect(page.locator("#level-dashboard")).toContainText("2018 潭美");
+  await expect(page.locator("[data-level-remaining]")).toHaveText("168h 00m");
+  await expect(page.locator(".objective-list > li")).toHaveCount(4);
+  await expect(
+    page.locator('[data-objective-id="naha-proximity"]')
+  ).toHaveAttribute("data-status", "pending");
+  await expect(page.locator("#tutorial-panel")).toContainText("先觀察副高");
+  await expect(page.locator("#result-dialog")).toBeHidden();
+});
+
+test("golden browser replay wins, settles once, and restarts cleanly", async ({
+  page
+}) => {
+  test.setTimeout(60_000);
+  const consoleErrors = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      consoleErrors.push(message.text());
+    }
+  });
+
+  await page.goto("./");
+  await page
+    .locator('[data-control-name="verticalWindShear"] [data-environment-control]')
+    .fill("4");
+  await page
+    .locator(
+      '[data-control-name="subtropicalHighIntensity"] [data-environment-control]'
+    )
+    .fill("0.85");
+  await page.locator("[data-speed='24']").click();
+  await page.locator("#start-button").click();
+
+  await expect
+    .poll(async () => page.locator("#engine-state").textContent(), {
+      timeout: 45_000
+    })
+    .toBe("VICTORY");
+  await expect(page.locator("#step-count")).toHaveText("861");
+  await expect(page.locator("#result-dialog")).toBeVisible();
+  await expect(page.locator("#result-dialog")).toHaveAttribute(
+    "data-outcome",
+    "victory"
+  );
+  await expect(page.locator("[data-result-score]")).toHaveText("5519 / 6250");
+  await expect(
+    page.locator('.objective-list > li[data-status="completed"]')
+  ).toHaveCount(4);
+  const settledStep = await page.locator("#step-count").textContent();
+  await page.waitForTimeout(350);
+  await expect(page.locator("#step-count")).toHaveText(settledStep);
+
+  await page.locator("[data-result-restart]").click();
+  await expect(page.locator("#engine-state")).toHaveText("MENU");
+  await expect(page.locator("#step-count")).toHaveText("0");
+  await expect(page.locator("#result-dialog")).toBeHidden();
+  await expect(
+    page.locator('.objective-list > li[data-status="pending"]')
+  ).toHaveCount(4);
+  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+
+  for (const row of await page
+    .locator("#station-observations article")
+    .all()) {
+    await expect(row).toContainText("累積 0.0 mm");
+  }
+
+  expect(consoleErrors).toEqual([]);
 });

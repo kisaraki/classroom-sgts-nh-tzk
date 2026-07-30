@@ -15,7 +15,7 @@ SGTS-NH 是以西北太平洋熱帶氣旋為第一版場景的互動式科學教
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
 | GitHub Pages 預定網址 | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
-| 目前階段 | Phase 5：海陸、中央山脈、冷水尾流與降雨（completed，待批准） |
+| 目前階段 | Phase 6：第一關「那霸風雨」（completed，待批准） |
 
 > 本系統為科學教育與遊戲化模擬工具，使用簡化模型呈現熱帶氣旋概念，不適用於真實天氣預報、防災決策、航海、航空或任何安全關鍵用途。實際颱風資訊請以官方氣象機構發布為準。
 
@@ -98,8 +98,19 @@ Phase 5 新增：
 - 六測站的持續風、陣風、當前雨率及每 10 分鐘積分的累積雨量。
 - 冷水尾流、地形、測站風雨 Canvas／儀表板，以及完整 session 重啟。
 
-關卡目標、勝敗判定、沙盒、儲存及匯出尚未實作；它們仍屬 Phase 6
-以後，不包含在本階段。
+Phase 6 新增：
+
+- 通用、嚴格驗證且不可執行任意程式碼的 Level／Objective／Failure
+  資料格式。
+- 第一關「那霸風雨」：2018 潭美歷史靈感、168 小時、四個主要目標與
+  四個失敗條件。
+- pending／in progress／completed／failed 目標面板、教學提示及地圖
+  50 km／150 km 目標區。
+- 路徑、最大風速、最低氣壓、測站值、透明計分與完整重啟的單次結算。
+- 使用正式模型管線的可勝利／失敗情境，以及版本化黃金重播 fixture。
+
+第二、三關、沙盒、儲存及匯出尚未實作；它們屬 Phase 7 以後。
+關卡資料契約、計分與黃金重播詳見 `docs/LEVEL-SYSTEM.md`。
 
 本機預覽：
 

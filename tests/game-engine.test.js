@@ -121,3 +121,32 @@ test("reset returns to MENU and clears fixed-step time", () => {
   assert.equal(engine.clock.simulationMinutes, 0);
   assert.equal(engine.clock.isPaused, true);
 });
+
+test("level completion stops remaining catch-up steps and emits once", () => {
+  let completions = 0;
+  let updates = 0;
+  let engine;
+  engine = new GameEngine({
+    cancelFrame: () => {},
+    requestFrame: () => 1,
+    update: () => {
+      updates += 1;
+      engine.completeLevel({ levelId: "naha-storm" });
+    }
+  });
+  engine.eventBus.on("LEVEL_COMPLETED", () => {
+    completions += 1;
+  });
+  engine.boot({ startLoop: false });
+  engine.setSpeed(24);
+  engine.startSimulation();
+  engine.runFrame(0);
+  engine.runFrame(250);
+
+  assert.equal(engine.state, GameState.VICTORY);
+  assert.equal(engine.clock.isPaused, true);
+  assert.equal(updates, 1);
+  assert.equal(completions, 1);
+  assert.equal(engine.completeLevel({ levelId: "naha-storm" }), false);
+  assert.equal(completions, 1);
+});

@@ -133,7 +133,36 @@ export class GameEngine {
     this.#eventBus.emit(EventType.SIMULATION_RESUMED, {}, this.#eventMetadata());
   }
 
-  resetSimulation() {
+  completeLevel(payload = {}) {
+    if (this.state !== GameState.RUNNING) {
+      return false;
+    }
+
+    this.#clock.pause();
+    this.#stateMachine.transition(GameState.VICTORY, {
+      reason: "level-completed"
+    });
+    this.#eventBus.emit(EventType.LEVEL_COMPLETED, payload, {
+      dedupeKey: `${payload.levelId ?? "level"}:completed`,
+      ...this.#eventMetadata(),
+      sourceId: payload.levelId ?? "level"
+    });
+    return true;
+  }
+
+  failLevel(payload = {}) {
+    if (this.state !== GameState.RUNNING) {
+      return false;
+    }
+
+    this.#clock.pause();
+    this.#stateMachine.transition(GameState.FAILURE, {
+      reason: payload.failureId ?? "level-failed"
+    });
+    return true;
+  }
+
+  resetSimulation({ emitLevelRestarted = false, levelId = "level" } = {}) {
     this.#clock.reset({ paused: true, speed: this.#clock.speed });
 
     if (this.state !== GameState.MENU) {
@@ -143,6 +172,20 @@ export class GameEngine {
     }
 
     this.#lastTimestamp = null;
+
+    if (emitLevelRestarted) {
+      this.#eventBus.emit(
+        EventType.LEVEL_RESTARTED,
+        { levelId },
+        {
+          dedupeKey: `${levelId}:restart:0`,
+          simulationMinutes: 0,
+          sourceId: levelId,
+          stepIndex: 0
+        }
+      );
+    }
+
     this.#renderFrame({
       clampedDeltaMs: 0,
       droppedSteps: 0,
