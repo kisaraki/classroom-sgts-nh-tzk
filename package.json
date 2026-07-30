@@ -11,13 +11,16 @@
   "packageManager": "npm@11.16.0",
   "scripts": {
     "serve": "node scripts/serve.mjs",
+    "build": "node scripts/build-pages.mjs",
     "lint": "eslint . --max-warnings=0",
     "test": "npm run test:unit",
     "test:unit": "node --test tests/*.test.js",
     "test:integration": "node --test tests/integration/*.test.js",
     "test:scenario": "node --test tests/scenario/*.test.js",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run test:unit && npm run test:integration && npm run test:scenario && npm run test:e2e"
+    "test:performance": "node scripts/measure-performance.mjs",
+    "test:artifact": "node --test tests/artifact.test.js",
+    "check": "npm run lint && npm run build && npm run test:unit && npm run test:integration && npm run test:scenario && npm run test:e2e && npm run test:artifact"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0",

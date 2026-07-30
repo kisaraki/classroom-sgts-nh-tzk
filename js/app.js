@@ -209,6 +209,7 @@ const bootstrap = async () => {
     engineState: requireElement("#engine-state"),
     error: requireElement("#app-error"),
     fps: requireElement("#fps-readout"),
+    fpsRange: requireElement("#fps-range-readout"),
     environmentControls: requireElement("#environment-controls"),
     environmentLayer: requireElement("#environment-layer"),
     environmentGridStatus: requireElement("#environment-grid-status"),
@@ -217,14 +218,18 @@ const bootstrap = async () => {
     importJson: requireElement("#import-json"),
     ioStatus: requireElement("#io-status"),
     mapDataStatus: requireElement("#map-data-status"),
+    longTask: requireElement("#long-task-readout"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
+    particleProfile: requireElement("#particle-profile"),
+    particleReadout: requireElement("#particle-readout"),
     probeCoordinate: requireElement("#probe-coordinate"),
     probeStation: requireElement("#probe-station"),
     probeSurface: requireElement("#probe-surface"),
     resetButton: requireElement("#reset-button"),
     resultDialog: requireElement("#result-dialog"),
     simulationTime: requireElement("#sim-time"),
+    canvasSummary: requireElement("#canvas-summary"),
     speedButtons: [...document.querySelectorAll("[data-speed]")],
     sandboxFields: [
       ...document.querySelectorAll("[data-sandbox-field]")
@@ -248,6 +253,7 @@ const bootstrap = async () => {
     surfaceEvents: requireElement("#surface-events"),
     terrainRecovery: requireElement("#terrain-recovery"),
     terrainZone: requireElement("#terrain-zone"),
+    timing: requireElement("#timing-readout"),
     tutorial: requireElement("#tutorial-panel"),
     targetsLayer: requireElement("#targets-layer"),
     targetWind: requireElement("#target-wind"),
@@ -296,6 +302,9 @@ const bootstrap = async () => {
     storageRecord.lastSandboxPreset ?? DEFAULT_SANDBOX_PRESET
   );
   const canvasRenderer = new CanvasRenderer(elements.canvas);
+  const reducedMotionQuery = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
   const eventBus = new EventBus();
   let activeLevel = NAHA_STORM_LEVEL;
   let session = createLevelSession(null, { eventBus, level: activeLevel });
@@ -346,7 +355,9 @@ const bootstrap = async () => {
     elements.environmentLayer.checked = settings.environmentLayer;
     elements.trackLayer.checked = settings.trackLayer;
     elements.targetsLayer.checked = settings.targetsLayer;
-    canvasRenderer.setParticlesEnabled(settings.particlesEnabled);
+    canvasRenderer.setParticlesEnabled(
+      settings.particlesEnabled && !reducedMotionQuery.matches
+    );
     canvasRenderer.setLayers({
       environment: settings.environmentLayer,
       targets: settings.targetsLayer,
@@ -354,8 +365,28 @@ const bootstrap = async () => {
     });
   };
 
+  const applyParticlePreferences = () => {
+    const profile = elements.particleProfile.value;
+    const count = PROJECT_CONFIG.renderingConfig.particleProfiles[profile];
+
+    if (!count) {
+      throw new Error(`Unknown particle profile: ${profile}.`);
+    }
+
+    canvasRenderer.setParticleCount(count);
+    canvasRenderer.setParticlesEnabled(
+      elements.particlesEnabled.checked && !reducedMotionQuery.matches
+    );
+    elements.particlesEnabled.disabled = reducedMotionQuery.matches;
+    elements.particleProfile.disabled = reducedMotionQuery.matches;
+    elements.particleReadout.textContent = reducedMotionQuery.matches
+      ? `減少動態｜停用（原 ${count}）`
+      : `${profile === "low" ? "低" : profile === "high" ? "高" : "中"}｜${count}`;
+  };
+
   writeSandboxFields(sandboxPreset);
   applyStoredSettings();
+  applyParticlePreferences();
 
   const ensureStationElements = () => {
     for (const observation of session.observations) {
@@ -414,7 +445,12 @@ const bootstrap = async () => {
     stepMinutes: PROJECT_CONFIG.simulation.stepMinutes
   });
 
-  const render = ({ clock: clockState, fps, state }) => {
+  const render = ({
+    clock: clockState,
+    fps,
+    performance: performanceState,
+    state
+  }) => {
     const storm = session.typhoon;
     document.documentElement.dataset.appState = state.toLowerCase();
     elements.engineState.textContent = state;
@@ -424,6 +460,35 @@ const bootstrap = async () => {
     elements.stepCount.textContent = String(clockState.stepIndex);
     elements.currentSpeed.textContent = `${clockState.speed}×`;
     elements.fps.textContent = Number.isFinite(fps) ? fps.toFixed(0) : "0";
+    elements.fpsRange.textContent =
+      `${performanceState.averageFps.toFixed(0)} / ` +
+      `${performanceState.minimumFps.toFixed(0)}`;
+    elements.timing.textContent =
+      `${performanceState.updateAverageMs.toFixed(2)} / ` +
+      `${performanceState.renderAverageMs.toFixed(2)} ms`;
+    elements.timing.dataset.medianFps =
+      performanceState.medianFps.toFixed(2);
+    elements.timing.dataset.averageFps =
+      performanceState.averageFps.toFixed(2);
+    elements.timing.dataset.minimumFps =
+      performanceState.minimumFps.toFixed(2);
+    elements.timing.dataset.onePercentLowFps =
+      performanceState.onePercentLowFps.toFixed(2);
+    elements.timing.dataset.renderAverageMs =
+      performanceState.renderAverageMs.toFixed(3);
+    elements.timing.dataset.renderMaximumMs =
+      performanceState.renderMaximumMs.toFixed(3);
+    elements.timing.dataset.updateAverageMs =
+      performanceState.updateAverageMs.toFixed(3);
+    elements.timing.dataset.updateP95Ms =
+      performanceState.updateP95Ms.toFixed(3);
+    elements.timing.dataset.longTaskCount =
+      String(performanceState.longTaskCount);
+    elements.timing.dataset.longTaskDurationMs =
+      performanceState.longTaskDurationMs.toFixed(1);
+    elements.longTask.textContent =
+      `${performanceState.longTaskCount} · ` +
+      `${performanceState.longTaskDurationMs.toFixed(0)} ms`;
     elements.updateCount.textContent = String(updateCount);
     elements.stormWind.textContent = `${storm.maxWind.toFixed(1)} m/s`;
     elements.stormPosition.textContent =
@@ -465,6 +530,13 @@ const bootstrap = async () => {
         `${session.latestSurfaceEvent.lat.toFixed(2)}°N, ` +
         `${session.latestSurfaceEvent.lon.toFixed(2)}°E`
       : "尚無海陸轉換";
+    elements.canvasSummary.textContent =
+      `引擎 ${state}，模擬時間 ${formatSimulationTime(
+        clockState.simulationMinutes
+      )}。風暴 ${storm.name} 位於 ${storm.lat.toFixed(2)}°N、` +
+      `${storm.lon.toFixed(2)}°E，最大風速 ${storm.maxWind.toFixed(1)} m/s，` +
+      `中心氣壓 ${storm.centralPressure.toFixed(0)} hPa，` +
+      `${session.landDiagnostic.isOverLand ? "目前位於陸地" : "目前位於海上"}。`;
 
     for (const [name, element] of Object.entries(factorElements)) {
       element.textContent =
@@ -782,7 +854,7 @@ const bootstrap = async () => {
     );
     elements.canvas.setAttribute(
       "aria-label",
-      `Phase 08「${session.level.title}」地圖；點選或觸控以查詢位置`
+      `Phase 09「${session.level.title}」地圖；點選或觸控以查詢位置`
     );
   };
 
@@ -909,7 +981,7 @@ const bootstrap = async () => {
   }
 
   elements.particlesEnabled.addEventListener("change", () => {
-    canvasRenderer.setParticlesEnabled(elements.particlesEnabled.checked);
+    applyParticlePreferences();
     saveStorage({
       settings: {
         ...storageRecord.settings,
@@ -917,6 +989,19 @@ const bootstrap = async () => {
       }
     });
   });
+
+  elements.particleProfile.addEventListener("change", () => {
+    try {
+      applyParticlePreferences();
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+  const handleReducedMotionChange = () => {
+    applyParticlePreferences();
+  };
+  reducedMotionQuery.addEventListener("change", handleReducedMotionChange);
 
   const updateLayers = () => {
     const layers = {
@@ -1153,6 +1238,10 @@ const bootstrap = async () => {
       canvasRenderer.destroy();
       controlPanel.destroy();
       resultDialog?.destroy();
+      reducedMotionQuery.removeEventListener(
+        "change",
+        handleReducedMotionChange
+      );
       engine.destroy();
     },
     { once: true }
@@ -1164,7 +1253,7 @@ const bootstrap = async () => {
   canvasRenderer.setEnvironment(session.environment);
   canvasRenderer.setObservations(session.observations);
   canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
-  canvasRenderer.setParticlesEnabled(elements.particlesEnabled.checked);
+  applyParticlePreferences();
   engine.setSpeed(storageRecord.settings.speed);
   engine.boot();
 

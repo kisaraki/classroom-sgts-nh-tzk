@@ -7,14 +7,43 @@ const TAU = Math.PI * 2;
 export class ParticleRenderer {
   #enabled;
   #particles;
+  #seed;
 
   constructor({
     count = PROJECT_CONFIG.renderingConfig.particleCount,
     enabled = PROJECT_CONFIG.renderingConfig.particlesEnabled,
-    random = new SeededRandom(PROJECT_CONFIG.renderingConfig.particleSeed)
+    random = null,
+    seed = PROJECT_CONFIG.renderingConfig.particleSeed
   } = {}) {
     this.#enabled = Boolean(enabled);
-    this.#particles = Array.from({ length: count }, () =>
+    this.#seed = seed;
+    this.#particles = this.#createParticles(
+      count,
+      random ?? new SeededRandom(seed)
+    );
+  }
+
+  get count() {
+    return this.#particles.length;
+  }
+
+  setCount(count) {
+    if (!Number.isInteger(count) || count < 0 || count > 2000) {
+      throw new RangeError("Particle count must be an integer from 0 to 2000.");
+    }
+
+    this.#particles = this.#createParticles(
+      count,
+      new SeededRandom(this.#seed)
+    );
+  }
+
+  #createParticles(count, random) {
+    if (!Number.isInteger(count) || count < 0 || count > 2000) {
+      throw new RangeError("Particle count must be an integer from 0 to 2000.");
+    }
+
+    return Array.from({ length: count }, () =>
       Object.freeze({
         angle: random.nextRange(0, TAU),
         alpha: random.nextRange(0.12, 0.68),

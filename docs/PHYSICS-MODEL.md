@@ -3,7 +3,7 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 8 狀態
+## Phase 9 狀態
 
 Phase 7 沿用完整物理管線，於測站觀測後才記錄關卡統計與判定勝敗。
 三關共用相同模型與規則 resolver，不複製關卡專屬模擬器。關卡資料可
@@ -17,6 +17,11 @@ Phase 8 沙盒不另建物理模型。SST、OHC 與地形倍率從受驗證 pres
 既有 Environment／LandInteractionModel；預設參數為原值，因此三關
 黃金重播不變。新增的是可設定介面與 I/O 契約，模型行為版本仍為
 `0.7.0-taiwan-wayne`。
+
+Phase 9 只更動效能觀測、靜態地圖呈現、粒子數與無障礙。300／700／1200
+粒子使用獨立、具種子的視覺狀態，不進入 physics snapshot、PRNG 物理子流
+或 fingerprint。`schemaVersion=1` 與 `modelVersion=0.7.0-taiwan-wayne`
+均不變，三份黃金重播保持完全一致。
 
 ## 模型定位
 

@@ -2,6 +2,7 @@ import { EventBus, EventType } from "./EventBus.js";
 import { SimulationClock } from "./SimulationClock.js";
 import { GameState, StateMachine } from "./StateMachine.js";
 import { assertFunction } from "../utils/validation.js";
+import { PerformanceMonitor } from "../performance/PerformanceMonitor.js";
 
 const defaultRequestFrame = (callback) =>
   globalThis.requestAnimationFrame(callback);
@@ -16,6 +17,8 @@ export class GameEngine {
   #frameId = null;
   #lastTimestamp = null;
   #loopCallback;
+  #now;
+  #performanceMonitor;
   #render;
   #requestFrame;
   #stateMachine;
@@ -25,12 +28,15 @@ export class GameEngine {
     cancelFrame = defaultCancelFrame,
     clock = new SimulationClock(),
     eventBus = new EventBus(),
+    now = () => globalThis.performance.now(),
+    performanceMonitor = new PerformanceMonitor(),
     render = () => {},
     requestFrame = defaultRequestFrame,
     stateMachine = new StateMachine(),
     update = () => {}
   } = {}) {
     assertFunction(cancelFrame, "cancelFrame");
+    assertFunction(now, "now");
     assertFunction(render, "render");
     assertFunction(requestFrame, "requestFrame");
     assertFunction(update, "update");
@@ -38,6 +44,8 @@ export class GameEngine {
     this.#cancelFrame = cancelFrame;
     this.#clock = clock;
     this.#eventBus = eventBus;
+    this.#now = now;
+    this.#performanceMonitor = performanceMonitor;
     this.#render = render;
     this.#requestFrame = requestFrame;
     this.#stateMachine = stateMachine;
@@ -102,6 +110,7 @@ export class GameEngine {
       throw new Error(`Cannot start simulation from ${this.state}.`);
     }
 
+    this.#performanceMonitor.reset();
     this.#clock.reset({ paused: false, speed: this.#clock.speed });
     this.#stateMachine.transition(GameState.RUNNING, {
       reason: "simulation-started"
@@ -231,6 +240,7 @@ export class GameEngine {
     this.#lastTimestamp = timestamp;
 
     if (frameDeltaMs > 0) {
+      this.#performanceMonitor.recordFrame(frameDeltaMs);
       const instantaneousFps = 1000 / frameDeltaMs;
       this.#fps =
         this.#fps === 0
@@ -239,7 +249,9 @@ export class GameEngine {
     }
 
     const result = this.#clock.advance(frameDeltaMs, (step) => {
+      const updateStartedAt = this.#now();
       this.#update(step);
+      this.#performanceMonitor.recordUpdate(this.#now() - updateStartedAt);
       this.#eventBus.emit(EventType.SIMULATION_STEP, step, {
         simulationMinutes: step.simulationMinutes,
         sourceId: "engine",
@@ -258,6 +270,7 @@ export class GameEngine {
     return Object.freeze({
       clock: this.#clock.snapshot(),
       fps: this.#fps,
+      performance: this.#performanceMonitor.snapshot(),
       state: this.state
     });
   }
@@ -265,6 +278,7 @@ export class GameEngine {
   destroy() {
     this.stopLoop();
     this.#clock.pause();
+    this.#performanceMonitor.destroy();
   }
 
   #eventMetadata() {
@@ -276,13 +290,16 @@ export class GameEngine {
   }
 
   #renderFrame(frame) {
+    const renderStartedAt = this.#now();
     this.#render(
       Object.freeze({
         clock: this.#clock.snapshot(),
         fps: this.#fps,
         frame: Object.freeze({ ...frame }),
+        performance: this.#performanceMonitor.snapshot(),
         state: this.state
       })
     );
+    this.#performanceMonitor.recordRender(this.#now() - renderStartedAt);
   }
 }

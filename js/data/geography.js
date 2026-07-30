@@ -21,6 +21,7 @@ const REQUIRED_METADATA_FIELDS = Object.freeze([
   "simplification",
   "source"
 ]);
+const geographyCache = new Map();
 
 const assertOnlyKeys = (value, allowedKeys, name) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -262,6 +263,7 @@ export const validateMapData = (mapData) => {
 };
 
 export const loadGeography = async ({
+  cache = true,
   fetchImpl = globalThis.fetch,
   url = MAP_DATA_URL
 } = {}) => {
@@ -269,13 +271,36 @@ export const loadGeography = async ({
     throw new TypeError("A fetch implementation is required.");
   }
 
-  const response = await fetchImpl(url);
+  const cacheKey = String(url);
 
-  if (!response.ok) {
-    throw new Error(`Map data request failed with HTTP ${response.status}.`);
+  if (cache && geographyCache.has(cacheKey)) {
+    return geographyCache.get(cacheKey);
   }
 
-  return validateMapData(await response.json());
+  const request = (async () => {
+    const response = await fetchImpl(url);
+
+    if (!response.ok) {
+      throw new Error(`Map data request failed with HTTP ${response.status}.`);
+    }
+
+    return validateMapData(await response.json());
+  })();
+
+  if (cache) {
+    geographyCache.set(cacheKey, request);
+  }
+
+  try {
+    return await request;
+  } catch (error) {
+    geographyCache.delete(cacheKey);
+    throw error;
+  }
+};
+
+export const clearGeographyCache = () => {
+  geographyCache.clear();
 };
 
 export const findLandRegion = (point, mapData) => {

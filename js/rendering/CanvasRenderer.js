@@ -97,6 +97,10 @@ export class CanvasRenderer {
     this.#particleRenderer.setEnabled(enabled);
   }
 
+  setParticleCount(count) {
+    this.#particleRenderer.setCount(count);
+  }
+
   setObservations(observations) {
     this.#observations = Array.isArray(observations) ? observations : [];
 

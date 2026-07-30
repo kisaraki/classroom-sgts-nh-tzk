@@ -16,6 +16,7 @@ export default [
   {
     ignores: [
       "**/._*",
+      "dist/**",
       "node_modules/**",
       "coverage/**",
       "test-results/**",

@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～8 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～9 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -21,9 +21,88 @@ npm run test:unit
 npm run test:integration
 npm run test:scenario
 npm run test:e2e
+npm run test:performance
+npm run build
+npm run test:artifact
 npm run check
 npm run serve
 ```
+
+## Phase 9 本機發布驗收
+
+### 自動化結果
+
+| 類別 | 結果 | 證據 |
+|---|---|---|
+| Schema／資料 | passed | 地圖快取、三關、沙盒、storage／匯入匯出既有契約；`schemaVersion=1` |
+| lint | passed | ESLint 0 errors、0 warnings |
+| TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
+| 單元 | passed | 108 passed、0 failed |
+| 整合 | passed | 6 passed、0 failed |
+| 情境／黃金重播 | passed | 16 passed、0 failed；三關 fixture 均通過 |
+| 實際 Chrome E2E | passed | 15 passed、0 failed |
+| Pages artifact | passed | 1 passed；只含 5 個允許根項目 |
+| build | passed | `dist/` 可重現建立，AppleDouble 已移除 |
+| GitHub Actions | not_run | workflow 已本機驗證，尚未獲 push 授權 |
+| Pages API／部署 | not_deployed | 尚未獲 Pages 設定／部署授權 |
+| 公開網站 | not_verified | 尚無 production deployment |
+
+### 效能量測
+
+參考裝置：Mac mini `Mac16,10`、Apple M4、16 GB；macOS 15.7.7；
+Google Chrome 150.0.7871.187；headless 實際 Chrome、1440×900、DPR 上限 2；
+「那霸風雨」、1×、每層級 15 秒。開始模擬時重設量測窗，結果使用最近
+600 個畫格；固定地圖已快取於離屏 Canvas。
+
+| 層級 | 粒子 | 中位 FPS | 平均 FPS | 最低 FPS | 1% low | Render avg／max | Update avg／p95 | Long Task |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 低 | 300 | 80.00 | 81.00 | 36.90 | 38.17 | 1.832／2.900 ms | 1.773／4.100 ms | 0 |
+| 中 | 700 | 79.37 | 80.73 | 36.90 | 37.17 | 1.794／2.600 ms | 1.700／3.600 ms | 0 |
+| 高 | 1200 | 77.52 | 80.03 | 35.71 | 37.74 | 1.880／3.000 ms | 1.743／3.600 ms | 0 |
+
+主規格桌面門檻以中畫質判定：中位 FPS ≥55、1% low ≥30、
+update p95 <4 ms、無持續 >50 ms Long Task，全部 passed。低畫質的單次
+量測 update p95 為 4.1 ms，但不屬桌面中畫質門檻；中／高均為 3.6 ms。
+平板效能不得由縮放桌面冒充，因此 iPadOS 仍為 not_verified。
+
+### 瀏覽器與無障礙
+
+| 環境 | 狀態 | 驗證範圍／限制 |
+|---|---|---|
+| Chrome 150 | passed | Pages 子路徑、ES Modules、Canvas、滑桿、鍵盤、觸控事件、localStorage、CSV／JSON／PNG、匯入、reduced motion、黃金重播 |
+| Codex in-app Browser | passed | DOM／視覺 smoke、三欄幾何、品牌、Canvas 文字摘要、效能診斷、無 app error |
+| macOS Safari 26.5.2 | passed | 真實 Safari 載入子路徑、ES Modules／Canvas、開始模擬、固定步進、localStorage reload、文字下載、品牌與聲明 |
+| Microsoft Edge | not_verified | 本機未安裝；沒有以 Chromium 結果冒充 Edge |
+| iPadOS Safari | not_verified | 無實體 iPadOS 裝置證據；沒有以桌面縮放冒充 |
+
+Safari WebDriver 自動化因使用者設定未啟用 `Allow remote automation` 而未
+建立 session；改以一般 Safari UI 完成只讀／本機互動 smoke，未擅自更改
+Safari 設定。Safari 下載驗證產生
+`~/Downloads/sgts-nh-naha-storm-step-37-summary.txt`。
+
+無障礙回歸包含：skip link、可見焦點、label／accessible name、44 px
+操作目標、方向箭頭與文字狀態、`prefers-reduced-motion` 停用動畫粒子但
+不停止物理、Canvas 獨立文字摘要，以及 `role=alert` 錯誤訊息。
+主要純色文字／背景 WCAG 對比：cloud/ocean 17.50:1、muted/panel
+10.12:1、cyan/panel 11.63:1、warning/panel 12.09:1、
+success/ocean 13.91:1，均高於一般文字 4.5:1。
+
+### Phase 9 Requirement trace
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| PERF-METRIC-001 | 平均／最低／中位／1% low、update、render、Long Task | `PerformanceMonitor`、performance run | passed |
+| PERF-PARTICLE-001 | 300／700／1200 粒子層級 | unit、Chrome E2E、performance run | passed |
+| PERF-MAP-001 | GeoJSON 不重複解析、靜態圖離屏快取 | geography unit、code inspection | passed |
+| A11Y-MOTION-001 | reduced motion 不影響物理 | Chrome E2E | passed |
+| A11Y-CANVAS-001 | Canvas 文字摘要與錯誤 live region | Chrome E2E、Safari AX tree | passed |
+| COMP-CHROME-001 | Chrome 完整 smoke | 15 E2E | passed |
+| COMP-SAFARI-001 | macOS Safari 實機 smoke | Safari 26.5.2 UI evidence | passed |
+| COMP-EDGE-001 | Edge 實機 smoke | 無環境 | not_verified |
+| COMP-IPAD-001 | iPadOS Safari 實機與效能 | 無環境 | not_verified |
+| DEPLOY-ARTIFACT-001 | 窄化且乾淨的 Pages artifact | build／artifact test | passed |
+| CI-PAGES-001 | 測試、build、deploy 分離且最小權限 | workflow unit inspection | passed_locally |
+| RELEASE-PUBLIC-001 | Actions、Pages、正式 URL 驗證 | 等待外部授權 | not_run |
 
 Phase 2：
 

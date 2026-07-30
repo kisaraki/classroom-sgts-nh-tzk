@@ -138,6 +138,14 @@ button:disabled {
   cursor: pointer;
 }
 
+.particle-profile {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
 .environment-controls {
   display: grid;
   gap: 0.8rem;

@@ -3,7 +3,7 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 8 狀態
+## Phase 9 狀態
 
 Phase 7 延續既有來源，加入 JMA 2015 與 1986 最佳路徑資料，分別作為
 「護國神山」與「韋恩三進」的歷史情境參考。
@@ -11,6 +11,12 @@ Phase 7 延續既有來源，加入 JMA 2015 與 1986 最佳路徑資料，分�
 正式網站仍沒有第三方執行期程式碼。
 Phase 8 的 localStorage 與檔案匯入匯出只使用瀏覽器標準 API，沒有新增
 外部資料來源或第三方執行期套件。
+
+Phase 9 沒有新增第三方執行期程式碼、字型、圖示、圖片或資料。效能量測
+使用既有 Playwright／Chrome；Safari 驗收使用系統 Safari。GitHub 官方
+Actions 僅用於 CI／Pages：`actions/checkout`、`actions/setup-node`、
+`actions/configure-pages`、`actions/upload-pages-artifact`、
+`actions/deploy-pages`，不進入網站 artifact。
 
 ## 目前紀錄
 

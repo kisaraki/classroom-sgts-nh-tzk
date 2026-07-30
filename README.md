@@ -3,41 +3,68 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-SGTS-NH 是以西北太平洋熱帶氣旋為第一版場景的互動式科學教育模擬專案。正式成品將以純靜態 HTML、CSS、ES Modules、Canvas 2D 與 JSON 在 GitHub Pages 執行。
+SGTS-NH 是以西北太平洋熱帶氣旋為題材的互動式科學教育模擬器。它以
+固定時間步進、具種子的可重現模型與資料驅動關卡，呈現環境導引、海溫、
+風切、地形、冷水尾流及測站風雨之間的關係。
 
-## 專案資訊
+> 本系統只供科學教育與遊戲化模擬，不適用於真實天氣預報、防災決策、
+> 航海、航空或任何安全關鍵用途。實際資訊請以官方氣象機構發布為準。
+
+## 專案與正式網址
 
 | 項目 | 內容 |
 |---|---|
-| 第一版 | 西北太平洋篇 |
 | GitHub owner | `kisaraki` |
 | Repository | `classroom-sgts-nh-tzk` |
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
-| GitHub Pages 預定網址 | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
+| GitHub Pages URL | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
-| 目前階段 | Phase 6：第一關「那霸風雨」（completed，待批准） |
+| 第一版 | 西北太平洋篇 |
+| 目前階段 | Phase 9 本機發布準備；尚未 push、部署或公開驗證 |
 
-> 本系統為科學教育與遊戲化模擬工具，使用簡化模型呈現熱帶氣旋概念，不適用於真實天氣預報、防災決策、航海、航空或任何安全關鍵用途。實際颱風資訊請以官方氣象機構發布為準。
+正式網站是純靜態 GitHub Pages 應用，只使用 HTML、CSS、原生 ES
+Modules、Canvas 2D、JSON、localStorage 與瀏覽器下載 API。正式執行不需要
+Node.js 後端、資料庫、登入或秘密 API 金鑰，所有資源均支援
+`/classroom-sgts-nh-tzk/` 子路徑。
 
-## 正式執行環境
+## 第一版功能
 
-- GitHub Pages 靜態網站。
-- 現代桌面與平板瀏覽器。
-- 不使用 Node.js 後端、資料庫、登入或秘密 API 金鑰。
-- 所有正式資源支援 `/classroom-sgts-nh-tzk/` 子路徑。
+- 三個資料驅動關卡：「那霸風雨」、「護國神山」、「韋恩三進」。
+- 無勝敗沙盒，可自訂生成點、強度、海洋與環境初始條件。
+- 10 模擬分鐘固定步進及 1×／4×／12×／24×；畫格率不改變物理公式。
+- 具種子的 PRNG、操作紀錄、fingerprint 與三關黃金重播。
+- 1° 環境網格、副高、西南季風、風切、β 漂移與平滑導引。
+- 臺灣地形、分段海陸作用、登陸／再出海事件及再組織延遲。
+- 動態冷水尾流、六測站持續風／陣風／雨率／累積雨量。
+- localStorage v1 安全回復，以及嚴格驗證的 JSON 匯入與重播。
+- CSV、模擬 JSON、沙盒 preset JSON、Canvas PNG 與文字摘要匯出。
+- 300／700／1200 粒子層級、即時效能診斷與減少動態模式。
+- 鍵盤操作、可見焦點、文字狀態、Canvas 文字摘要及錯誤 live region。
 
-Node.js 與 npm 只用於本機開發、測試及未來 GitHub Actions；正式網站不依賴 Node.js。
+模型刻意簡化；關卡是歷史靈感的教育情境，不是歷史重建。公式、參數與
+限制請見 [物理模型](docs/PHYSICS-MODEL.md)、
+[強度模型](docs/INTENSITY-MODEL.md)、
+[導引模型](docs/STEERING-MODEL.md)及
+[地形與雨量模型](docs/LAND-RAIN-MODEL.md)。
 
-## 本機工具
+## 本機執行
 
-本專案固定使用 Node.js 24 LTS 與 npm 11。macOS 以 Homebrew 提供 keg-only `node@24`：
+本專案固定使用 Node.js 24 LTS 與 npm 11。macOS 依專案治理使用
+Homebrew 的 `node@24`：
 
 ```sh
 export PATH="/opt/homebrew/opt/node@24/bin:$PATH"
 npm ci
+npm run serve
 ```
 
-常用指令：
+開啟：
+
+```text
+http://127.0.0.1:4173/classroom-sgts-nh-tzk/
+```
+
+常用驗證：
 
 ```sh
 npm run lint
@@ -45,92 +72,58 @@ npm run test:unit
 npm run test:integration
 npm run test:scenario
 npm run test:e2e
+npm run test:performance
+npm run build
+npm run test:artifact
 npm run check
-npm run serve
 ```
 
-Phase 1 已提供：
+`npm run build` 只把 `index.html`、`css/`、`js/`、`assets/` 與 `LICENSE`
+放入未追蹤的 `dist/`。測試、規格、開發依賴、本機設定及 Secrets 不進入
+Pages artifact。
 
-- BOOT、MENU、TUTORIAL、RUNNING、PAUSED、VICTORY、FAILURE、ERROR 狀態。
-- 每步 10 模擬分鐘的累積器固定步進，支援暫停及 1×／4×／12×／24×。
-- 畫格時間截斷、單畫格補算上限及隱藏分頁停止累積。
-- 高 DPI Canvas 診斷視窗（devicePixelRatio 上限 2）。
-- 桌面三區、平板上下排列及窄螢幕提示。
-- Node 單元／整合測試、瀏覽器 harness、實際 Chrome E2E 與 GitHub Actions
-  測試 workflow。
-
-Phase 1 當時尚未實作地圖、座標、颱風物理、導引氣流、關卡及沙盒。
-
-Phase 2 新增：
-
-- 100°E～160°E、0°N～40°N 西北太平洋教育用簡化地圖。
-- 經緯度／Canvas 雙向轉換、Haversine、方位角、目的地推算。
-- polygon 海陸判定、邊界視為陸地及移動線段跨陸地檢查。
-- 臺灣四岸 `coastSide` 與 16 個穩定 `regionId`。
-- 那霸、臺北、臺中、日月潭、花蓮及澎湖測站位置。
-- 點選／觸控地圖查詢座標、海陸、最近測站與距離。
-
-Phase 3 新增：
-
-- 完整 `Typhoon`、`GridCell`、`Environment` 資料契約與歷史紀錄。
-- 固定版本 `mulberry32-v1` PRNG，以及物理／視覺隔離子流。
-- 海溫、海洋熱含量、低緯度組織限制、風切、水氣、海陸、地形與冷水尾流因子。
-- 有時間反應與單步上限的強度、氣壓、暴風半徑與結構遲滯。
-- cluster、spiral、comma、eye、decaying 五種 Canvas 表現。
-- 強度／環境因子儀表板及可獨立關閉的純視覺粒子。
-
-Phase 4 新增：
-
-- 覆蓋 100°E～160°E、0°N～40°N 的 2,501 個 1° `GridCell`。
-- SST、OHC、氣壓、U／V 導引、風切、水氣、海陸、粗糙度及冷水尾流欄位。
-- 背景風、副高、西南季風、β 漂移與具種子微擾的向量合成。
-- 副高強度／西伸／脊線、季風強度／水氣及風切的目標控制與反應延遲。
-- 0～45 km/h 平滑移動、球面座標換算及每段至多 3 km 的路徑分割。
-- 海溫底圖、等壓線、副高範圍、季風槽、環境箭頭與短期方向箭頭。
-
-Phase 5 新增：
-
-- 臺灣西部平原、中央山脈、東部縱谷與海岸山脈的解析式教育地形。
-- 0.5 km 路徑取樣、同一步海陸時間比例、`LANDFALL`／`SEA_REENTRY`
-  事件及出海後 9 小時再組織延遲。
-- 摩擦、地形、組織度與對稱度損耗，以及迎風抬升／背風雨影。
-- 依風速、移速、OHC、暴風半徑及停留時間累積與恢復的動態冷水尾流。
-- 六測站的持續風、陣風、當前雨率及每 10 分鐘積分的累積雨量。
-- 冷水尾流、地形、測站風雨 Canvas／儀表板，以及完整 session 重啟。
-
-Phase 6 新增：
-
-- 通用、嚴格驗證且不可執行任意程式碼的 Level／Objective／Failure
-  資料格式。
-- 第一關「那霸風雨」：2018 潭美歷史靈感、168 小時、四個主要目標與
-  四個失敗條件。
-- pending／in progress／completed／failed 目標面板、教學提示及地圖
-  50 km／150 km 目標區。
-- 路徑、最大風速、最低氣壓、測站值、透明計分與完整重啟的單次結算。
-- 使用正式模型管線的可勝利／失敗情境，以及版本化黃金重播 fixture。
-
-第二、三關、沙盒、儲存及匯出尚未實作；它們屬 Phase 7 以後。
-關卡資料契約、計分與黃金重播詳見 `docs/LEVEL-SYSTEM.md`。
-
-本機預覽：
+## 架構與資料
 
 ```text
-http://127.0.0.1:4173/
-http://127.0.0.1:4173/classroom-sgts-nh-tzk/
+DOM controls
+  → GameEngine / SimulationClock（固定步進）
+  → Environment → Steering → Land → Ocean → Intensity → Observation
+  → Level evaluators
+  → Canvas 與 DOM 唯讀呈現
 ```
 
-## Phase 制度
+渲染與粒子不能回寫物理狀態；玩家只能設定有反應時間的環境目標，不能
+直接拖動颱風。靜態地圖只載入／驗證一次，固定地理圖層快取於離屏 Canvas。
+隱藏分頁停止更新與渲染，回到頁面時不補算隱藏期間。
 
-- 一次只能執行一個 Phase。
-- Phase 完成後狀態為 `completed`，不等於使用者批准。
-- 未取得使用者明確批准，不得進入下一 Phase。
-- Push、GitHub 設定及 Pages 部署另受主規格的外部操作授權約束。
+延伸文件：
 
-詳情請閱讀 `SGTS-NH_MASTER_SPEC.md` 與 `docs/PHASE-STATUS.md`。
+- [系統架構](docs/ARCHITECTURE.md)
+- [資料契約](docs/DATA-SCHEMA.md)
+- [關卡與計分](docs/LEVEL-SYSTEM.md)
+- [沙盒與匯出](docs/SANDBOX-EXPORT.md)
+- [測試與相容性](docs/TESTING.md)
+- [第一版逐項驗收](docs/RELEASE-ACCEPTANCE.md)
+- [部署、artifact 與回復](docs/DEPLOYMENT.md)
+- [資料來源與授權](docs/SOURCES.md)
+- [設計決策](docs/DECISIONS.md)
+- [Phase 狀態](docs/PHASE-STATUS.md)
 
-## 授權與來源
+## 發布治理
 
-專案程式碼預定採 MIT License。外部資料、地圖、圖示、字型及素材依各自授權記錄於 `docs/SOURCES.md`。
+`.github/workflows/test.yml` 是最小權限的測試 workflow；
+`.github/workflows/pages.yml` 將測試、artifact 建置與部署分成相依 job，
+測試失敗時不能部署。Phase 9 的本機工作不等於 GitHub Actions 或 Pages
+已執行；遠端 push、Pages 設定與部署必須另有明確授權。
+
+正式發布結果獲批准後才會建立 `v1.0.0` annotated tag 與 release notes。
+完整程序及回復方法見 [部署文件](docs/DEPLOYMENT.md)。
+
+## 授權
+
+程式碼採 [MIT License](LICENSE)。地理與科學參考資料的來源、授權及
+使用限制記錄於 [docs/SOURCES.md](docs/SOURCES.md)；無法確認授權的素材
+不得進入 repository 或發布 artifact。
 
 ---
 

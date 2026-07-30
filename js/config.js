@@ -6,7 +6,7 @@ export const PROJECT_CONFIG = Object.freeze({
   brand: "KOSMOS TOOLKIT｜探真拓知酷",
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
-  buildCommit: "c831f13",
+  buildCommit: "local-development",
   schemaVersion: 1,
   modelVersion: "0.7.0-taiwan-wayne",
   geography: Object.freeze({
@@ -263,7 +263,12 @@ export const PROJECT_CONFIG = Object.freeze({
     isobarCount: 3,
     monsoonTroughLatitude: 13,
     particleAngularSpeed: 0.0018,
-    particleCount: 140,
+    particleCount: 700,
+    particleProfiles: Object.freeze({
+      high: 1200,
+      low: 300,
+      medium: 700
+    }),
     particleMaximumRadiusScale: 1.35,
     particleMinimumRadiusScale: 0.28,
     particleSeed: "sgts-nh-phase-6-visual",
@@ -279,6 +284,7 @@ export const PROJECT_CONFIG = Object.freeze({
   performanceConfig: Object.freeze({
     dashboardUpdateEverySteps: 1,
     eventHistoryMaximumEntries: 720,
+    frameSampleWindow: 600,
     trackRecordEverySteps: 6
   }),
   disclaimer:

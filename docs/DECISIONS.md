@@ -262,3 +262,48 @@
   外部 JSON 直接指定為內部 Typhoon／Environment 可變狀態。
 - 安全：限制 1 MB、深度 12、陣列 5,000，拒絕未知與原型污染欄位；
   CSV 文字避免公式注入，PNG 加品牌與 Not for Forecasting。
+
+## DEC-0030｜bounded 效能診斷不進入物理
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：最近 600 畫格記錄 FPS、update／render duration，並用
+  `PerformanceObserver` 計數 Long Task；昂貴百分位摘要每 30 次 snapshot
+  更新。開始模擬時重設量測窗。
+- 理由：提供可重現的效能證據，同時避免診斷本身每幀排序或改變物理。
+
+## DEC-0031｜固定地圖雙層快取
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：`loadGeography` 共享已驗證資料 Promise；`MapRenderer` 依地圖
+  identity 與 viewport 尺寸快取固定離屏 Canvas。
+- 理由：避免重複 fetch／parse GeoJSON，亦避免每畫格重畫固定 polygon、
+  臺灣地形與海岸；動態圖層仍保持即時。
+
+## DEC-0032｜粒子層級與 reduced motion
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：低／中／高固定為 300／700／1200，預設中；切換時由同一視覺
+  seed 重建，不保存進物理。reduced motion 生效時暫停粒子但保留使用者
+  原偏好且不停止模擬。
+- 理由：畫質可依裝置調整，而 fingerprint 與關卡結果完全不變。
+
+## DEC-0033｜Pages allowlist artifact 與最小權限 workflow
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：`dist/` 只允許 `index.html`、`css`、`js`、`assets`、`LICENSE`；
+  test → build → deploy 為相依 job，deploy job 才取得 Pages／OIDC 寫權限。
+- Actions：2026-07-30 以 GitHub API 對照官方最新 release，採
+  checkout/setup-node v7、configure-pages v6、upload/deploy-pages v5。
+- 理由：測試失敗不能發布，並把來源、開發依賴、Secrets 與測試排除。
+
+## DEC-0034｜跨瀏覽器證據不得代換
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：實際 Chrome 與 macOS Safari 分別驗證；Edge 未安裝與 iPadOS
+  無實機時維持 `not_verified`，不以 Chromium 或縮放桌面冒充。
+- 理由：第 24 節是正式完成必要條件，缺少實機證據必須阻止假完成。

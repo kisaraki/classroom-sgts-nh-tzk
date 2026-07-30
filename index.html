@@ -38,7 +38,7 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 08</p>
+        <p class="phase-badge">SGTS-NH · Phase 09</p>
         <h2 id="control-title">關卡控制</h2>
         <p class="panel-copy">
           選擇資料驅動關卡，或在無勝敗沙盒中設定初始環境並匯出結果。
@@ -224,6 +224,14 @@
           <input id="particles-enabled" type="checkbox" checked>
           <span>顯示視覺粒子（不參與物理）</span>
         </label>
+        <label class="particle-profile" for="particle-profile">
+          粒子效能層級
+          <select id="particle-profile">
+            <option value="low">低｜300</option>
+            <option value="medium" selected>中｜700</option>
+            <option value="high">高｜1200</option>
+          </select>
+        </label>
 
         <fieldset class="layer-controls">
           <legend>圖層切換</legend>
@@ -283,8 +291,8 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 08 關卡與沙盒地圖；點選或觸控以查詢位置"
-            aria-describedby="map-query-help"
+            aria-label="Phase 09 關卡與沙盒地圖；點選或觸控以查詢位置"
+            aria-describedby="map-query-help canvas-summary"
             data-testid="simulation-canvas"
             tabindex="0"
           ></canvas>
@@ -292,6 +300,9 @@
         <p id="map-query-help" class="map-query-help">
           地圖範圍 100°E～160°E、0°N～40°N。海岸線為教育用簡化圖，
           不具導航或測繪精度。
+        </p>
+        <p id="canvas-summary" class="visually-hidden">
+          模擬尚未開始，風暴與環境摘要準備中。
         </p>
 
         <div class="time-strip" aria-label="時間步進資訊">
@@ -308,6 +319,22 @@
           <div>
             <dt>FPS</dt>
             <dd id="fps-readout">0</dd>
+          </div>
+          <div>
+            <dt>平均／最低 FPS</dt>
+            <dd id="fps-range-readout">0 / 0</dd>
+          </div>
+          <div>
+            <dt>Update／Render</dt>
+            <dd id="timing-readout">0.00 / 0.00 ms</dd>
+          </div>
+          <div>
+            <dt>Long tasks</dt>
+            <dd id="long-task-readout">0</dd>
+          </div>
+          <div>
+            <dt>粒子層級</dt>
+            <dd id="particle-readout">中｜700</dd>
           </div>
           <div>
             <dt>Simulation step</dt>

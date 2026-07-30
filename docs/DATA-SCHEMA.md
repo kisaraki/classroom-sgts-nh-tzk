@@ -13,6 +13,11 @@
 Phase 8 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
 海陸事件、三關 Level、沙盒 preset、localStorage v1 與匯入匯出契約。
 
+Phase 9 沒有改變持久化或匯出資料形狀，因此不提升 schema／model version。
+效能 snapshot 是暫時診斷資料，不寫入 localStorage 或模擬匯出。粒子層級
+是當次 UI／render 設定，不屬物理資料。地圖 cache 只重用已通過
+`validateMapData` 的同一份物件；失敗 request 不留在 cache。
+
 ## 第一版單位字典
 
 | 欄位 | 單位／範圍 | 約定 |

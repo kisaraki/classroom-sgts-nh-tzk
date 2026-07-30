@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 8 completed，待使用者批准。
-- Phase 8 在相同物理 session 上加入無勝敗沙盒、localStorage v1、
-  安全匯入、重播及瀏覽器端 CSV／JSON／PNG／文字匯出。
+- 目前 Phase：Phase 9 in progress；本機發布準備已完成，外部發布待授權。
+- Phase 9 不改物理模型；加入可觀測效能、靜態地圖快取、無障礙與
+  可重現 Pages artifact／deployment workflow。
 
 ## 正式執行邊界
 
@@ -65,7 +65,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 - `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 8 檔案責任
+## Phase 9 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -274,8 +274,28 @@ track + operations + seed + versions
 - 第一版採單一 `index.html` 入口。
 - Phase 1 建立測試 workflow，不建立 Pages 部署 workflow，也不部署。
 
-## 尚未實作
+## Phase 9 效能與發布資料流
 
-下列屬 Phase 9，Phase 8 不提供假實作：
+```text
+requestAnimationFrame
+  ├─ PerformanceMonitor：frame / update / render / longtask
+  ├─ fixed update：正式物理，不受粒子層級影響
+  └─ render
+      ├─ cached GeoJSON object
+      ├─ offscreen static map canvas
+      ├─ dynamic environment / storm / stations
+      └─ deterministic 300 / 700 / 1200 visual particles
 
-- 發布工作流、正式 Pages 部署、效能預算與 Safari／iPadOS 最終驗收。
+source tree
+  → build-pages allowlist
+  → dist: index + css + js + assets + LICENSE
+  → test job → build job → deploy job
+```
+
+- `PerformanceMonitor` 的 bounded window 最多保存 600 筆；百分位與摘要
+  每 30 次 snapshot 才重算，避免每幀排序與大量短命配置。
+- `loadGeography` 共用 Promise／已驗證資料，失敗時清除 cache 以便重試。
+- `MapRenderer` 只在 geography identity 或 viewport 尺寸改變時重畫固定
+  地圖離屏 Canvas；測站、選取、環境、風暴與目標仍為動態圖層。
+- `prefers-reduced-motion` 只停用動畫粒子，不更動物理或使用者已保存偏好。
+- 正式 Pages deployment 尚未執行；架構定義不等於線上狀態。

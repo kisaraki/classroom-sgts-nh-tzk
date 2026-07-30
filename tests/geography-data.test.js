@@ -5,7 +5,9 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  clearGeographyCache,
   findLandRegion,
+  loadGeography,
   MAP_BOUNDS,
   validateMapData
 } from "../js/data/geography.js";
@@ -161,4 +163,44 @@ test("map validation rejects counterclockwise exterior rings", async () => {
     () => validateMapData(reversedRing),
     /exterior ring must be clockwise/
   );
+});
+
+test("static geography loader shares parsed data and evicts failed requests", async () => {
+  const mapData = await loadMap();
+  let fetchCount = 0;
+  const fetchImpl = async () => {
+    fetchCount += 1;
+    return {
+      json: async () => clone(mapData),
+      ok: true,
+      status: 200
+    };
+  };
+
+  clearGeographyCache();
+  const first = await loadGeography({
+    fetchImpl,
+    url: "https://example.test/map.json"
+  });
+  const second = await loadGeography({
+    fetchImpl,
+    url: "https://example.test/map.json"
+  });
+
+  assert.equal(first, second);
+  assert.equal(fetchCount, 1);
+
+  clearGeographyCache();
+  await assert.rejects(
+    loadGeography({
+      fetchImpl: async () => ({ ok: false, status: 503 }),
+      url: "https://example.test/failure.json"
+    }),
+    /HTTP 503/
+  );
+  const recovered = await loadGeography({
+    fetchImpl,
+    url: "https://example.test/failure.json"
+  });
+  assert.equal(recovered.type, "FeatureCollection");
 });

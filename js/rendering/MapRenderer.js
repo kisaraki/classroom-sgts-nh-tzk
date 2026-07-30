@@ -47,6 +47,15 @@ const traceLine = (context, coordinates, viewport) => {
 };
 
 export class MapRenderer {
+  #canvasFactory;
+  #staticLayer = null;
+
+  constructor({
+    canvasFactory = () => globalThis.document.createElement("canvas")
+  } = {}) {
+    this.#canvasFactory = canvasFactory;
+  }
+
   draw({ context, geography, height, padding, selection, stations, width }) {
     const viewport = {
       bounds: geography.bounds,
@@ -55,37 +64,18 @@ export class MapRenderer {
       width
     };
 
+    const staticLayer = this.#getStaticLayer({
+      geography,
+      height,
+      padding,
+      width
+    });
+
     context.save();
-    context.fillStyle = "#294638";
-    context.strokeStyle = "rgba(217, 249, 255, 0.7)";
-    context.lineJoin = "round";
-    context.lineWidth = 1.1;
-
-    for (const feature of geography.features) {
-      context.beginPath();
-
-      for (const ring of feature.geometry.coordinates) {
-        traceRing(context, ring, viewport);
-      }
-
-      context.fill("evenodd");
-      context.stroke();
-    }
-
-    const taiwan = geography.features.find(
-      (feature) => feature.properties.regionId === "taiwan-main"
-    );
-
-    if (taiwan) {
-      this.#drawTaiwanTerrain(context, taiwan, viewport, width);
-    }
-
-    for (const segment of taiwan?.properties.coastSegments ?? []) {
-      context.beginPath();
-      traceLine(context, segment.coordinates, viewport);
-      context.strokeStyle = COAST_COLORS[segment.coastSide];
-      context.lineWidth = 2.5;
-      context.stroke();
+    if (staticLayer) {
+      context.drawImage(staticLayer, 0, 0, width, height);
+    } else {
+      this.#drawStaticMap(context, geography, viewport, width);
     }
 
     for (const station of stations) {
@@ -132,6 +122,83 @@ export class MapRenderer {
       context.lineTo(point.x + 11, point.y);
       context.moveTo(point.x, point.y - 11);
       context.lineTo(point.x, point.y + 11);
+      context.stroke();
+    }
+
+    context.restore();
+  }
+
+  #getStaticLayer({ geography, height, padding, width }) {
+    if (
+      this.#staticLayer?.geography === geography &&
+      this.#staticLayer.height === height &&
+      this.#staticLayer.width === width
+    ) {
+      return this.#staticLayer.canvas;
+    }
+
+    let canvas;
+
+    try {
+      canvas = this.#canvasFactory();
+    } catch {
+      return null;
+    }
+
+    const context = canvas?.getContext?.("2d");
+
+    if (!context) {
+      return null;
+    }
+
+    canvas.width = Math.ceil(width);
+    canvas.height = Math.ceil(height);
+    this.#drawStaticMap(
+      context,
+      geography,
+      {
+        bounds: geography.bounds,
+        height,
+        padding,
+        width
+      },
+      width
+    );
+    this.#staticLayer = { canvas, geography, height, width };
+    return canvas;
+  }
+
+  #drawStaticMap(context, geography, viewport, width) {
+    context.save();
+    context.fillStyle = "#294638";
+    context.strokeStyle = "rgba(217, 249, 255, 0.7)";
+    context.lineJoin = "round";
+    context.lineWidth = 1.1;
+
+    for (const feature of geography.features) {
+      context.beginPath();
+
+      for (const ring of feature.geometry.coordinates) {
+        traceRing(context, ring, viewport);
+      }
+
+      context.fill("evenodd");
+      context.stroke();
+    }
+
+    const taiwan = geography.features.find(
+      (feature) => feature.properties.regionId === "taiwan-main"
+    );
+
+    if (taiwan) {
+      this.#drawTaiwanTerrain(context, taiwan, viewport, width);
+    }
+
+    for (const segment of taiwan?.properties.coastSegments ?? []) {
+      context.beginPath();
+      traceLine(context, segment.coordinates, viewport);
+      context.strokeStyle = COAST_COLORS[segment.coastSide];
+      context.lineWidth = 2.5;
       context.stroke();
     }
 
