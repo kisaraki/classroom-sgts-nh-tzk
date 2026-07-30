@@ -15,8 +15,8 @@
 | 5 | approved | `phase/05-land-rain` | `131f891` | `0e1e0af` | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
-| 8 | completed | `phase/08-sandbox-export` | `c831f13` |  | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 |  |  |  |
-| 9 | pending |  |  |  | not_run |  |  |  |  |
+| 8 | approved | `phase/08-sandbox-export` | `c831f13` | `(本次批准紀錄 commit)` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
+| 9 | in_progress | `phase/09-release` |  |  | not_run |  |  |  |  |
 | 10 | pending |  |  |  | not_run |  |  |  |  |
 
 ## Phase 0 執行授權
@@ -248,3 +248,15 @@
 - 公開網站：未驗證；只完成本機 Pages 子路徑與 Browser 驗證。
 - 未授權：push、merge、GitHub Pages 設定及部署。
 - 下一階段：Phase 9「效能、相容性、發布與最終驗收」，尚未批准，不得執行。
+
+### Phase 8
+
+- 批准時間：2026-07-30T22:52:31+08:00。
+- 使用者原文：
+
+> 批准 Phase 8，並進入 Phase 9
+
+- 解讀：Phase 8 驗收通過，批准執行 Phase 9 的本機測試、修正、優化、
+  文件與發布準備。
+- 外部操作閘門：本次原文未明列 push、GitHub Pages 設定或部署；依主規格
+  Phase 9 要求，執行外部操作前仍須再次取得明確授權。
