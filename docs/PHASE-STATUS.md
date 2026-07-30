@@ -12,7 +12,7 @@
 | 2 | approved | `phase/02-map-geography` | `2a426c4` | `26cde99` | lint、44 unit、2 integration、4 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:25:29+08:00 | 2026-07-30T19:46:24+08:00 | 批准 Phase 2，並進入 Phase 3 |  |
 | 3 | approved | `phase/03-intensity` | `4a1bb3c` | `2d16589` | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 | 2026-07-30T20:03:14+08:00 | 批准 Phase 3，並進入 Phase 4 |  |
 | 4 | approved | `phase/04-steering` | `c3c7d51` | `3924d30` | lint、66 unit、2 integration、8 scenario、6 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:21:30+08:00 | 2026-07-30T20:24:56+08:00 | 批准 Phase 4，並進入 Phase 5 |  |
-| 5 | completed | `phase/05-land-rain` | pending |  | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 |  |  |  |
+| 5 | completed | `phase/05-land-rain` | `131f891` |  | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 |  |  |  |
 | 6 | pending |  |  |  | not_run |  |  |  |  |
 | 7 | pending |  |  |  | not_run |  |  |  |  |
 | 8 | pending |  |  |  | not_run |  |  |  |  |
@@ -145,7 +145,7 @@
 - 完成時間：2026-07-30T20:48:33+08:00。
 - 狀態：`completed`，不等於 `approved`。
 - 分支：`phase/05-land-rain`。
-- 完成 commit：pending（功能提交後回填）。
+- 完成 commit：`131f891`。
 - 本機檢查：ESLint、76 unit、3 integration、12 scenario、
   7 實際 Chrome E2E、Browser harness 7/7 及 Browser smoke 均通過。
 - 模型：`0.5.0-land-rain`；臺灣四地形分區、海陸事件、動態冷水尾流、
