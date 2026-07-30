@@ -10,7 +10,7 @@
 | 0 | approved | `phase/00-foundation` | `10eb51c` | `67697c6` | lint、4 unit、1 integration、browser smoke passed；scenario／E2E N/A | 2026-07-30T18:44:39+08:00 | 2026-07-30T18:50:36+08:00 | 同意執行 Phase 01 |  |
 | 1 | approved | `phase/01-engine-ui` | `0e3a086` | `a86d9da` | lint、25 unit、2 integration、3 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:06:41+08:00 | 2026-07-30T19:09:14+08:00 | 批准 Phase 1，並同意執行 Phase 2 |  |
 | 2 | approved | `phase/02-map-geography` | `2a426c4` | `26cde99` | lint、44 unit、2 integration、4 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:25:29+08:00 | 2026-07-30T19:46:24+08:00 | 批准 Phase 2，並進入 Phase 3 |  |
-| 3 | completed | `phase/03-intensity` | `4a1bb3c` |  | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 |  |  |  |
+| 3 | approved | `phase/03-intensity` | `4a1bb3c` |  | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 | 2026-07-30T20:03:14+08:00 | 批准 Phase 3，並進入 Phase 4 |  |
 | 4 | pending |  |  |  | not_run |  |  |  |  |
 | 5 | pending |  |  |  | not_run |  |  |  |  |
 | 6 | pending |  |  |  | not_run |  |  |  |  |
@@ -104,3 +104,13 @@
 - 公開網站：未驗證。
 - 未授權：push、GitHub Pages 設定及部署。
 - 下一階段：Phase 4「環境網格與導引氣流」，尚未批准，不得執行。
+
+### Phase 3
+
+- 批准時間：2026-07-30T20:03:14+08:00。
+- 使用者原文：
+
+> 批准 Phase 3，並進入 Phase 4
+
+- 解讀：Phase 3 驗收通過，批准執行 Phase 4。
+- 未授權：push、GitHub Pages 設定及部署。
