@@ -15,7 +15,7 @@ SGTS-NH 是以西北太平洋熱帶氣旋為第一版場景的互動式科學教
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
 | GitHub Pages 預定網址 | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
-| 目前階段 | Phase 2：地圖、座標與地理系統（completed，待批准） |
+| 目前階段 | Phase 3：颱風實體與強度模型（completed，待批准） |
 
 > 本系統為科學教育與遊戲化模擬工具，使用簡化模型呈現熱帶氣旋概念，不適用於真實天氣預報、防災決策、航海、航空或任何安全關鍵用途。實際颱風資訊請以官方氣象機構發布為準。
 
@@ -70,7 +70,16 @@ Phase 2 新增：
 - 那霸、臺北、臺中、日月潭、花蓮及澎湖測站位置。
 - 點選／觸控地圖查詢座標、海陸、最近測站與距離。
 
-颱風實體、強度、導引氣流、降雨、關卡及沙盒尚未實作。
+Phase 3 新增：
+
+- 完整 `Typhoon`、`GridCell`、`Environment` 資料契約與歷史紀錄。
+- 固定版本 `mulberry32-v1` PRNG，以及物理／視覺隔離子流。
+- 海溫、海洋熱含量、低緯度組織限制、風切、水氣、海陸、地形與冷水尾流因子。
+- 有時間反應與單步上限的強度、氣壓、暴風半徑與結構遲滯。
+- cluster、spiral、comma、eye、decaying 五種 Canvas 表現。
+- 強度／環境因子儀表板及可獨立關閉的純視覺粒子。
+
+正式環境網格、導引氣流、降雨、關卡及沙盒尚未實作。
 
 本機預覽：
 

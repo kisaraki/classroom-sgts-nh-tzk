@@ -128,6 +128,22 @@ button:disabled {
   background: var(--color-cyan-100);
 }
 
+.particle-toggle {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.9rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.particle-toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--color-cyan-300);
+}
+
 .scope-note,
 .disclaimer {
   margin-top: 1.25rem;
@@ -175,7 +191,8 @@ button:disabled {
   font-weight: 700;
 }
 
-.map-probe {
+.map-probe,
+.storm-dashboard {
   margin-top: 1rem;
   padding: 0.85rem;
   border: 1px solid var(--color-border);
@@ -183,10 +200,52 @@ button:disabled {
   background: rgb(6 17 31 / 48%);
 }
 
-.map-probe h3 {
+.map-probe h3,
+.storm-dashboard h3,
+.storm-dashboard h4 {
   margin: 0 0 0.45rem;
   color: var(--color-cyan-100);
   font-size: 0.92rem;
+}
+
+.storm-dashboard h4 {
+  margin-top: 0.85rem;
+}
+
+.storm-metrics,
+.factor-grid {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.storm-metrics div,
+.factor-grid div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgb(118 232 255 / 12%);
+}
+
+.storm-metrics dt,
+.factor-grid dt {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.storm-metrics dd,
+.factor-grid dd {
+  overflow-wrap: anywhere;
+  color: var(--color-cyan-100);
+  text-align: right;
+  font-family: ui-monospace, monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.factor-grid .potential {
+  color: var(--color-warning);
+  border-bottom-color: rgb(255 210 125 / 36%);
 }
 
 .map-probe dl {

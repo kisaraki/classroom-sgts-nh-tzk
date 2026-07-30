@@ -3,10 +3,11 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 2 狀態
+## Phase 3 狀態
 
-Phase 2 加入經人工簡化重繪的 Natural Earth 海岸線，以及 CWA／JMA
-公開測站位置。正式網站仍沒有第三方執行期程式碼。
+Phase 3 延續 Phase 2 地理來源，加入熱帶氣旋強度概念的科學參考。
+公式是可解釋、可測試的教育遊戲近似，並非重現任何作業預報模型。
+正式網站仍沒有第三方執行期程式碼。
 
 ## 目前紀錄
 
@@ -19,6 +20,11 @@ Phase 2 加入經人工簡化重繪的 Natural Earth 海岸線，以及 CWA／JM
 | Natural Earth Terms of Use | 地圖授權 | `https://www.naturalearthdata.com/about/terms-of-use/` | 2026-07-30 | 確認地圖資料可修改及散布 | Public domain |
 | 臺灣氣象觀測要素排序集／附錄測站表 | 測站位置 | `https://www.cwa.gov.tw/Data/service/notice/download/Publish_20241021111320.pdf` | 2026-07-30 | 臺北、臺中、日月潭、花蓮、澎湖站碼、座標與高度 | 中央氣象署；專案註明出處 |
 | JMA GAW station table | 測站位置 | `https://www.data.jma.go.jp/env/ozonehp/en/nmhs/station.html` | 2026-07-30 | 那霸站座標、高度與 WMO station number | Japan Meteorological Agency；專案註明出處 |
+| Emanuel (1988), *The Maximum Intensity of Hurricanes* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(1988)045%3C1143:TMIOH%3E2.0.CO;2` | 2026-07-30 | 目標／潛在強度是環境條件上限的概念 | 僅引用科學概念；本專案未實作 E-PI 方程 |
+| DeMaria (1996), *The Effect of Vertical Shear on Tropical Cyclone Intensity Change* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(1996)053%3C2076:TEOVSO%3E2.0.CO;2` | 2026-07-30 | 風切抑制強度並破壞渦旋垂直結構的概念 | 僅引用科學概念 |
+| Sellers et al. (1998), *The Tropical Cyclone of the Global Weather Experiment* | 同行評審綜述／觀測 | `https://www.aoml.noaa.gov/hrd/Landsea/Sellersetal_bulletinAMSJan1998.pdf` | 2026-07-30 | 生成有利條件：離赤道數度、暖海、深暖水、低風切與高溼 | NOAA/AOML 公開 PDF；僅引用概念 |
+| Shay, Goni & Black (2000), *Effects of a Warm Oceanic Feature on Hurricane Opal* | 同行評審論文 | `https://www.aoml.noaa.gov/ftp/phod/goni/web/Publications/Shay.pdf` | 2026-07-30 | 海洋熱含量／暖水深度會影響增強潛勢的概念 | NOAA/AOML 公開 PDF；僅引用概念 |
+| Schade (2000), *Tropical Cyclone Intensity and Sea Surface Temperature* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(2000)057%3C3122:TCIASS%3E2.0.CO;2` | 2026-07-30 | 海溫供能與風暴引發冷卻形成負回饋的概念 | 僅引用科學概念 |
 
 本地衍生檔案：`assets/maps/northwest-pacific.json`。其 metadata 記錄
 來源、Public Domain 授權、手工簡化方式、產生日期、座標順序及精度限制。

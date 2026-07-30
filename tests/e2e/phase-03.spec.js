@@ -21,6 +21,8 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
   await expect
     .poll(async () => Number(await page.locator("#step-count").textContent()))
     .toBeGreaterThan(0);
+  await expect(page.locator("#storm-wind")).not.toHaveText("15.0 m/s");
+  await expect(page.locator("#storm-fingerprint")).toHaveText(/^[0-9a-f]{8}$/u);
 
   await page.locator("#pause-button").click();
   await expect(page.locator("#engine-state")).toHaveText("PAUSED");
@@ -71,7 +73,23 @@ test("standalone browser harness passes from the Pages subpath", async ({
     "data-test-status",
     "passed"
   );
-  await expect(page.locator("#test-summary")).toHaveText("4/4 tests passed");
+  await expect(page.locator("#test-summary")).toHaveText("5/5 tests passed");
+});
+
+test("particle control is explicitly visual-only and preserves the dashboard", async ({
+  page
+}) => {
+  await page.goto("./");
+  const toggle = page.locator("#particles-enabled");
+
+  await expect(toggle).toBeChecked();
+  await toggle.uncheck();
+  await expect(toggle).not.toBeChecked();
+  await expect(page.locator("#storm-stage")).toHaveText("cluster");
+  await expect(page.locator('[data-factor="developmentPotential"]')).toHaveText(
+    /%$/u
+  );
+  await expect(page.locator(".particle-toggle")).toContainText("不參與物理");
 });
 
 test("map query identifies Taiwan and stays aligned after resize", async ({

@@ -1,11 +1,13 @@
 # SGTS-NH 簡化物理模型
-## 教育模型原則與後續實作契約
+## 教育模型原則與實作契約
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 0 狀態
+## Phase 3 狀態
 
-Phase 0 尚未實作任何颱風物理、導引、降雨、地形或冷水尾流公式。本文件只固定後續模型必須遵守的文件格式與責任界線，不以假資料冒充模擬結果。
+Phase 3 已實作固定位置的強度、氣壓、暴風半徑、組織、對稱及五種結構。
+完整公式、常數類別、校準情境及限制見 `docs/INTENSITY-MODEL.md`。正式導引、
+環境網格、降雨、地形積分與動態冷水尾流仍未實作。
 
 ## 模型定位
 
@@ -21,7 +23,7 @@ SGTS-NH 是可解釋的科學教育模型，不是作業級數值天氣預報模
 
 ## 參數分類
 
-後續常數必須分為：
+常數分為：
 
 ```text
 physicalConstants
@@ -31,7 +33,8 @@ renderingConfig
 performanceConfig
 ```
 
-不得為讓單一關卡通過而直接修改 `physicalConstants`。
+Phase 3 已依上述分類集中在 `js/config.js`。不得為讓單一關卡通過而直接
+修改 `physicalConstants`。
 
 ## 每個模型的必要記錄
 
@@ -67,3 +70,5 @@ performanceConfig
 | 環境網格及導引 | Phase 4 |
 | 地形、冷水尾流、降雨及測站 | Phase 5 |
 | 關卡校準 | Phase 6～7 |
+
+Phase 3 的實際模型文件：`docs/INTENSITY-MODEL.md`。

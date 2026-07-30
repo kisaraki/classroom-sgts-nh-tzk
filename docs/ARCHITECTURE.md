@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 2 completed，待使用者批准。
-- Phase 2 已加入版本化地圖、座標純函式、海陸／線段判定、測站位置、
-  Canvas 分層渲染及點選查詢；尚未實作颱風實體與物理。
+- 目前 Phase：Phase 3 completed，待使用者批准。
+- Phase 3 在既有地理與固定步進核心上加入颱風／環境資料契約、
+  版本化 PRNG、強度模型、結構遲滯、物理 fingerprint 及 Canvas 結構層。
 
 ## 正式執行邊界
 
@@ -37,10 +37,10 @@ GameEngine／StateMachine／EventBus
 SimulationClock
   ↓ 每步固定 10 模擬分鐘
 Update callback
-  ↓ 產生新的模擬狀態與事件
+  ↓ IntensityModel 只依固定步進更新 Typhoon
 Render callback
-  ↓ 只讀狀態並繪製
-CanvasViewport／DOM diagnostics
+  ↓ 只讀 snapshot
+CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashboard
 ```
 
 依賴規則：
@@ -51,8 +51,9 @@ CanvasViewport／DOM diagnostics
 - `data` 只提供受 schema 驗證的資料。
 - `utils` 不得隱藏可變的全域模擬狀態。
 - 所有可調常數集中於 `js/config.js` 或後續明確拆分的設定模組。
+- `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 
-## Phase 2 檔案責任
+## Phase 3 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -69,7 +70,15 @@ CanvasViewport／DOM diagnostics
 | `js/rendering/MapRenderer.js` | land polygon、coastSide、測站及查詢游標 |
 | `js/data/geography.js` | JSON 載入、驗證、海陸與位置描述 |
 | `js/data/stations.js` | 六站不可變位置與來源 |
+| `js/model/Typhoon.js` | 颱風完整欄位、結構 enum、路徑／事件歷史及物理 snapshot |
+| `js/model/GridCell.js` | 單一環境取樣點的數值範圍與單位契約 |
+| `js/model/Environment.js` | Phase 4 網格前的環境容器契約；本階段只含示範 cell |
+| `js/simulation/IntensityModel.js` | 因子、發展潛勢、時間反應、上下限、遲滯與 fingerprint |
 | `js/utils/geo.js` | 座標、測地線、polygon、segment 與最近站純函式 |
+| `js/utils/random.js` | `mulberry32-v1`、種子衍生、四子流及穩定 fingerprint |
+| `js/rendering/TyphoonRenderer.js` | 五種颱風結構的 Canvas 表現 |
+| `js/rendering/TrackRenderer.js` | 只讀 trackHistory 的路徑線 |
+| `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
 | `assets/maps/northwest-pacific.json` | 來源／授權完整的簡化地圖資料 |
 | `css/*.css` | tokens、桌面三區、平板／手機斷點、元件及無障礙 |
 | `scripts/serve.mjs` | 僅供本機的靜態伺服器 |
@@ -105,6 +114,31 @@ geography.js（權威 bounds／海陸）
 - Phase 2 採地理經緯度的線性 equirectangular 顯示；測地距離另用
   Haversine，不以 Canvas pixel 距離代替。
 
+## Phase 3 強度資料流
+
+```text
+PROJECT_CONFIG + seed
+  ├─ intensity / steering / environment PRNG（物理）
+  └─ visual PRNG（只供 ParticleRenderer）
+
+GridCell + Typhoon + 固定 10 分鐘 step
+  ↓ calculateEnvironmentalFactors
+發展潛勢（各 0～1 因子相乘）
+  ↓ targetWind + responseHours + per-step clamp
+風速／組織／對稱／水氣
+  ↓ bounded mappings + hysteresis
+氣壓／暴風半徑／structureStage
+  ↓ snapshot
+Canvas 與 DOM 儀表板（唯讀）
+```
+
+- 科氏項命名為 `coriolisOrganization`，只代表低緯度渦旋組織限制，
+  並非風速加成。
+- 模型位置在 Phase 3 固定；不得從 `steeringU/V` 推進中心。
+- fingerprint 包含模型版本、PRNG 版本、種子、步數、物理子流狀態與
+  Typhoon 物理欄位，不含畫格、Canvas 或粒子狀態。
+- 公式、校準情境及限制詳見 `docs/INTENSITY-MODEL.md`。
+
 ## GitHub Pages 路徑
 
 - 正式 base path：`/classroom-sgts-nh-tzk/`。
@@ -114,7 +148,7 @@ geography.js（權威 bounds／海陸）
 
 ## 尚未實作
 
-下列均屬 Phase 3 以後，Phase 2 不提供假實作：
+下列均屬 Phase 4 以後，Phase 3 不提供假實作：
 
-- 颱風實體、強度模型與導引氣流。
-- 海陸、地形、降雨、測站、關卡、沙盒、儲存及匯出。
+- 正式 1° 環境網格、導引氣流與中心移動。
+- 動態冷水尾流、精細地形、降雨、測站觀測、關卡、沙盒、儲存及匯出。

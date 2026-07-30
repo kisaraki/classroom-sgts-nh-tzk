@@ -38,11 +38,11 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 02</p>
+        <p class="phase-badge">SGTS-NH · Phase 03</p>
         <h2 id="control-title">模擬控制</h2>
         <p class="panel-copy">
-          啟動固定時間步進引擎，或直接點選地圖查詢座標、海陸與最近測站。
-          Phase 02 不包含颱風物理。
+          啟動固定時間步進引擎，觀察同一環境下颱風強度、組織與結構逐步演變；
+          也可直接點選地圖查詢座標、海陸與最近測站。
         </p>
 
         <div class="control-stack">
@@ -62,11 +62,18 @@
           </div>
         </fieldset>
 
+        <label class="particle-toggle">
+          <input id="particles-enabled" type="checkbox" checked>
+          <span>顯示視覺粒子（不參與物理）</span>
+        </label>
+
         <div id="app-error" class="error-message" role="alert" hidden></div>
 
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
-          <p>僅加入地圖、座標、海陸判定與測站位置；颱風仍未生成。</p>
+          <p>
+            本階段加入定點颱風與強度模型；正式環境網格及導引氣流屬 Phase 4。
+          </p>
         </aside>
       </section>
 
@@ -85,7 +92,7 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 02 西北太平洋地圖；點選或觸控以查詢位置"
+            aria-label="Phase 03 西北太平洋颱風強度模擬；點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -132,6 +139,39 @@
             <dd id="map-data-status">載入中</dd>
           </div>
         </dl>
+
+        <section
+          class="storm-dashboard"
+          aria-labelledby="storm-dashboard-title"
+          aria-live="polite"
+        >
+          <h3 id="storm-dashboard-title">KOSMOS-03 強度</h3>
+          <dl class="storm-metrics">
+            <div><dt>最大風速</dt><dd id="storm-wind">15.0 m/s</dd></div>
+            <div><dt>中心氣壓</dt><dd id="storm-pressure">1004 hPa</dd></div>
+            <div><dt>暴風半徑</dt><dd id="storm-radius">80 km</dd></div>
+            <div><dt>目標風速</dt><dd id="target-wind">15.0 m/s</dd></div>
+            <div><dt>組織度</dt><dd id="storm-organization">28%</dd></div>
+            <div><dt>對稱度</dt><dd id="storm-symmetry">32%</dd></div>
+            <div><dt>結構</dt><dd id="storm-stage">cluster</dd></div>
+            <div><dt>Fingerprint</dt><dd id="storm-fingerprint">—</dd></div>
+          </dl>
+          <h4>環境因子</h4>
+          <dl class="factor-grid">
+            <div><dt>海溫</dt><dd data-factor="heat">—</dd></div>
+            <div><dt>海洋熱含量</dt><dd data-factor="oceanDepth">—</dd></div>
+            <div><dt>科氏組織</dt><dd data-factor="coriolisOrganization">—</dd></div>
+            <div><dt>低風切</dt><dd data-factor="shear">—</dd></div>
+            <div><dt>水氣</dt><dd data-factor="moisture">—</dd></div>
+            <div><dt>海陸</dt><dd data-factor="land">—</dd></div>
+            <div><dt>地形</dt><dd data-factor="terrain">—</dd></div>
+            <div><dt>冷水尾流</dt><dd data-factor="coldWake">—</dd></div>
+            <div class="potential">
+              <dt>發展潛勢</dt>
+              <dd data-factor="developmentPotential">—</dd>
+            </div>
+          </dl>
+        </section>
 
         <section
           id="map-probe"

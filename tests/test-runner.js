@@ -2,6 +2,7 @@ import { SimulationClock } from "../js/core/SimulationClock.js";
 import { GameState, StateMachine } from "../js/core/StateMachine.js";
 import { computeCanvasDimensions } from "../js/ui/CanvasViewport.js";
 import { haversineDistanceKm } from "../js/utils/geo.js";
+import { SeededRandom } from "../js/utils/random.js";
 
 const results = document.querySelector("#test-results");
 const summary = document.querySelector("#test-summary");
@@ -57,6 +58,13 @@ test("赤道一度經差約為 111.2 km", () => {
     { lat: 0, lon: 101 }
   );
   equal(Math.abs(distance - 111.195) < 0.01, true, "Haversine distance");
+});
+
+test("相同種子的瀏覽器 PRNG 序列一致", () => {
+  const first = new SeededRandom("browser-harness");
+  const second = new SeededRandom("browser-harness");
+  equal(first.nextUint32(), second.nextUint32(), "first PRNG value");
+  equal(first.nextUint32(), second.nextUint32(), "second PRNG value");
 });
 
 let passed = 0;

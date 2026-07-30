@@ -81,3 +81,31 @@ export const assertFunction = (value, name = "value") => {
 
   return value;
 };
+
+export const assertExactObjectKeys = (
+  value,
+  allowedKeys,
+  name = "value"
+) => {
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(value))
+  ) {
+    throw new ValidationError(`${name} must be a plain object.`, { name });
+  }
+
+  const unknownKeys = Object.keys(value).filter(
+    (key) => !allowedKeys.includes(key)
+  );
+
+  if (unknownKeys.length > 0) {
+    throw new ValidationError(
+      `${name} contains unknown fields: ${unknownKeys.join(", ")}.`,
+      { name, unknownKeys }
+    );
+  }
+
+  return value;
+};

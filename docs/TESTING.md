@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～2 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～3 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -34,6 +34,14 @@ Phase 2：
 - `test:scenario` 尚不適用，指令會明確回報。
 - `test:e2e` 驗證實際 Chrome 操作、平板／窄螢幕、靜態 browser
   harness、地圖載入、臺灣海陸查詢及 resize 後座標穩定。
+
+Phase 3：
+
+- `test:unit` 驗證模型契約／拒絕未知欄位、PRNG 版本與子流隔離、強度上下限、
+  壓力映射、相同種子／fingerprint、粒子隔離及結構遲滯。
+- `test:scenario` 驗證 1°N、15°N、高風切、低 SST 與不同 FPS 固定步數。
+- `test:e2e` 驗證強度儀表板、fingerprint、粒子控制、瀏覽器 harness、
+  響應式版面與既有地圖查詢回歸。
 
 ## Phase 0 需求追蹤
 
@@ -67,11 +75,11 @@ Phase 2：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 2 狀態 | 說明 |
+| 環境 | Phase 3 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | 16 regions、測站、臺灣／海洋查詢、Canvas 目視 |
-| 實際 Chrome | passed | 150.0.7871.187；4 個 Playwright E2E、Console error 0 |
+| Codex in-app Browser | passed | Pages 子路徑、定點 storm、comma 結構、儀表板、粒子關閉後 fingerprint 不變、Console warning/error 0 |
+| 實際 Chrome | passed | 150.0.7871.187；5 個 Playwright E2E、Console error 0 |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
@@ -79,6 +87,41 @@ Phase 2：
 | GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 3 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| INT-SCHEMA-001 | Typhoon、GridCell、Environment 完整欄位與拒絕未知欄位 | `intensity-model.test.js` | passed |
+| INT-PRNG-001 | 固定 PRNG 版本及四個獨立子流 | `random.test.js` | passed |
+| INT-FACTOR-001 | SST、OHC、科氏組織、風切、水氣、海陸、地形、冷水尾流 | unit／scenario tests、dashboard | passed |
+| INT-RESPONSE-001 | 目標強度、時間反應、單步與總上下限 | unit／scenario tests | passed |
+| INT-PRESSURE-001 | 氣壓與風速的有界遊戲映射 | `intensity-model.test.js` | passed |
+| INT-STRUCTURE-001 | 五種結構、遲滯與不抖動 | unit tests、Canvas、Browser smoke | passed |
+| INT-DETERMINISM-001 | 同版本、種子、操作序列同 fingerprint | random／intensity tests | passed |
+| INT-FPS-001 | 60／120 FPS 同固定步數同結果 | scenario tests | passed |
+| INT-VISUAL-001 | 粒子開關及消耗不改變物理 | unit、Chrome E2E、Browser smoke | passed |
+| INT-DASHBOARD-001 | 顯示強度、結構與環境因子 | Chrome E2E、Browser smoke | passed |
+| INT-SCOPE-001 | Phase 3 固定位置，不提前建立正式導引 | architecture／code inspection | passed |
+| DEPLOY-PAGES-003 | 純靜態相對路徑及 Pages 子路徑 | integration／Chrome／Browser smoke | passed |
+
+## Phase 3 實際結果
+
+- 完成日期：2026-07-30；精確完成時間記錄於 `PHASE-STATUS.md`。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- ESLint：通過，0 errors、0 warnings。
+- 單元測試：53 passed、0 failed。
+- 整合測試：2 passed、0 failed。
+- 情境測試：5 passed、0 failed。
+- 實際 Chrome E2E：5 passed、0 failed；包含 dashboard、fingerprint、
+  粒子控制、Pages 子路徑與 Phase 2 地圖回歸。
+- Browser harness：5/5 passed。
+- Codex in-app Browser：1280 px 無水平 overflow；24× 執行至 comma；
+  粒子關閉前後暫停狀態 fingerprint 同為 `2e870f46`；Console
+  warning/error 0。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 2 需求追蹤
 

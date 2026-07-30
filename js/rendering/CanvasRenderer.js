@@ -7,6 +7,9 @@ import {
 import { clientPointToGeo } from "../utils/geo.js";
 import { FieldRenderer } from "./FieldRenderer.js";
 import { MapRenderer } from "./MapRenderer.js";
+import { ParticleRenderer } from "./ParticleRenderer.js";
+import { TrackRenderer } from "./TrackRenderer.js";
+import { TyphoonRenderer } from "./TyphoonRenderer.js";
 
 export const MAP_PADDING = Object.freeze({
   bottom: 26,
@@ -20,8 +23,12 @@ export class CanvasRenderer {
   #fieldRenderer;
   #geography = null;
   #mapRenderer;
+  #particleRenderer;
   #selection = null;
   #stations;
+  #trackRenderer;
+  #typhoon = null;
+  #typhoonRenderer;
   #viewport;
 
   constructor(
@@ -29,14 +36,20 @@ export class CanvasRenderer {
     {
       fieldRenderer = new FieldRenderer(),
       mapRenderer = new MapRenderer(),
+      particleRenderer = new ParticleRenderer(),
       stations = WEATHER_STATIONS,
+      trackRenderer = new TrackRenderer(),
+      typhoonRenderer = new TyphoonRenderer(),
       viewportOptions
     } = {}
   ) {
     this.#canvas = canvas;
     this.#fieldRenderer = fieldRenderer;
     this.#mapRenderer = mapRenderer;
+    this.#particleRenderer = particleRenderer;
     this.#stations = stations;
+    this.#trackRenderer = trackRenderer;
+    this.#typhoonRenderer = typhoonRenderer;
     this.#viewport = new CanvasViewport(canvas, viewportOptions);
   }
 
@@ -46,6 +59,14 @@ export class CanvasRenderer {
 
   setSelection(selection) {
     this.#selection = selection;
+  }
+
+  setParticlesEnabled(enabled) {
+    this.#particleRenderer.setEnabled(enabled);
+  }
+
+  setTyphoon(typhoon) {
+    this.#typhoon = typhoon;
   }
 
   clientPointToGeo(event) {
@@ -91,6 +112,26 @@ export class CanvasRenderer {
         stations: this.#stations,
         width
       });
+
+      if (this.#typhoon) {
+        const shared = {
+          bounds: MAP_BOUNDS,
+          context,
+          height,
+          padding: MAP_PADDING,
+          typhoon: this.#typhoon,
+          width
+        };
+        this.#trackRenderer.draw({
+          ...shared,
+          trackHistory: this.#typhoon.trackHistory
+        });
+        this.#typhoonRenderer.draw(shared);
+        this.#particleRenderer.draw({
+          ...shared,
+          simulationMinutes
+        });
+      }
     } else {
       context.fillStyle = "#d9f9ff";
       context.font = "700 16px system-ui, sans-serif";
