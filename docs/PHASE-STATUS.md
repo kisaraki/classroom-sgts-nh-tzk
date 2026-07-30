@@ -280,3 +280,19 @@
 - 外部操作閘門：等待使用者明確批准 push、Pages 設定、部署及公開驗證。
 - 第 24 節阻擋：第 3、24、27、31 尚未全部滿足；因此不得宣稱 Phase 9
   或第一版正式完成。
+
+## Phase 9 發布授權
+
+- 授權時間：2026-07-30T23:19:37+08:00。
+- 使用者原文：
+
+> 1. 暫時不考慮安裝 Edge
+> 2. 暫時不測試 iPadOS
+> 3. Github Pages 請協助部署
+> 4. 請以輕量方式進行 commit、push及部署
+
+- 解讀：明確批准本次 Phase 9 所需的 commit、push、GitHub Pages 設定、
+  deployment 及公開網站驗證。
+- 範圍限制：不得安裝 Edge；iPadOS 暫不測試，兩者維持 `not_verified`。
+- 發布方式：最少必要狀態／diff 檢查、一次發布 commit、一次必要 push，
+  再只追蹤目標 Actions／Pages／公開網站。

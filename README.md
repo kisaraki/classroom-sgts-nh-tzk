@@ -20,7 +20,7 @@ SGTS-NH 是以西北太平洋熱帶氣旋為題材的互動式科學教育模擬
 | GitHub Pages URL | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
 | 第一版 | 西北太平洋篇 |
-| 目前階段 | Phase 9 本機發布準備；尚未 push、部署或公開驗證 |
+| 目前階段 | Phase 9 發布執行中；Pages 已獲授權，結果待驗證 |
 
 正式網站是純靜態 GitHub Pages 應用，只使用 HTML、CSS、原生 ES
 Modules、Canvas 2D、JSON、localStorage 與瀏覽器下載 API。正式執行不需要

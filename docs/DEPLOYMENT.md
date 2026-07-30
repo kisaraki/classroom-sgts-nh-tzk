@@ -13,9 +13,9 @@
 
 ## 發布狀態
 
-Phase 9 已完成本機 workflow 與 artifact 準備，但目前未獲 push、Pages
-設定或部署的明確外部操作授權。因此 GitHub Actions、Pages API、deployment
-與公開網站驗證均不可標示為已執行。
+Phase 9 已完成本機 workflow 與 artifact 準備。使用者於
+2026-07-30T23:19:37+08:00 明確批准 commit、push、GitHub Pages 設定、
+deployment 與公開網站驗證；實際遠端結果仍須在執行後記錄。
 
 已用唯讀檢查確認：
 
@@ -23,7 +23,7 @@ Phase 9 已完成本機 workflow 與 artifact 準備，但目前未獲 push、Pa
 - GitHub CLI 目前登入 `kisaraki`。
 - 同名公開 repository 存在且遠端尚無 branch／tag／既有內容。
 
-這些唯讀結果只說明未來操作目標安全，不構成寫入授權。
+這些唯讀結果與本次明確授權共同界定寫入目標，不得擴張至其他 repository。
 
 ## 靜態 artifact
 

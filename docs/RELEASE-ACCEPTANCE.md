@@ -47,10 +47,10 @@
 
 ## 目前正式阻擋
 
-1. 使用者尚未明確批准 push、GitHub Pages 設定、部署與公開驗證。
-2. Microsoft Edge 未安裝，沒有真實 Edge 驗收證據。
-3. 沒有實體 iPadOS Safari 與平板效能證據。
-4. 因此 Phase 9 不得標記 `completed`，也不能提出第一版結果批准問題。
+1. GitHub Pages 已獲部署授權，但 Actions、deployment 與公開驗證尚待執行。
+2. Microsoft Edge 依使用者指示暫不安裝，維持 `not_verified`。
+3. iPadOS 依使用者指示暫不測試，維持 `not_verified`。
+4. 因此即使 Pages 成功，Phase 9 仍不得在缺少第 24 項證據時標記正式完成。
 
 解除阻擋後，需補記 source commit、Actions run、deployment ID、正式 URL、
 公開驗證時間與 Edge／iPadOS 證據，才能把本表所有必要項目改為 passed。
