@@ -8,9 +8,9 @@
 }
 
 h1 {
-  max-width: 12ch;
+  max-width: 14ch;
   margin-top: 0.35rem;
-  font-size: clamp(2.6rem, 8vw, 5.5rem);
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
   line-height: 0.95;
   letter-spacing: -0.045em;
 }
@@ -22,54 +22,162 @@ h1 {
   font-weight: 680;
 }
 
-.english-title {
-  max-width: 42rem;
-  margin-top: 0.45rem;
-  color: var(--color-muted);
+.header-status {
+  min-width: 10rem;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  border-right: 3px solid var(--color-cyan-300);
 }
 
-.foundation-card,
-.disclaimer {
-  padding: clamp(1.25rem, 3vw, 2rem);
+.header-status p,
+.header-status span {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.header-status strong {
+  display: block;
+  color: var(--color-success);
+  font-family: ui-monospace, monospace;
+  font-size: 1.25rem;
+}
+
+.panel {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.4rem);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-panel);
-  background: rgb(10 28 48 / 78%);
+  background: var(--color-panel);
   box-shadow: var(--shadow-panel);
   backdrop-filter: blur(14px);
 }
 
-.foundation-card h2,
-.disclaimer h2 {
+.panel h2 {
   margin-block: 0.55rem 0.75rem;
   color: var(--color-cyan-100);
   line-height: 1.2;
 }
 
-.project-facts {
-  display: grid;
-  gap: 0.85rem;
-  margin-top: 1.5rem;
+.panel-copy {
+  color: var(--color-muted);
+  font-size: 0.92rem;
 }
 
-.project-facts div {
+.control-stack {
   display: grid;
-  grid-template-columns: minmax(7rem, 0.36fr) 1fr;
+  gap: 0.6rem;
+  margin-block: 1.25rem;
+}
+
+button {
+  min-height: 44px;
+  padding: 0.62rem 0.9rem;
+  color: var(--color-cyan-100);
+  font-weight: 720;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: rgb(18 49 75 / 86%);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--color-cyan-300);
+  background: rgb(23 68 96 / 96%);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.primary-button {
+  color: var(--color-ocean-950);
+  border-color: var(--color-cyan-300);
+  background: var(--color-cyan-300);
+}
+
+.speed-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.speed-picker legend {
+  margin-bottom: 0.55rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(44px, 1fr));
+  gap: 0.35rem;
+}
+
+.segmented-control button {
+  padding-inline: 0.35rem;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  color: var(--color-ocean-950);
+  border-color: var(--color-cyan-100);
+  background: var(--color-cyan-100);
+}
+
+.scope-note,
+.disclaimer {
+  margin-top: 1.25rem;
+  padding: 0.85rem;
+  color: var(--color-warning);
+  border: 1px solid rgb(255 210 125 / 32%);
+  border-radius: 0.75rem;
+  background: rgb(79 53 10 / 20%);
+  font-size: 0.82rem;
+}
+
+.scope-note p {
+  margin-top: 0.35rem;
+}
+
+.error-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  color: var(--color-danger);
+  border: 1px solid currentcolor;
+  border-radius: 0.75rem;
+  background: rgb(96 12 12 / 25%);
+}
+
+.diagnostic-list {
+  display: grid;
+}
+
+.diagnostic-list div {
+  display: flex;
+  justify-content: space-between;
   gap: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border);
+  padding-block: 0.7rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.project-facts dt {
+.diagnostic-list dt {
   color: var(--color-muted);
 }
 
-.project-facts dd {
+.diagnostic-list dd {
   overflow-wrap: anywhere;
-  font-weight: 650;
+  text-align: right;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
 }
 
-.disclaimer {
-  color: var(--color-warning);
+.disclaimer h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
 }
 
 .brand-mark {
@@ -77,22 +185,12 @@ h1 {
   font-weight: 700;
 }
 
-@media (height <= 760px) and (width >= 800px) {
+@media (height <= 760px) and (width >= 1100px) {
   h1 {
     font-size: clamp(2.6rem, 6vw, 4.4rem);
   }
 
-  .foundation-card,
-  .disclaimer {
-    padding: 1.25rem;
-  }
-
-  .project-facts {
-    gap: 0.6rem;
-    margin-top: 1rem;
-  }
-
-  .project-facts div {
-    padding-top: 0.55rem;
+  .panel {
+    padding: 1rem;
   }
 }

@@ -19,6 +19,18 @@
   outline-offset: 3px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+@media (forced-colors: active) {
+  .panel,
+  button,
+  .canvas-frame {
+    border: 1px solid CanvasText;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

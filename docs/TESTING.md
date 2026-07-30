@@ -9,7 +9,9 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- 瀏覽器 E2E 自 Phase 1 起評估 Playwright；WebKit 模擬不得冒充實際 Safari 或 iPadOS。
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1 E2E；CI
+  定義使用 Chromium。
+- WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
 ## 指令
 
@@ -23,12 +25,15 @@ npm run check
 npm run serve
 ```
 
-Phase 0：
+Phase 1：
 
-- `test:unit` 驗證必要檔案、品牌、repository、規格版本及相對資源。
-- `test:integration` 啟動本機伺服器，驗證 `/` 與 `/classroom-sgts-nh-tzk/`。
-- `test:scenario` 不適用，指令會明確回報。
-- `test:e2e` 尚不適用，指令會明確回報。
+- `test:unit` 驗證 Phase 0 基礎及數學、狀態機、時鐘、事件、引擎、
+  Canvas resize 與 workflow。
+- `test:integration` 驗證引擎固定步進事件，以及 `/` 與
+  `/classroom-sgts-nh-tzk/` 靜態服務。
+- `test:scenario` 尚不適用，指令會明確回報。
+- `test:e2e` 驗證實際 Chrome 操作、暫停、平板／窄螢幕版面、44 px
+  觸控目標及靜態瀏覽器 harness。
 
 ## Phase 0 需求追蹤
 
@@ -45,19 +50,52 @@ Phase 0：
 
 完成 Phase 0 時將狀態更新為 `passed`、`failed`、`not_run` 或 `not_applicable`。
 
+## Phase 1 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| ENG-STATE-001 | 八種狀態及合法／非法轉換 | `state-machine.test.js` | passed |
+| ENG-CLOCK-001 | 10 分鐘固定步進、60／120 Hz 一致 | `simulation-clock.test.js` | passed |
+| ENG-CLOCK-002 | 暫停、倍速、delta 截斷及補算上限 | clock／engine tests | passed |
+| ENG-VIS-001 | 隱藏時停止 update/render，切回不補算 | clock／engine tests | passed |
+| ENG-EVENT-001 | 同一步操作及事件順序穩定 | event／integration tests | passed |
+| UI-CANVAS-001 | Canvas resize 與 DPR 上限 2 | `canvas-viewport.test.js` | passed |
+| UI-RESPONSIVE-001 | 桌面三區、平板堆疊、窄螢幕提示 | Chrome E2E、Browser smoke | passed |
+| UI-TOUCH-001 | 觸控目標至少 44 px | Chrome E2E | passed |
+| DEPLOY-PAGES-001 | 相對路徑及 Pages 子路徑 | foundation／integration／E2E | passed |
+| CI-TEST-001 | 最小權限 test workflow 定義 | `workflow.test.js` | passed locally |
+
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 0 狀態 | 說明 |
+| 環境 | Phase 1 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | 根目錄及 Pages 子路徑均為 200，ES Module MIME 正確 |
-| Codex in-app Browser | passed | 1280×720、1024×768、390×844；DOM、版面、Console |
-| 實際 Chrome | not_run | Phase 0 未要求獨立 Chrome 實機驗證 |
+| Codex in-app Browser | passed | 桌面三區、24× 啟動、固定步進、暫停及 Canvas 目視 |
+| 實際 Chrome | passed | 150.0.7871.187；3 個 Playwright E2E、Console error 0 |
+| 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
 | 實際 iPadOS Safari | not_verified | 目前無實體裝置證據 |
-| GitHub Actions | not_run | workflow 自 Phase 1 建立；目前禁止 push |
+| GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 1 實際結果
+
+- 完成時間：2026-07-30T19:06:41+08:00。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- `npm install`：通過；audit 74 個套件，0 vulnerabilities。
+- ESLint：通過，0 errors、0 warnings。
+- 單元測試：25 passed、0 failed。
+- 整合測試：2 passed、0 failed。
+- 情境測試：Phase 1 不適用。
+- 實際 Chrome E2E：3 passed、0 failed。
+- Browser harness：3/3 passed。
+- Browser smoke：MENU、RUNNING、PAUSED 狀態正確；暫停前後 step 均為
+  248；桌面三區及 Canvas 診斷資訊可見。
+- GitHub Actions：未執行。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 0 實際結果
 

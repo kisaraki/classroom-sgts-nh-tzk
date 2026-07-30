@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SGTS-NH Phase 01 Browser Tests</title>
+    <link rel="icon" href="data:,">
+    <style>
+      body {
+        max-width: 54rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #eef7ff;
+        background: #06111f;
+        font: 16px/1.6 system-ui, sans-serif;
+      }
+
+      li[data-status="passed"] {
+        color: #8ff0c2;
+      }
+
+      li[data-status="failed"] {
+        color: #ff9c9c;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>SGTS-NH Phase 01 Browser Tests</h1>
+      <p id="test-summary" aria-live="polite">測試執行中</p>
+      <ol id="test-results"></ol>
+    </main>
+    <script type="module" src="./test-runner.js"></script>
+  </body>
+</html>

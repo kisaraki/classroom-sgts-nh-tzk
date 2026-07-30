@@ -15,7 +15,7 @@ SGTS-NH 是以西北太平洋熱帶氣旋為第一版場景的互動式科學教
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
 | GitHub Pages 預定網址 | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
-| 目前階段 | Phase 0：基礎建置 |
+| 目前階段 | Phase 1：基礎介面與固定時間步進引擎（completed，待批准） |
 
 > 本系統為科學教育與遊戲化模擬工具，使用簡化模型呈現熱帶氣旋概念，不適用於真實天氣預報、防災決策、航海、航空或任何安全關鍵用途。實際颱風資訊請以官方氣象機構發布為準。
 
@@ -48,6 +48,18 @@ npm run test:e2e
 npm run check
 npm run serve
 ```
+
+Phase 1 已提供：
+
+- BOOT、MENU、TUTORIAL、RUNNING、PAUSED、VICTORY、FAILURE、ERROR 狀態。
+- 每步 10 模擬分鐘的累積器固定步進，支援暫停及 1×／4×／12×／24×。
+- 畫格時間截斷、單畫格補算上限及隱藏分頁停止累積。
+- 高 DPI Canvas 診斷視窗（devicePixelRatio 上限 2）。
+- 桌面三區、平板上下排列及窄螢幕提示。
+- Node 單元／整合測試、瀏覽器 harness、實際 Chrome E2E 與 GitHub Actions
+  測試 workflow。
+
+地圖、座標、颱風物理、導引氣流、關卡及沙盒尚未實作。
 
 本機預覽：
 

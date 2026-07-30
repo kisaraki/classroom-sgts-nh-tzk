@@ -35,13 +35,17 @@ export default [
     }
   },
   {
-    files: ["js/**/*.js"],
+    files: ["js/**/*.js", "tests/e2e/**/*.js", "tests/test-runner.js"],
     languageOptions: {
       globals: browserGlobals
     }
   },
   {
-    files: ["scripts/**/*.mjs", "tests/**/*.{js,mjs}"],
+    files: [
+      "playwright.config.js",
+      "scripts/**/*.mjs",
+      "tests/**/*.{js,mjs}"
+    ],
     languageOptions: {
       globals: nodeGlobals
     }

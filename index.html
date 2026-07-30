@@ -8,6 +8,7 @@
       content="風暴創世神：北半球颱風模擬器，西北太平洋篇科學教育模擬專案。"
     >
     <title>風暴創世神｜SGTS-NH</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="./css/reset.css">
     <link rel="stylesheet" href="./css/tokens.css">
     <link rel="stylesheet" href="./css/layout.css">
@@ -19,51 +20,123 @@
     <a class="skip-link" href="#main-content">跳至主要內容</a>
 
     <header class="site-header">
-      <p class="eyebrow">KOSMOS TOOLKIT｜探真拓知酷</p>
-      <h1>風暴創世神</h1>
-      <p class="subtitle">北半球颱風模擬器</p>
-      <p class="english-title">
-        Storm Genesis: Northern Hemisphere Typhoon Simulator
-      </p>
+      <div>
+        <p class="eyebrow">KOSMOS TOOLKIT｜探真拓知酷</p>
+        <h1>風暴創世神</h1>
+        <p class="subtitle">北半球颱風模擬器</p>
+      </div>
+      <div class="header-status" aria-label="模擬器狀態">
+        <p>ENGINE STATE</p>
+        <strong id="engine-state">BOOT</strong>
+        <span id="visibility-status">頁面可見</span>
+      </div>
     </header>
 
-    <main id="main-content" class="site-main">
-      <section class="foundation-card" aria-labelledby="edition-title">
-        <p class="phase-badge">SGTS-NH · Phase 0 Foundation</p>
-        <h2 id="edition-title">第一版：西北太平洋篇</h2>
-        <p>
-          專案骨架與文件已建立。固定時間步進、地圖、颱風物理、關卡及沙盒
-          將依主規格逐 Phase 實作，尚未在本階段提前建立。
+    <main id="main-content" class="site-main" data-testid="simulation-shell">
+      <p class="narrow-screen-hint">
+        螢幕較窄，控制區已改為垂直排列；建議橫向使用以取得更完整的模擬視野。
+      </p>
+
+      <section class="control-panel panel" aria-labelledby="control-title">
+        <p class="phase-badge">SGTS-NH · Phase 01</p>
+        <h2 id="control-title">模擬控制</h2>
+        <p class="panel-copy">
+          啟動固定時間步進引擎，檢查暫停、速度與事件順序。Phase 01
+          不包含地圖及颱風物理。
         </p>
-        <dl class="project-facts">
-          <div>
-            <dt>正式平台</dt>
-            <dd>GitHub Pages 靜態網站</dd>
+
+        <div class="control-stack">
+          <button id="start-button" class="primary-button" type="button">
+            啟動模擬
+          </button>
+          <button id="pause-button" type="button" disabled>暫停</button>
+        </div>
+
+        <fieldset class="speed-picker">
+          <legend>模擬速度</legend>
+          <div class="segmented-control">
+            <button type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" data-speed="4" aria-pressed="false">4×</button>
+            <button type="button" data-speed="12" aria-pressed="false">12×</button>
+            <button type="button" data-speed="24" aria-pressed="false">24×</button>
           </div>
-          <div>
-            <dt>Repository</dt>
-            <dd>kisaraki/classroom-sgts-nh-tzk</dd>
-          </div>
-          <div>
-            <dt>應用程式狀態</dt>
-            <dd id="app-status" aria-live="polite">載入中</dd>
-          </div>
-        </dl>
+        </fieldset>
+
+        <div id="app-error" class="error-message" role="alert" hidden></div>
+
+        <aside class="scope-note" aria-label="本階段範圍">
+          <strong>本階段邊界</strong>
+          <p>僅驗證引擎、狀態機、事件匯流排、Canvas 與響應式介面。</p>
+        </aside>
       </section>
 
-      <aside class="disclaimer" aria-label="用途聲明">
-        <h2>教育與責任聲明</h2>
-        <p>
-          本系統為科學教育與遊戲化模擬工具，使用簡化模型呈現熱帶氣旋概念，
-          不適用於真實天氣預報、防災決策、航海、航空或任何安全關鍵用途。
-          實際颱風資訊請以官方氣象機構發布為準。
-        </p>
+      <section class="viewport-panel panel" aria-labelledby="viewport-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">西北太平洋篇</p>
+            <h2 id="viewport-title">模擬視窗</h2>
+          </div>
+          <p class="live-time" aria-live="off">
+            <span>模擬時間</span>
+            <strong id="sim-time">00d 00h 00m</strong>
+          </p>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas
+            id="simulation-canvas"
+            aria-label="Phase 01 模擬診斷視窗"
+            data-testid="simulation-canvas"
+          ></canvas>
+        </div>
+
+        <div class="time-strip" aria-label="時間步進資訊">
+          <p><span>固定步長</span><strong>10 分鐘</strong></p>
+          <p><span>步進次數</span><strong id="step-count">0</strong></p>
+          <p><span>目前倍速</span><strong id="current-speed">1×</strong></p>
+        </div>
+      </section>
+
+      <aside class="diagnostics-panel panel" aria-labelledby="diagnostics-title">
+        <p class="phase-badge">ENGINE DIAGNOSTICS</p>
+        <h2 id="diagnostics-title">即時診斷</h2>
+        <dl class="diagnostic-list">
+          <div>
+            <dt>FPS</dt>
+            <dd id="fps-readout">0</dd>
+          </div>
+          <div>
+            <dt>Simulation step</dt>
+            <dd>10 min</dd>
+          </div>
+          <div>
+            <dt>Update 次數</dt>
+            <dd id="update-count">0</dd>
+          </div>
+          <div>
+            <dt>DPR 上限</dt>
+            <dd>2×</dd>
+          </div>
+          <div>
+            <dt>正式平台</dt>
+            <dd>GitHub Pages</dd>
+          </div>
+        </dl>
+
+        <div class="disclaimer" aria-label="用途聲明">
+          <h3>教育與責任聲明</h3>
+          <p>
+            本系統為科學教育與遊戲化模擬工具，不適用於真實天氣預報、
+            防災決策、航海、航空或任何安全關鍵用途。
+          </p>
+        </div>
       </aside>
     </main>
 
     <footer class="site-footer">
       <p class="brand-mark">© KOSMOS TOOLKIT｜探真拓知酷</p>
-      <p>SGTS-NH · Educational Simulation · Not for Forecasting</p>
+      <p>SGTS-NH · Storm Genesis · Educational Simulation</p>
+      <p>Not for Forecasting</p>
     </footer>
 
     <script type="module" src="./js/app.js"></script>

@@ -13,11 +13,13 @@
 | 執行方式 | GitHub Pages 靜態檔案 |
 | 正式部署 Phase | Phase 9 |
 
-## Phase 0 狀態
+## Phase 1 狀態
 
-- 公開 GitHub 倉庫可以在取得授權後建立。
+- 公開 GitHub 倉庫已建立，remote 已設定。
 - 不 push。
 - 不建立或修改 Pages 設定。
+- 已建立 `.github/workflows/test.yml` 測試 workflow，但未推送，因此
+  GitHub Actions 未執行。
 - 不建立部署 workflow。
 - 不部署。
 
