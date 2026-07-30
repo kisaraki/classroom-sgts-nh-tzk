@@ -1,0 +1,34 @@
+# macOS and external-volume metadata
+.DS_Store
+._*
+**/._*
+.Spotlight-V100/
+.Trashes/
+
+# Dependencies and package-manager logs
+node_modules/
+npm-debug.log*
+
+# Test and quality output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Local build and temporary output
+dist/
+.cache/
+tmp/
+*.tmp
+*.log
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
