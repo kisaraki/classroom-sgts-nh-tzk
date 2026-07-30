@@ -11,7 +11,7 @@
 | 1 | approved | `phase/01-engine-ui` | `0e3a086` | `a86d9da` | lint、25 unit、2 integration、3 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:06:41+08:00 | 2026-07-30T19:09:14+08:00 | 批准 Phase 1，並同意執行 Phase 2 |  |
 | 2 | approved | `phase/02-map-geography` | `2a426c4` | `26cde99` | lint、44 unit、2 integration、4 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:25:29+08:00 | 2026-07-30T19:46:24+08:00 | 批准 Phase 2，並進入 Phase 3 |  |
 | 3 | approved | `phase/03-intensity` | `4a1bb3c` | `2d16589` | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 | 2026-07-30T20:03:14+08:00 | 批准 Phase 3，並進入 Phase 4 |  |
-| 4 | completed | `phase/04-steering` | pending |  | lint、66 unit、2 integration、8 scenario、6 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:21:30+08:00 |  |  |  |
+| 4 | completed | `phase/04-steering` | `c3c7d51` |  | lint、66 unit、2 integration、8 scenario、6 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:21:30+08:00 |  |  |  |
 | 5 | pending |  |  |  | not_run |  |  |  |  |
 | 6 | pending |  |  |  | not_run |  |  |  |  |
 | 7 | pending |  |  |  | not_run |  |  |  |  |
@@ -120,7 +120,7 @@
 - 完成時間：2026-07-30T20:21:30+08:00。
 - 狀態：`completed`，不等於 `approved`。
 - 分支：`phase/04-steering`。
-- 完成 commit：待本次功能提交後回填。
+- 完成 commit：`c3c7d51`。
 - 本機檢查：ESLint、66 unit、2 integration、8 scenario、
   6 實際 Chrome E2E、Browser harness 6/6 及 Browser smoke 均通過。
 - 模型：`0.4.0-steering`；網格：1°、2,501 cells；移速上限 45 km/h。
