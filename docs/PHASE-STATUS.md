@@ -7,7 +7,7 @@
 
 | Phase | 狀態 | 分支 | 完成 Commit | 批准 Commit | 測試 | completedAt | approvedAt | 批准原文 | 阻塞原因 |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 | completed | `phase/00-foundation` | `HEAD`（批准時固化 SHA） |  | lint、4 unit、1 integration、browser smoke passed；scenario／E2E N/A | 2026-07-30T18:44:39+08:00 |  |  |  |
+| 0 | approved | `phase/00-foundation` | `10eb51c` | `HEAD`（批准紀錄 commit） | lint、4 unit、1 integration、browser smoke passed；scenario／E2E N/A | 2026-07-30T18:44:39+08:00 | 2026-07-30T18:50:36+08:00 | 同意執行 Phase 01 |  |
 | 1 | pending |  |  |  | not_run |  |  |  |  |
 | 2 | pending |  |  |  | not_run |  |  |  |  |
 | 3 | pending |  |  |  | not_run |  |  |  |  |
@@ -31,4 +31,12 @@
 
 ## 批准紀錄
 
-目前沒有 Phase 完成批准。Phase 0 完成後只能標記為 `completed`；必須取得使用者新的明確批准，才能標記 `approved` 並進入 Phase 1。
+### Phase 0
+
+- 批准時間：2026-07-30T18:50:36+08:00。
+- 使用者原文：
+
+> 同意執行 Phase 01
+
+- 解讀：Phase 0 驗收通過，批准執行 Phase 1。
+- 未授權：push、GitHub Pages 設定及部署。
