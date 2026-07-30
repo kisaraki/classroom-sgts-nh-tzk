@@ -7,7 +7,7 @@ export const PROJECT_CONFIG = Object.freeze({
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
   schemaVersion: 1,
-  modelVersion: "0.6.0-level-naha",
+  modelVersion: "0.7.0-taiwan-wayne",
   geography: Object.freeze({
     bounds: Object.freeze({
       maxLat: 40,
@@ -94,10 +94,10 @@ export const PROJECT_CONFIG = Object.freeze({
     baseOceanHeatContent: 0.88,
     baseSeaSurfaceTemperature: 30,
     baseSurfacePressure: 1010,
-    highEastwardTurnMaximum: 2.8,
+    highEastwardTurnMaximum: 6.2,
     highInfluenceLongitudeSpan: 12,
     highInfluenceLatitudeSpan: 8,
-    highPressureAnomalyMaximum: 10,
+    highPressureAnomalyMaximum: 5,
     highPolewardFlowMaximum: 2.5,
     highWestwardFlowMaximum: 5.8,
     humidityBase: 0.68,

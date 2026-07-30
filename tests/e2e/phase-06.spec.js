@@ -220,7 +220,22 @@ test("golden browser replay wins, settles once, and restarts cleanly", async ({
     .locator(
       '[data-control-name="subtropicalHighIntensity"] [data-environment-control]'
     )
-    .fill("0.85");
+    .fill("0.9");
+  await page
+    .locator(
+      '[data-control-name="subtropicalHighWestwardExtent"] [data-environment-control]'
+    )
+    .fill("121");
+  await page
+    .locator(
+      '[data-control-name="southwestMonsoonIntensity"] [data-environment-control]'
+    )
+    .fill("0.8");
+  await page
+    .locator(
+      '[data-control-name="southwestMonsoonMoisture"] [data-environment-control]'
+    )
+    .fill("0.95");
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
 
@@ -229,13 +244,13 @@ test("golden browser replay wins, settles once, and restarts cleanly", async ({
       timeout: 45_000
     })
     .toBe("VICTORY");
-  await expect(page.locator("#step-count")).toHaveText("861");
+  await expect(page.locator("#step-count")).toHaveText("751");
   await expect(page.locator("#result-dialog")).toBeVisible();
   await expect(page.locator("#result-dialog")).toHaveAttribute(
     "data-outcome",
     "victory"
   );
-  await expect(page.locator("[data-result-score]")).toHaveText("5519 / 6250");
+  await expect(page.locator("[data-result-score]")).toHaveText("5539 / 6250");
   await expect(
     page.locator('.objective-list > li[data-status="completed"]')
   ).toHaveCount(4);

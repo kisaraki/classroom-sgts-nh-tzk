@@ -6,12 +6,12 @@
 ## 版本
 
 - `schemaVersion`：資料形狀版本，第一版起始值為整數 `1`。
-- `modelVersion`：模型行為版本；Phase 6 為 `0.6.0-level-naha`。
+- `modelVersion`：模型行為版本；Phase 7 為 `0.7.0-taiwan-wayne`。
 - PRNG 演算法版本：`mulberry32-v1`。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 6 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
-海陸事件、地形分區及 Level 的執行期契約。
+Phase 7 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
+海陸事件、地形分區、三關 Level 與警戒區事件的執行期契約。
 儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
 
 ## 第一版單位字典
@@ -189,7 +189,8 @@ Phase 6 以 `validateLevel` 作為主規格允許的等效 schema 驗證。頂�
 schemaVersion, id, title, historicalInspiration, disclaimer,
 durationHours, seed, spawn, environmentPreset, allowedControls,
 objectives, bonusObjectives, failureConditions, referenceZones,
-scoring, tutorialMessages
+stationGroups, warningZones, oceanCoolingMultiplier,
+steeringMeridionalMultiplier, scoring, tutorialMessages
 ```
 
 - 未知欄位一律拒絕。
@@ -220,6 +221,10 @@ metric、operator 與 aggregation 均為 enum；不得加入函式、任意屬�
   completed／triggered step 及狀態。
 - elapsed minutes、steps、maximum wind、minimum pressure、path length、
   maximum cold wake、各站極值與已抵達 reference zones。
+- 臺灣登陸／出海岸側、登陸次數、中央山脈穿越、事件風雨與登陸前後
+  強度統計。
+- 各警戒區 `OUTSIDE`／`ENTERING`／`INSIDE`／`EXITING` 狀態、連續步數、
+  有效進圈次數、每次峰值及事件期間站群風雨。
 - 具 sequence、stepIndex、simulationMinutes 的合法控制操作。
 - 最多一份不可變 result；包含 outcome、failureId、fingerprint、path、
   observations、statistics 及 score。

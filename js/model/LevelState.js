@@ -1,4 +1,5 @@
 import { clamp } from "../utils/math.js";
+import { haversineDistanceKm } from "../utils/geo.js";
 import {
   ValidationError,
   assertFiniteNumber,
@@ -75,6 +76,7 @@ export class LevelState {
   #objectiveStates;
   #operationSequence = 0;
   #reachedZones = new Set();
+  #warningZoneStates = new Map();
 
   constructor(level) {
     if (!level || !Array.isArray(level.objectives)) {
@@ -90,6 +92,25 @@ export class LevelState {
     );
     this.#failureStates = new Map(
       level.failureConditions.map((rule) => [rule.id, createRuleState(rule)])
+    );
+    this.#warningZoneStates = new Map(
+      level.warningZones.map((zone) => [
+        zone.id,
+        {
+          armed: false,
+          currentEntryPeakWind: 0,
+          currentEntryValid: false,
+          entryCount: 0,
+          entryPeakWinds: [],
+          eventAccumulatedRain: 0,
+          eventActive: false,
+          eventMaximumGust: 0,
+          insideStreak: 0,
+          lastStationRain: {},
+          outsideStreak: 0,
+          state: "OUTSIDE"
+        }
+      ])
     );
     this.controlOperations = [];
     this.result = null;
@@ -173,6 +194,33 @@ export class LevelState {
         .filter(Boolean)
     ]);
     stats.enteredRegionsThisStep = [...enteredRegions];
+    this.#recordSurfaceEvents(landDiagnostic.events, typhoon);
+
+    if (stats.taiwanLandfalls.length === 0) {
+      stats.maximumWindBeforeFirstTaiwanLandfall = Math.max(
+        stats.maximumWindBeforeFirstTaiwanLandfall,
+        typhoon.maxWind
+      );
+      stats.minimumPressureBeforeFirstTaiwanLandfall = Math.min(
+        stats.minimumPressureBeforeFirstTaiwanLandfall,
+        typhoon.centralPressure
+      );
+    }
+
+    if (stats.taiwanSeaReentries.length > 0) {
+      stats.maximumWindAfterFirstTaiwanSeaReentry = Math.max(
+        stats.maximumWindAfterFirstTaiwanSeaReentry,
+        typhoon.maxWind
+      );
+    }
+
+    if (
+      landDiagnostic.intervals.some(
+        (interval) => interval.terrain.zone === "central-mountains"
+      )
+    ) {
+      stats.centralMountainCrossed = true;
+    }
 
     for (const observation of observations) {
       const station = observation.station;
@@ -214,6 +262,8 @@ export class LevelState {
         this.#reachedZones.add(zone.id);
       }
     }
+
+    this.#recordWarningZones({ observations, typhoon });
 
     return this.statisticsSnapshot();
   }
@@ -352,11 +402,32 @@ export class LevelState {
         ...this.statistics.enteredRegionsThisStep
       ]),
       reachedZones: Object.freeze([...this.#reachedZones]),
+      surfaceEvents: Object.freeze(
+        this.statistics.surfaceEvents.map(freezeRecord)
+      ),
+      taiwanLandfalls: Object.freeze(
+        this.statistics.taiwanLandfalls.map(freezeRecord)
+      ),
+      taiwanSeaReentries: Object.freeze(
+        this.statistics.taiwanSeaReentries.map(freezeRecord)
+      ),
       stations: Object.freeze(
         Object.fromEntries(
           Object.entries(this.statistics.stations).map(([id, station]) => [
             id,
             Object.freeze({ ...station })
+          ])
+        )
+      ),
+      warningZones: Object.freeze(
+        Object.fromEntries(
+          [...this.#warningZoneStates].map(([id, state]) => [
+            id,
+            Object.freeze({
+              ...state,
+              entryPeakWinds: Object.freeze([...state.entryPeakWinds]),
+              lastStationRain: Object.freeze({ ...state.lastStationRain })
+            })
           ])
         )
       )
@@ -502,14 +573,138 @@ export class LevelState {
   #createStatistics() {
     return {
       elapsedMinutes: 0,
+      centralMountainCrossed: false,
       enteredRegionsThisStep: [],
       maximumColdWake: 0,
+      maximumWindAfterFirstTaiwanSeaReentry: 0,
+      maximumWindBeforeFirstTaiwanLandfall: this.level.spawn.maxWind,
       maximumWind: this.level.spawn.maxWind,
+      minimumPressureBeforeFirstTaiwanLandfall:
+        this.level.spawn.centralPressure,
       minimumPressure: this.level.spawn.centralPressure,
       pathLengthKm: 0,
       stations: {},
-      steps: 0
+      surfaceEvents: [],
+      steps: 0,
+      taiwanLandfalls: [],
+      taiwanSeaReentries: []
     };
+  }
+
+  #recordSurfaceEvents(events, typhoon) {
+    for (const event of events) {
+      this.statistics.surfaceEvents.push(freezeRecord(event));
+
+      if (event.regionId !== "taiwan-main") {
+        continue;
+      }
+
+      if (event.type === "LANDFALL") {
+        this.statistics.taiwanLandfalls.push(freezeRecord(event));
+
+        if (this.statistics.taiwanLandfalls.length === 1) {
+          this.statistics.maximumWindBeforeFirstTaiwanLandfall = Math.max(
+            this.statistics.maximumWindBeforeFirstTaiwanLandfall,
+            event.maxWind
+          );
+          this.statistics.minimumPressureBeforeFirstTaiwanLandfall = Math.min(
+            this.statistics.minimumPressureBeforeFirstTaiwanLandfall,
+            event.centralPressure
+          );
+        }
+      } else if (event.type === "SEA_REENTRY") {
+        this.statistics.taiwanSeaReentries.push(freezeRecord(event));
+        this.statistics.maximumWindAfterFirstTaiwanSeaReentry = Math.max(
+          this.statistics.maximumWindAfterFirstTaiwanSeaReentry,
+          event.maxWind,
+          typhoon.maxWind
+        );
+      }
+    }
+  }
+
+  #recordWarningZones({ observations, typhoon }) {
+    for (const zone of this.level.warningZones) {
+      const state = this.#warningZoneStates.get(zone.id);
+      const group = this.level.stationGroups.find(
+        (entry) => entry.id === zone.stationGroupId
+      );
+      const groupObservations = observations.filter((observation) =>
+        group.stationIds.includes(observation.station.id)
+      );
+      const distanceKm = haversineDistanceKm(typhoon, zone.center);
+      const isInside = distanceKm <= zone.radiusKm;
+
+      if (isInside) {
+        state.outsideStreak = 0;
+
+        if (state.armed) {
+          state.armed = false;
+          state.currentEntryPeakWind = typhoon.maxWind;
+          state.currentEntryValid = false;
+          state.eventActive = true;
+          state.insideStreak = 1;
+          state.state = "ENTERING";
+        } else if (state.eventActive) {
+          state.insideStreak += 1;
+          state.currentEntryPeakWind = Math.max(
+            state.currentEntryPeakWind,
+            typhoon.maxWind
+          );
+          state.state = state.currentEntryValid ? "INSIDE" : "ENTERING";
+        } else {
+          state.insideStreak = 0;
+          state.state = "ENTERING";
+        }
+
+        if (
+          state.eventActive &&
+          !state.currentEntryValid &&
+          state.insideStreak >= zone.insideSteps
+        ) {
+          state.currentEntryValid = true;
+          state.entryCount += 1;
+          state.entryPeakWinds.push(state.currentEntryPeakWind);
+          state.state = "INSIDE";
+        } else if (state.currentEntryValid) {
+          state.entryPeakWinds[state.entryPeakWinds.length - 1] =
+            state.currentEntryPeakWind;
+        }
+      } else {
+        state.insideStreak = 0;
+        state.outsideStreak += 1;
+
+        if (state.eventActive) {
+          state.state = "EXITING";
+        } else {
+          state.state = "OUTSIDE";
+        }
+
+        if (state.outsideStreak >= zone.outsideSteps) {
+          state.armed = true;
+          state.currentEntryPeakWind = 0;
+          state.currentEntryValid = false;
+          state.eventActive = false;
+          state.state = "OUTSIDE";
+        }
+      }
+
+      for (const observation of groupObservations) {
+        const station = observation.station;
+        const previousRain =
+          state.lastStationRain[station.id] ?? station.accumulatedRain;
+        const rainDelta = Math.max(0, station.accumulatedRain - previousRain);
+        state.lastStationRain[station.id] = station.accumulatedRain;
+
+        if (state.eventActive && isInside) {
+          state.eventAccumulatedRain += rainDelta;
+          state.eventMaximumGust = Math.max(
+            state.eventMaximumGust,
+            station.gust
+          );
+        }
+      }
+    }
   }
 
   #requireObjective(id) {

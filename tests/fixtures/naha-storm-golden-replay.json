@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "modelVersion": "0.6.0-level-naha",
+  "modelVersion": "0.7.0-taiwan-wayne",
   "prngVersion": "mulberry32-v1",
   "levelId": "naha-storm",
   "seed": "naha-storm-201809",
   "initialEnvironment": {
-    "subtropicalHighIntensity": 0.82,
-    "subtropicalHighWestwardExtent": 124,
-    "subtropicalHighRidgeLatitude": 28,
     "southwestMonsoonIntensity": 0.52,
     "southwestMonsoonMoisture": 0.9,
+    "subtropicalHighIntensity": 0.82,
+    "subtropicalHighRidgeLatitude": 28,
+    "subtropicalHighWestwardExtent": 124,
     "verticalWindShear": 5
   },
   "legalControlRanges": {
@@ -31,26 +31,44 @@
       "stepIndex": 0,
       "sequence": 2,
       "control": "subtropicalHighIntensity",
-      "value": 0.85
+      "value": 0.9
+    },
+    {
+      "stepIndex": 0,
+      "sequence": 3,
+      "control": "subtropicalHighWestwardExtent",
+      "value": 121
+    },
+    {
+      "stepIndex": 0,
+      "sequence": 4,
+      "control": "southwestMonsoonIntensity",
+      "value": 0.8
+    },
+    {
+      "stepIndex": 0,
+      "sequence": 5,
+      "control": "southwestMonsoonMoisture",
+      "value": 0.95
     }
   ],
   "expected": {
     "outcome": "victory",
-    "victoryStep": 861,
-    "simulationMinutes": 8610,
-    "resultFingerprint": "9bb637a1",
-    "score": 5519,
+    "victoryStep": 751,
+    "simulationMinutes": 7510,
+    "resultFingerprint": "c75cfad2",
+    "score": 5539,
     "objectiveCompletionSteps": {
-      "naha-rain": 759,
-      "naha-gust": 798,
-      "naha-strength": 813,
-      "naha-proximity": 861
+      "naha-proximity": 751,
+      "naha-gust": 666,
+      "naha-rain": 649,
+      "naha-strength": 709
     },
-    "minimumNahaDistanceKm": 48.9323238690862,
-    "maximumNahaGustMps": 53.86922134698026,
-    "nahaAccumulatedRainMm": 865.3074154513162,
-    "maximumWindMps": 57.998476341697476,
-    "minimumPressureHpa": 940.8781214799297
+    "minimumNahaDistanceKm": 48.37699647421789,
+    "maximumNahaGustMps": 62.4594295991621,
+    "nahaAccumulatedRainMm": 1147.5305475807654,
+    "maximumWindMps": 59.87626535924913,
+    "minimumPressureHpa": 937.1013206487295
   },
   "tolerance": {
     "sameEngineAbsolute": 1e-9,

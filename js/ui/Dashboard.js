@@ -58,6 +58,16 @@ export class Dashboard {
     }
   }
 
+  setLevel(level) {
+    if (!level?.objectives) {
+      throw new TypeError("Dashboard requires a validated Level.");
+    }
+
+    this.#level = level;
+    this.#objectiveRows.clear();
+    this.#build();
+  }
+
   #build() {
     this.#root.replaceChildren();
     const heading = document.createElement("div");
@@ -68,7 +78,9 @@ export class Dashboard {
     const remaining = document.createElement("p");
     const remainingValue = document.createElement("strong");
     eyebrow.className = "eyebrow";
-    eyebrow.textContent = `LEVEL 01 · ${this.#level.id}`;
+    const levelNumber = LEVELS.indexOf(this.#level) + 1;
+    eyebrow.textContent =
+      `LEVEL ${String(levelNumber).padStart(2, "0")} · ${this.#level.id}`;
     title.textContent = this.#level.title;
     context.textContent =
       `${this.#level.historicalInspiration}｜${this.#level.disclaimer}`;
@@ -110,3 +122,4 @@ export class Dashboard {
     this.#root.append(heading, list);
   }
 }
+import { LEVELS } from "../data/levels.js";

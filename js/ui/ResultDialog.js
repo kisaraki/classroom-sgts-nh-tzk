@@ -54,11 +54,21 @@ export class ResultDialog {
       `${result.statistics.pathLengthKm.toFixed(0)} km`;
     this.#root.querySelector("[data-result-score]").textContent =
       `${result.score.total} / ${result.score.maximum}`;
-    const station = result.statistics.stations.naha;
-    this.#root.querySelector("[data-result-station]").textContent = station
-      ? `最大陣風 ${station.maximumGust.toFixed(1)} m/s · ` +
-        `累積雨量 ${station.accumulatedRain.toFixed(1)} mm`
-      : "尚無那霸測站資料";
+    const stations = Object.values(result.statistics.stations);
+    const maximumGust = stations.reduce(
+      (maximum, station) => Math.max(maximum, station.maximumGust),
+      0
+    );
+    const maximumRain = stations.reduce(
+      (maximum, station) => Math.max(maximum, station.accumulatedRain),
+      0
+    );
+    this.#root.querySelector("[data-result-station]").textContent =
+      stations.length > 0
+        ? `全站最大陣風 ${maximumGust.toFixed(1)} m/s · ` +
+          `單站最高累積雨量 ${maximumRain.toFixed(1)} mm`
+        : "尚無測站資料";
+    this.#restartButton.textContent = `重啟「${level.title}」`;
     const scoreList = this.#root.querySelector("[data-result-breakdown]");
     scoreList.replaceChildren();
 

@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 6 completed，待使用者批准。
-- Phase 6 在正式物理與測站觀測後加入通用關卡統計、白名單目標／失敗
-  判定、單次結算及完整重啟；Canvas 與 DOM 只讀同一組模型診斷值。
+- 目前 Phase：Phase 7 completed，待使用者批准。
+- Phase 7 沿用通用關卡統計與 resolver，加入中央山脈／岸側事件、
+  400 km 警戒區狀態機、內陸深度失敗及三關切換隔離。
 
 ## 正式執行邊界
 
@@ -65,7 +65,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 - `ParticleRenderer` 只能取用 `visual` PRNG 子流；物理 fingerprint 排除該子流。
 - `ControlPanel` 只能改 `Environment.targetControls`，不得持有或修改 Typhoon。
 
-## Phase 6 檔案責任
+## Phase 7 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
@@ -100,8 +100,8 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
 | `js/rendering/FieldRenderer.js` | SST 底圖、等壓線、副高、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
-| `js/data/levels.js` | Level 等效 schema 驗證、DSL 白名單與那霸風雨資料 |
-| `js/model/LevelState.js` | 目標／失敗狀態、模型統計、操作序列、計分與不可變結果 |
+| `js/data/levels.js` | Level 等效 schema、DSL 白名單、站群／警戒區及三關資料 |
+| `js/model/LevelState.js` | 目標／失敗、岸側／山脈／警戒事件、計分與不可變結果 |
 | `js/core/ObjectiveEvaluator.js` | 只以白名單 metric 計算目標及單次事件 |
 | `js/core/FailureEvaluator.js` | 邊界、消散、超時及區域順序失敗判定 |
 | `js/ui/Dashboard.js` | 關卡時間與四狀態目標面板 |
@@ -219,14 +219,14 @@ RainfallModel + ObservationModel
 - 測站累積雨量只使用 10 分鐘固定步進；倍速與 FPS 不改變積分。
 - 公式、常數、校準情境及限制詳見 `docs/LAND-RAIN-MODEL.md`。
 
-## Phase 6 關卡資料流
+## Phase 6～7 關卡資料流
 
 ```text
 validated Level + official model snapshots
   ↓
 LevelState.recordStep
   ├─ model-derived statistics
-  ├─ reference-zone history
+  ├─ reference-zone、岸側、山脈與 warning-zone history
   └─ ordered control operations
        ↓
 ObjectiveEvaluator + FailureEvaluator
@@ -244,7 +244,7 @@ one frozen result
 - UI 不自行判斷勝敗、重算測站值或計分。
 - 終端步進會立即暫停時鐘，不繼續執行同畫格剩餘補算。
 - `LevelState.finalize` 與結果 dialog 都是 idempotent。
-- 詳細契約、第一關與黃金重播見 `docs/LEVEL-SYSTEM.md`。
+- 詳細契約、三關與黃金重播見 `docs/LEVEL-SYSTEM.md`。
 
 ## GitHub Pages 路徑
 
@@ -255,7 +255,6 @@ one frozen result
 
 ## 尚未實作
 
-下列均屬 Phase 7 以後，Phase 6 不提供假實作：
+下列均屬 Phase 8 以後，Phase 7 不提供假實作：
 
-- 第二關「護國神山」與第三關「韋恩三進」。
 - 沙盒、玩家自訂初始條件、儲存、匯入及匯出。

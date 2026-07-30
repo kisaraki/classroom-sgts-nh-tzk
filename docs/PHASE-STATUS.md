@@ -13,8 +13,8 @@
 | 3 | approved | `phase/03-intensity` | `4a1bb3c` | `2d16589` | lint、53 unit、2 integration、5 scenario、5 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:01:26+08:00 | 2026-07-30T20:03:14+08:00 | 批准 Phase 3，並進入 Phase 4 |  |
 | 4 | approved | `phase/04-steering` | `c3c7d51` | `3924d30` | lint、66 unit、2 integration、8 scenario、6 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:21:30+08:00 | 2026-07-30T20:24:56+08:00 | 批准 Phase 4，並進入 Phase 5 |  |
 | 5 | approved | `phase/05-land-rain` | `131f891` | `0e1e0af` | lint、76 unit、3 integration、12 scenario、7 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T20:48:33+08:00 | 2026-07-30T20:54:15+08:00 | 批准 Phase 5，並進入 Phase 6 |  |
-| 6 | approved | `phase/06-level-naha` | `5f6efda` | pending | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
-| 7 | pending |  |  |  | not_run |  |  |  |  |
+| 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
+| 7 | in_progress | `phase/07-levels-taiwan-wayne` |  |  | not_run |  |  |  |  |
 | 8 | pending |  |  |  | not_run |  |  |  |  |
 | 9 | pending |  |  |  | not_run |  |  |  |  |
 | 10 | pending |  |  |  | not_run |  |  |  |  |

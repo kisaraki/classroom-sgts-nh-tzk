@@ -1,6 +1,6 @@
 import { PROJECT_CONFIG } from "../config.js";
 import { Typhoon } from "../model/Typhoon.js";
-import { clamp } from "../utils/math.js";
+import { clamp, smoothstep } from "../utils/math.js";
 import { createFingerprint } from "../utils/random.js";
 import {
   destinationPoint,
@@ -73,15 +73,29 @@ export const findCrossedLandRegions = (points, mapData) => {
 };
 
 export class SteeringModel {
+  #meridionalMultiplier;
   #random;
   #seed;
   #stepCount = 0;
 
-  constructor({ random, seed = PROJECT_CONFIG.gameBalance.demoSeed } = {}) {
+  constructor({
+    meridionalMultiplier = 1,
+    random,
+    seed = PROJECT_CONFIG.gameBalance.demoSeed
+  } = {}) {
     if (!random || typeof random.nextRange !== "function") {
       throw new TypeError("SteeringModel requires a seeded steering stream.");
     }
 
+    if (
+      !Number.isFinite(meridionalMultiplier) ||
+      meridionalMultiplier < 0.05 ||
+      meridionalMultiplier > 2
+    ) {
+      throw new RangeError("meridionalMultiplier must be between 0.05 and 2.");
+    }
+
+    this.#meridionalMultiplier = meridionalMultiplier;
     this.#random = random;
     this.#seed = String(seed);
   }
@@ -114,14 +128,22 @@ export class SteeringModel {
         config.perturbationMaximumMps
       )
     });
+    const monsoonSpatialInfluence =
+      0.55 + 0.45 * (1 - smoothstep(120, 152, typhoon.lon));
+    const monsoonV =
+      PROJECT_CONFIG.environmentConfig.monsoonVMaximum *
+      environment.controls.southwestMonsoonIntensity *
+      monsoonSpatialInfluence;
     const components = Object.freeze({
       betaDrift: Object.freeze({
         u: config.betaDriftU,
-        v: config.betaDriftV
+        v: config.betaDriftV * this.#meridionalMultiplier
       }),
       environment: Object.freeze({
         u: cell.steeringU,
-        v: cell.steeringV
+        v:
+          monsoonV +
+          (cell.steeringV - monsoonV) * this.#meridionalMultiplier
       }),
       perturbation
     });

@@ -4,15 +4,17 @@ import test from "node:test";
 import {
   FAILURE_METRICS,
   LEVELS,
+  MOUNTAIN_SHIELD_LEVEL,
   NAHA_STORM_LEVEL,
   OBJECTIVE_METRICS,
+  WAYNE_THREE_ENTRIES_LEVEL,
   validateLevel
 } from "../js/data/levels.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-test("Phase 6 exposes exactly one validated Naha level", () => {
-  assert.equal(LEVELS.length, 1);
+test("Phase 7 exposes three validated historical-inspiration levels", () => {
+  assert.equal(LEVELS.length, 3);
   assert.equal(NAHA_STORM_LEVEL.id, "naha-storm");
   assert.equal(NAHA_STORM_LEVEL.title, "那霸風雨");
   assert.equal(NAHA_STORM_LEVEL.historicalInspiration, "2018 潭美");
@@ -24,6 +26,27 @@ test("Phase 6 exposes exactly one validated Naha level", () => {
   assert.equal(NAHA_STORM_LEVEL.objectives.length, 4);
   assert.equal(NAHA_STORM_LEVEL.failureConditions.length, 4);
   assert.match(NAHA_STORM_LEVEL.disclaimer, /非歷史重建/u);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.spawn.lat, 13.6);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.spawn.lon, 159.3);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.spawn.maxWind, 16);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.spawn.centralPressure, 1004);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.durationHours, 216);
+  assert.equal(MOUNTAIN_SHIELD_LEVEL.historicalInspiration, "2015 蘇迪勒");
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.spawn.lat, 16);
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.spawn.lon, 117);
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.spawn.maxWind, 18);
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.spawn.centralPressure, 1002);
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.durationHours, 360);
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.historicalInspiration, "1986 韋恩");
+  assert.deepEqual(WAYNE_THREE_ENTRIES_LEVEL.warningZones[0].center, {
+    lat: 23.7,
+    lon: 120.95
+  });
+  assert.equal(WAYNE_THREE_ENTRIES_LEVEL.warningZones[0].radiusKm, 400);
+
+  for (const level of LEVELS) {
+    assert.match(level.disclaimer, /非歷史重建/u);
+  }
 });
 
 test("level validation rejects unknown fields, metrics, and executable DSL", () => {

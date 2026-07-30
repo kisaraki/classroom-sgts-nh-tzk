@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "0.7.0-taiwan-wayne",
+  "prngVersion": "mulberry32-v1",
+  "levelId": "wayne-three-entries",
+  "seed": "wayne-three-entries-198608",
+  "initialEnvironment": {
+    "southwestMonsoonIntensity": 0.65,
+    "southwestMonsoonMoisture": 0.92,
+    "subtropicalHighIntensity": 0.38,
+    "subtropicalHighRidgeLatitude": 25,
+    "subtropicalHighWestwardExtent": 119,
+    "verticalWindShear": 6
+  },
+  "operations": [
+    {"stepIndex": 0, "sequence": 1, "control": "subtropicalHighIntensity", "value": 0},
+    {"stepIndex": 0, "sequence": 2, "control": "subtropicalHighWestwardExtent", "value": 112},
+    {"stepIndex": 0, "sequence": 3, "control": "subtropicalHighRidgeLatitude", "value": 30},
+    {"stepIndex": 0, "sequence": 4, "control": "southwestMonsoonIntensity", "value": 1},
+    {"stepIndex": 0, "sequence": 5, "control": "southwestMonsoonMoisture", "value": 0.95},
+    {"stepIndex": 0, "sequence": 6, "control": "verticalWindShear", "value": 0},
+    {"stepIndex": 320, "sequence": 7, "control": "subtropicalHighIntensity", "value": 1},
+    {"stepIndex": 320, "sequence": 8, "control": "subtropicalHighWestwardExtent", "value": 150},
+    {"stepIndex": 320, "sequence": 9, "control": "southwestMonsoonIntensity", "value": 0.1},
+    {"stepIndex": 580, "sequence": 10, "control": "subtropicalHighWestwardExtent", "value": 112},
+    {"stepIndex": 900, "sequence": 11, "control": "subtropicalHighWestwardExtent", "value": 150},
+    {"stepIndex": 1040, "sequence": 12, "control": "subtropicalHighWestwardExtent", "value": 112}
+  ],
+  "expected": {
+    "outcome": "victory",
+    "victoryStep": 1283,
+    "simulationMinutes": 12830,
+    "resultFingerprint": "a0ecd38a",
+    "score": 6250,
+    "taiwanLandfalls": 2,
+    "entryPeakWinds": [
+      57.20830204249204,
+      46.78376220477961,
+      32.403739292431936
+    ],
+    "objectiveCompletionSteps": {
+      "three-valid-entries": 1283,
+      "two-taiwan-landfalls": 909,
+      "entry-strength": 1283,
+      "event-central-rain": 322,
+      "event-central-gust": 380
+    }
+  }
+}

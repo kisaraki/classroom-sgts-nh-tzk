@@ -34,6 +34,20 @@ export const calculateCoolingPotential = (typhoon, cell) => {
 };
 
 export class OceanCoolingModel {
+  #coolingMultiplier;
+
+  constructor({ coolingMultiplier = 1 } = {}) {
+    if (
+      !Number.isFinite(coolingMultiplier) ||
+      coolingMultiplier < 0 ||
+      coolingMultiplier > 2
+    ) {
+      throw new RangeError("coolingMultiplier must be between 0 and 2.");
+    }
+
+    this.#coolingMultiplier = coolingMultiplier;
+  }
+
   step({
     environment,
     stepMinutes = PROJECT_CONFIG.simulation.stepMinutes,
@@ -69,6 +83,7 @@ export class OceanCoolingModel {
           const radialFactor = 1 - (distanceKm / coverageRadiusKm) ** 2;
           const cooling =
             config.coolingRateCelsiusPerHour *
+            this.#coolingMultiplier *
             stepHours *
             calculateCoolingPotential(typhoon, cell) *
             radialFactor;

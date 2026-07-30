@@ -28,6 +28,8 @@ const METRIC_RESOLVERS = Object.freeze({
   "simulation.boundaryReached": (_rule, context) =>
     context.steeringDiagnostic.boundaryReached,
   "simulation.minutes": (_rule, context) => context.simulationMinutes,
+  "storm.inlandDepthInRegion": (rule, context) =>
+    context.inlandDepths?.[rule.subject] ?? 0,
   "storm.maxWind": (_rule, context) => context.typhoon.maxWind
 });
 

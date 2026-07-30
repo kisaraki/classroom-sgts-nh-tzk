@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "0.7.0-taiwan-wayne",
+  "prngVersion": "mulberry32-v1",
+  "levelId": "mountain-shield",
+  "seed": "mountain-shield-201508",
+  "initialEnvironment": {
+    "southwestMonsoonIntensity": 0.58,
+    "southwestMonsoonMoisture": 0.94,
+    "subtropicalHighIntensity": 0.9,
+    "subtropicalHighRidgeLatitude": 27,
+    "subtropicalHighWestwardExtent": 132,
+    "verticalWindShear": 4
+  },
+  "operations": [
+    {"stepIndex": 0, "sequence": 1, "control": "subtropicalHighIntensity", "value": 1},
+    {"stepIndex": 0, "sequence": 2, "control": "subtropicalHighWestwardExtent", "value": 114},
+    {"stepIndex": 0, "sequence": 3, "control": "subtropicalHighRidgeLatitude", "value": 29},
+    {"stepIndex": 0, "sequence": 4, "control": "southwestMonsoonIntensity", "value": 0.3},
+    {"stepIndex": 0, "sequence": 5, "control": "southwestMonsoonMoisture", "value": 0.95},
+    {"stepIndex": 0, "sequence": 6, "control": "verticalWindShear", "value": 0},
+    {"stepIndex": 800, "sequence": 7, "control": "southwestMonsoonIntensity", "value": 0.4},
+    {"stepIndex": 1080, "sequence": 8, "control": "southwestMonsoonIntensity", "value": 0.2}
+  ],
+  "expected": {
+    "outcome": "victory",
+    "victoryStep": 1150,
+    "simulationMinutes": 11500,
+    "resultFingerprint": "cd630b1e",
+    "score": 8750,
+    "taiwanLandfalls": 1,
+    "objectiveCompletionSteps": {
+      "east-landfall": 1055,
+      "west-sea-reentry": 1130,
+      "pre-landfall-wind": 288,
+      "central-mountain-crossing": 1074,
+      "central-gust": 1009,
+      "central-mountain-rain": 1150,
+      "pre-landfall-pressure": 656,
+      "hualien-gust": 1003,
+      "post-exit-reintensification": 1130,
+      "north-central-heavy-rain": 1017
+    }
+  }
+}

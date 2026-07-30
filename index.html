@@ -38,12 +38,21 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 06</p>
-        <h2 id="control-title">第一關控制</h2>
+        <p class="phase-badge">SGTS-NH · Phase 07</p>
+        <h2 id="control-title">關卡控制</h2>
         <p class="panel-copy">
-          以環境目標引導初始擾動前往那霸；控制具有反應延遲，UI 不會
+          以環境目標引導初始擾動完成關卡；控制具有反應延遲，UI 不會
           直接修改路徑、強度或測站數值。
         </p>
+
+        <label class="level-picker" for="level-select">
+          選擇關卡
+          <select id="level-select">
+            <option value="naha-storm">01｜那霸風雨</option>
+            <option value="mountain-shield">02｜護國神山</option>
+            <option value="wayne-three-entries">03｜韋恩三進</option>
+          </select>
+        </label>
 
         <div class="control-stack">
           <button id="start-button" class="primary-button" type="button">
@@ -195,8 +204,8 @@
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
           <p>
-            本階段只建立第一關「那霸風雨」及通用關卡引擎；第二、三關
-            屬 Phase 7，尚未實作。
+            三關共用同一套正式模擬、目標與失敗判定管線；警戒圈僅供
+            科學教育，不代表官方警報或預報。
           </p>
         </aside>
       </section>
@@ -216,14 +225,14 @@
         <section
           id="level-dashboard"
           class="level-dashboard"
-          aria-label="那霸風雨目標"
+          aria-label="目前關卡目標"
           aria-live="polite"
         ></section>
 
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 06 第一關那霸風雨；顯示那霸目標區，點選或觸控以查詢位置"
+            aria-label="Phase 07 關卡地圖；點選或觸控以查詢位置"
             aria-describedby="map-query-help"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -377,7 +386,7 @@
           <div><dt>最大風速</dt><dd data-result-wind>—</dd></div>
           <div><dt>最低氣壓</dt><dd data-result-pressure>—</dd></div>
           <div><dt>路徑</dt><dd data-result-path>—</dd></div>
-          <div><dt>那霸測站</dt><dd data-result-station>—</dd></div>
+          <div><dt>測站摘要</dt><dd data-result-station>—</dd></div>
           <div><dt>總分</dt><dd data-result-score>—</dd></div>
         </dl>
         <h3>分數明細</h3>
@@ -389,7 +398,7 @@
           class="primary-button"
           type="button"
           data-result-restart
-        >重啟第一關</button>
+        >重啟目前關卡</button>
       </div>
     </section>
 

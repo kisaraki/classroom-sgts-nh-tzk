@@ -3,10 +3,10 @@
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
-## Phase 6 狀態
+## Phase 7 狀態
 
-Phase 6 延續 Phase 2～5 地理、強度、導引、地形、海洋與降雨來源，
-加入 JMA 2018 年潭美資料作為第一關的歷史情境參考。
+Phase 7 延續既有來源，加入 JMA 2015 與 1986 最佳路徑資料，分別作為
+「護國神山」與「韋恩三進」的歷史情境參考。
 公式是可解釋、可測試的教育遊戲近似，並非重現任何作業預報模型。
 正式網站仍沒有第三方執行期程式碼。
 
@@ -23,6 +23,8 @@ Phase 6 延續 Phase 2～5 地理、強度、導引、地形、海洋與降雨�
 | JMA GAW station table | 測站位置 | `https://www.data.jma.go.jp/env/ozonehp/en/nmhs/station.html` | 2026-07-30 | 那霸站座標、高度與 WMO station number | Japan Meteorological Agency；專案註明出處 |
 | JMA RSMC Tokyo 2018 Annual Report | 歷史情境參考 | `https://www.jma.go.jp/jma/jma-eng/jma-center/rsmc-hp-pub-eg/AnnualReport/2018/Text/Text2018.pdf` | 2026-07-30 | 確認 2018 潭美及西北太平洋歷史脈絡 | JMA 官方報告；只作靈感與來源註記 |
 | JMA 2018 Trami Himawari summary | 歷史情境參考 | `https://www.jma.go.jp/jma/jma-eng/satellite/introduction/image.html` | 2026-07-30 | 確認潭美於 9 月 29～30 日接近沖繩群島 | JMA 官方資料；不匯入逐時觀測 |
+| JMA RSMC Tokyo 2015 best-track graphics／annual report | 歷史情境參考 | `https://www.jma.go.jp/jma/jma-eng/jma-center/rsmc-hp-pub-eg/bstve_2015_m.html` | 2026-07-30 | 確認 2015 蘇迪勒的歷史脈絡 | JMA 官方資料；只作靈感，不匯入逐時答案 |
+| JMA RSMC Tokyo 1986 best-track graphics | 歷史情境參考 | `https://www.jma.go.jp/jma/jma-eng/jma-center/rsmc-hp-pub-eg/bstve_1986_m.html` | 2026-07-30 | 確認 1986 韋恩的歷史脈絡 | JMA 官方資料；只作靈感，不宣稱三次登陸 |
 | Emanuel (1988), *The Maximum Intensity of Hurricanes* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(1988)045%3C1143:TMIOH%3E2.0.CO;2` | 2026-07-30 | 目標／潛在強度是環境條件上限的概念 | 僅引用科學概念；本專案未實作 E-PI 方程 |
 | DeMaria (1996), *The Effect of Vertical Shear on Tropical Cyclone Intensity Change* | 同行評審論文 | `https://doi.org/10.1175/1520-0469(1996)053%3C2076:TEOVSO%3E2.0.CO;2` | 2026-07-30 | 風切抑制強度並破壞渦旋垂直結構的概念 | 僅引用科學概念 |
 | Sellers et al. (1998), *The Tropical Cyclone of the Global Weather Experiment* | 同行評審綜述／觀測 | `https://www.aoml.noaa.gov/hrd/Landsea/Sellersetal_bulletinAMSJan1998.pdf` | 2026-07-30 | 生成有利條件：離赤道數度、暖海、深暖水、低風切與高溼 | NOAA/AOML 公開 PDF；僅引用概念 |

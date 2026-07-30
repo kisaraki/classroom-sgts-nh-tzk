@@ -196,10 +196,45 @@ export class MapRenderer {
       );
     }
 
+    for (const zone of level.warningZones ?? []) {
+      const center = geoToCanvas(zone.center, viewport);
+      const east = geoToCanvas(
+        destinationPoint(zone.center, zone.radiusKm, 90),
+        viewport
+      );
+      const north = geoToCanvas(
+        destinationPoint(zone.center, zone.radiusKm, 0),
+        viewport
+      );
+      context.beginPath();
+      context.ellipse(
+        center.x,
+        center.y,
+        Math.abs(east.x - center.x),
+        Math.abs(north.y - center.y),
+        0,
+        0,
+        Math.PI * 2
+      );
+      context.fillStyle = "rgba(255, 210, 125, 0.06)";
+      context.fill();
+      context.setLineDash([8, 5]);
+      context.strokeStyle = "#ffd27d";
+      context.lineWidth = 2;
+      context.stroke();
+      context.setLineDash([]);
+      context.fillStyle = "#fff1ce";
+      context.font = "750 9px ui-monospace, monospace";
+      context.fillText(
+        `EDU WARNING ${zone.radiusKm} km`,
+        center.x + 8,
+        center.y - 10
+      );
+    }
+
     const proximity = level.objectives.find(
       (objective) =>
-        objective.metric === "storm.distanceToStation" &&
-        objective.subject === "naha"
+        objective.metric === "storm.distanceToStation"
     );
     const station = stations.find((entry) => entry.id === proximity?.subject);
 

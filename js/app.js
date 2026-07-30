@@ -8,9 +8,14 @@ import { SimulationClock } from "./core/SimulationClock.js";
 import {
   describeGeographicPoint,
   findLandRegion,
+  getRegionInlandDepthKm,
   loadGeography
 } from "./data/geography.js";
-import { NAHA_STORM_LEVEL } from "./data/levels.js";
+import {
+  LEVELS,
+  NAHA_STORM_LEVEL,
+  getLevelById
+} from "./data/levels.js";
 import { getTerrainProfile } from "./data/terrain.js";
 import { createEnvironmentGrid } from "./model/Environment.js";
 import { LevelState } from "./model/LevelState.js";
@@ -81,11 +86,14 @@ const createLevelSession = (
     seed: level.seed
   });
   const steeringModel = new SteeringModel({
+    meridionalMultiplier: level.steeringMeridionalMultiplier,
     random: randomStreams.steering,
     seed: level.seed
   });
   const landInteractionModel = new LandInteractionModel({ eventBus });
-  const oceanCoolingModel = new OceanCoolingModel();
+  const oceanCoolingModel = new OceanCoolingModel({
+    coolingMultiplier: level.oceanCoolingMultiplier
+  });
   const rainfallModel = new RainfallModel();
   const observationModel = new ObservationModel({ rainfallModel });
   const levelState = new LevelState(level);
@@ -173,6 +181,7 @@ const bootstrap = async () => {
     environmentControls: requireElement("#environment-controls"),
     environmentGridStatus: requireElement("#environment-grid-status"),
     levelDashboard: requireElement("#level-dashboard"),
+    levelSelect: requireElement("#level-select"),
     mapDataStatus: requireElement("#map-data-status"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
@@ -224,9 +233,14 @@ const bootstrap = async () => {
     throw new Error("Simulation speed controls are incomplete.");
   }
 
+  if (elements.levelSelect.options.length !== LEVELS.length) {
+    throw new Error("Level selector is incomplete.");
+  }
+
   const canvasRenderer = new CanvasRenderer(elements.canvas);
   const eventBus = new EventBus();
-  let session = createLevelSession(null, { eventBus });
+  let activeLevel = NAHA_STORM_LEVEL;
+  let session = createLevelSession(null, { eventBus, level: activeLevel });
   let controlPanel = null;
   let resultDialog = null;
   let mapData = null;
@@ -234,10 +248,10 @@ const bootstrap = async () => {
   let updateCount = 0;
   const stationElements = new Map();
   const dashboard = new Dashboard(elements.levelDashboard, {
-    level: NAHA_STORM_LEVEL
+    level: activeLevel
   });
   const tutorial = new Tutorial(elements.tutorial, {
-    level: NAHA_STORM_LEVEL
+    level: activeLevel
   });
 
   const ensureStationElements = () => {
@@ -358,6 +372,8 @@ const bootstrap = async () => {
     elements.startButton.disabled =
       !mapReady ||
       ![GameState.MENU, GameState.TUTORIAL].includes(state);
+    elements.levelSelect.disabled =
+      ![GameState.MENU, GameState.TUTORIAL].includes(state);
     elements.pauseButton.disabled = ![
       GameState.RUNNING,
       GameState.PAUSED
@@ -451,6 +467,23 @@ const bootstrap = async () => {
       const levelContext = Object.freeze({
         enteredRegions:
           session.levelState.statistics.enteredRegionsThisStep,
+        inlandDepths: Object.freeze(
+          Object.fromEntries(
+            session.level.failureConditions
+              .filter(
+                (condition) =>
+                  condition.metric === "storm.inlandDepthInRegion"
+              )
+              .map((condition) => [
+                condition.subject,
+                getRegionInlandDepthKm(
+                  session.typhoon,
+                  condition.subject,
+                  mapData
+                )
+              ])
+          )
+        ),
         observations: session.observations,
         simulationMinutes: step.simulationMinutes,
         steeringDiagnostic: session.steeringDiagnostic,
@@ -517,7 +550,7 @@ const bootstrap = async () => {
   };
 
   controlPanel = new ControlPanel(elements.environmentControls, {
-    allowedControls: NAHA_STORM_LEVEL.allowedControls,
+    allowedControls: activeLevel.allowedControls,
     environment: session.environment,
     onControlChange: ({ control, value }) => {
       session.levelState.recordControlOperation({
@@ -556,6 +589,7 @@ const bootstrap = async () => {
 
   const applySessionToView = () => {
     controlPanel.setEnvironment(session.environment);
+    controlPanel.setAllowedControls(session.level.allowedControls);
     elements.environmentGridStatus.textContent =
       `${session.environment.cells.length} cells · ` +
       `${session.environment.gridResolution}°`;
@@ -564,13 +598,25 @@ const bootstrap = async () => {
     canvasRenderer.setEnvironment(session.environment);
     canvasRenderer.setObservations(session.observations);
     canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
+    elements.startButton.textContent = `開始「${session.level.title}」`;
+    elements.levelDashboard.setAttribute(
+      "aria-label",
+      `${session.level.title}目標`
+    );
+    elements.canvas.setAttribute(
+      "aria-label",
+      `Phase 07「${session.level.title}」關卡地圖；點選或觸控以查詢位置`
+    );
   };
 
   const resetLevel = () => {
     elements.error.hidden = true;
     updateCount = 0;
     eventBus.reset();
-    session = createLevelSession(mapData, { eventBus });
+    session = createLevelSession(mapData, {
+      eventBus,
+      level: activeLevel
+    });
     resultDialog?.reset();
     tutorial.reset();
     applySessionToView();
@@ -593,6 +639,7 @@ const bootstrap = async () => {
       eventBus.reset();
       session = createLevelSession(mapData, {
         eventBus,
+        level: activeLevel,
         targetControls
       });
 
@@ -629,6 +676,34 @@ const bootstrap = async () => {
   elements.resetButton.addEventListener("click", () => {
     try {
       resetLevel();
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+  elements.levelSelect.addEventListener("change", () => {
+    try {
+      const level = getLevelById(elements.levelSelect.value);
+
+      if (!level) {
+        throw new Error(`未知關卡：${elements.levelSelect.value}`);
+      }
+
+      activeLevel = level;
+      eventBus.reset();
+      session = createLevelSession(mapData, {
+        eventBus,
+        level: activeLevel
+      });
+      dashboard.setLevel(activeLevel);
+      tutorial.setLevel(activeLevel);
+      resultDialog.reset();
+      updateCount = 0;
+      applySessionToView();
+      engine.resetSimulation({
+        emitLevelRestarted: false,
+        levelId: activeLevel.id
+      });
     } catch (error) {
       handleError(error);
     }
@@ -700,13 +775,10 @@ const bootstrap = async () => {
     canvasRenderer.setGeography(mapData);
     session = createLevelSession(mapData, {
       eventBus,
+      level: activeLevel,
       targetControls: session.level.environmentPreset
     });
-    controlPanel.setEnvironment(session.environment);
-    canvasRenderer.setEnvironment(session.environment);
-    canvasRenderer.setObservations(session.observations);
-    canvasRenderer.setTyphoon(session.typhoon);
-    canvasRenderer.setSteeringDiagnostic(session.steeringDiagnostic);
+    applySessionToView();
     mapReady = true;
     elements.mapDataStatus.textContent =
       `${mapData.features.length} regions · v${mapData.metadata.formatVersion}`;

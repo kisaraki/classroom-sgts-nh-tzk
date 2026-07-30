@@ -1,5 +1,6 @@
 import { PROJECT_CONFIG } from "../config.js";
 import {
+  distanceToPolygonBoundaryKm,
   findNearestStation,
   isPointInBounds,
   pointInPolygon
@@ -294,6 +295,30 @@ export const findLandRegion = (point, mapData) => {
   }
 
   return null;
+};
+
+export const getRegionInlandDepthKm = (point, regionId, mapData) => {
+  const region = mapData.features.find(
+    (feature) => feature.properties.regionId === regionId
+  );
+
+  if (!region) {
+    throw new TypeError(`Unknown map region: ${regionId}.`);
+  }
+
+  const [outerRing, ...holes] = region.geometry.coordinates;
+
+  if (
+    !pointInPolygon(point, outerRing) ||
+    holes.some((hole) => pointInPolygon(point, hole))
+  ) {
+    return 0;
+  }
+
+  return Math.min(
+    distanceToPolygonBoundaryKm(point, outerRing),
+    ...holes.map((hole) => distanceToPolygonBoundaryKm(point, hole))
+  );
 };
 
 export const describeGeographicPoint = (

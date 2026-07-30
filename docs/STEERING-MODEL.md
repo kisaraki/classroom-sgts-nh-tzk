@@ -7,7 +7,7 @@
 
 本模型用可解釋的合成場示範副熱帶高壓、西南季風、大尺度導引及 β 漂移
 如何影響颱風路徑。它不是作業預報、再分析資料或歷史路徑重建。行為版本為
-`0.4.0-steering`，所有常數集中於 `js/config.js`。
+`0.7.0-taiwan-wayne`，所有共用常數集中於 `js/config.js`。
 
 ## 環境網格
 
@@ -68,6 +68,10 @@ targetVector =
   + betaDrift
   + seededSteeringPerturbation
 ```
+
+Phase 7 的 `steeringMeridionalMultiplier` 只縮放非季風 V 分量與 β 的 V
+分量；季風 V 完整保留。預設值為 1，只有關卡資料明示時才改變，用於
+在同一通用模型中校準長時段反覆進出情境，不是歷史路徑硬編碼。
 
 U 正值向東、V 正值向北，單位 m/s。Phase 4 的 β drift 為
 `U = -0.45 m/s`、`V = +0.65 m/s`，只提供弱西北偏移，不得掩蓋主要場。

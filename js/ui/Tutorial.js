@@ -39,4 +39,13 @@ export class Tutorial {
     this.#activeMessageId = null;
     this.render(0);
   }
+
+  setLevel(level) {
+    if (!level?.tutorialMessages) {
+      throw new TypeError("Tutorial requires a validated Level.");
+    }
+
+    this.#level = level;
+    this.reset();
+  }
 }

@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～6 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～7 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -76,6 +76,15 @@ Phase 6：
 - `test:e2e` 驗證目標面板、教學、目標區、861 步勝利、結果分數、停止補算、
   單次結算、完整重啟、Pages 子路徑與 Phase 2～5 回歸。
 
+Phase 7：
+
+- `test:unit` 驗證東／西岸事件、中央山脈穿越、站群、內陸深度、
+  警戒圈四狀態、邊界去抖動、第三次進圈與關卡切換隔離。
+- `test:scenario` 驗證護國神山與韋恩三進各自的版本化黃金重播，
+  並持續驗證那霸風雨基準。
+- `test:e2e` 驗證三關選擇器、全新 session、動態關卡 UI、警戒圈呈現及
+  更新後的那霸黃金勝利。
+
 ## Phase 0 需求追蹤
 
 | Requirement ID | 需求 | Phase | 測試／證據 | 狀態 |
@@ -106,13 +115,48 @@ Phase 6：
 | DEPLOY-PAGES-001 | 相對路徑及 Pages 子路徑 | foundation／integration／E2E | passed |
 | CI-TEST-001 | 最小權限 test workflow 定義 | `workflow.test.js` | passed locally |
 
+## Phase 7 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| LVL-MTN-001 | 生成值、東岸登陸、西岸出海、48 m/s、山脈、風雨目標 | data／unit／golden scenario | passed |
+| LVL-MTN-002 | 西側登陸與未穿越中央山脈不得誤完成 | `phase-07-levels.test.js` | passed |
+| LVL-WAYNE-001 | 400 km 警戒區四狀態與 36／18／36 步去抖動 | unit／golden scenario | passed |
+| LVL-WAYNE-002 | 三次進圈、至少兩次登陸且每次至少 28 m/s | unit／scenario | passed |
+| LVL-WAYNE-003 | 中部事件雨量 400 mm 與任一次陣風 35 m/s | level data／scenario | passed |
+| LVL-FAIL-007 | 18 小時消散、中國內陸 300 km、邊界、超時 | data／evaluator tests | passed |
+| LVL-ISOLATE-007 | 三關切換建立全新 session，無狀態污染 | unit／Chrome E2E | passed |
+| LVL-GOLDEN-007 | 三關各有版本化、決定性黃金 fixture | scenario／Chrome E2E | passed |
+| LVL-HISTORY-007 | 三關標示歷史靈感且非歷史重建 | data／unit／browser | passed |
+| DEPLOY-PAGES-007 | 純靜態相對路徑及 Pages 子路徑 | integration／Chrome／browser | passed |
+
+## Phase 7 實際結果
+
+- 完成日期：2026-07-30；精確完成時間記錄於 `PHASE-STATUS.md`。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- ESLint：通過，0 errors、0 warnings。
+- TypeScript：不適用；本專案目前為原生 ES Modules。
+- 單元測試：92 passed、0 failed。
+- 整合測試：5 passed、0 failed。
+- 情境測試：16 passed、0 failed。
+- 實際 Chrome E2E：10 passed、0 failed；包含三關切換、警戒圈呈現、
+  Pages 子路徑與那霸黃金勝利／完整重啟。
+- 黃金重播：那霸 step 751／`c75cfad2`／5,539；護國神山
+  step 1,150／`cd630b1e`／8,750；韋恩三進
+  step 1,283／`a0ecd38a`／6,250。
+- Codex in-app Browser：Pages 子路徑可載入；三關可切換且顯示各自標題、
+  時限、目標、免責聲明與初始值；韋恩 400 km 教育警戒圈可見。
+- GitHub Actions：未執行；workflow 未 push。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證；本階段只有本機 Pages 子路徑驗證。
+
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 6 狀態 | 說明 |
+| 環境 | Phase 7 狀態 | 說明 |
 |---|---|---|
 | Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
-| Codex in-app Browser | passed | Pages 子路徑、1280×720、無水平 overflow；目標面板、教學、50／150 km 目標區、聲明及初始模型值可見 |
-| 實際 Chrome | passed | 150.0.7871.187；9 個 Playwright E2E、Console error 0 |
+| Codex in-app Browser | passed | Pages 子路徑；三關切換、韋恩警戒圈、目標與聲明可見 |
+| 實際 Chrome | passed | 150.0.7871.187；10 個 Playwright E2E、0 failed |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |

@@ -5,6 +5,7 @@ import {
 import { FailureEvaluator } from "../../js/core/FailureEvaluator.js";
 import { ObjectiveEvaluator } from "../../js/core/ObjectiveEvaluator.js";
 import { getTerrainProfile } from "../../js/data/terrain.js";
+import { getRegionInlandDepthKm } from "../../js/data/geography.js";
 import { createEnvironmentGrid } from "../../js/model/Environment.js";
 import { LevelState } from "../../js/model/LevelState.js";
 import { Typhoon } from "../../js/model/Typhoon.js";
@@ -63,9 +64,12 @@ export const createHeadlessLevelSession = (level, mapData) => {
     levelState,
     objectiveEvaluator: new ObjectiveEvaluator({ eventBus }),
     observationModel: new ObservationModel(),
-    oceanCoolingModel: new OceanCoolingModel(),
+    oceanCoolingModel: new OceanCoolingModel({
+      coolingMultiplier: level.oceanCoolingMultiplier
+    }),
     randomStreams,
     steeringModel: new SteeringModel({
+      meridionalMultiplier: level.steeringMeridionalMultiplier,
       random: randomStreams.steering,
       seed: level.seed
     }),
@@ -77,6 +81,7 @@ export const runLevelReplay = ({
   level,
   mapData,
   maximumSteps = level.durationHours * 6 + 1,
+  onStep = null,
   operations = []
 }) => {
   const session = createHeadlessLevelSession(level, mapData);
@@ -163,6 +168,23 @@ export const runLevelReplay = ({
     });
     const context = Object.freeze({
       enteredRegions: session.levelState.statistics.enteredRegionsThisStep,
+      inlandDepths: Object.freeze(
+        Object.fromEntries(
+          level.failureConditions
+            .filter(
+              (condition) =>
+                condition.metric === "storm.inlandDepthInRegion"
+            )
+            .map((condition) => [
+              condition.subject,
+              getRegionInlandDepthKm(
+                session.typhoon,
+                condition.subject,
+                mapData
+              )
+            ])
+        )
+      ),
       observations,
       simulationMinutes,
       steeringDiagnostic,
@@ -199,6 +221,10 @@ export const runLevelReplay = ({
       steeringDiagnostic,
       stepIndex
     };
+    onStep?.(Object.freeze({
+      latest: Object.freeze(latest),
+      session
+    }));
 
     if (failures.anyTriggered || objectives.allRequiredCompleted) {
       const outcome = failures.anyTriggered ? "failure" : "victory";

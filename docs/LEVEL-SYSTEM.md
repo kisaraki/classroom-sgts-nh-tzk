@@ -1,11 +1,12 @@
 # SGTS-NH 關卡系統
-## Phase 6 資料契約、判定、計分與黃金重播
+## Phase 7 三關共用契約、事件判定與黃金重播
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
 ## 定位
 
-Phase 6 提供第一個可完整遊玩的資料驅動關卡「那霸風雨」。關卡資料、
+Phase 7 提供三個可完整遊玩的資料驅動關卡：「那霸風雨」、「護國神山」
+與「韋恩三進」。關卡資料、
 目標、失敗條件與計分均與物理模型分離；正式執行仍是 GitHub Pages 上的
 純靜態 ES Modules，不載入遠端程式碼。
 
@@ -14,17 +15,13 @@ Phase 6 提供第一個可完整遊玩的資料驅動關卡「那霸風雨」。
 
 ## 關卡資料
 
-`js/data/levels.js` 目前只匯出一關：
+`js/data/levels.js` 匯出三關：
 
-| 欄位 | 那霸風雨 |
-|---|---|
-| `id` | `naha-storm` |
-| 生成點 | 14°N、145°E |
-| 初始最大風速 | 15 m/s |
-| 初始中心氣壓 | 1005 hPa |
-| 時限 | 168 小時 |
-| seed | `naha-storm-201809` |
-| 模型版本 | `0.6.0-level-naha` |
+| 關卡 | `id` | 生成點 | 初始風速／氣壓 | 時限 |
+|---|---|---|---|---:|
+| 那霸風雨 | `naha-storm` | 14°N、145°E | 15 m/s／1005 hPa | 168 h |
+| 護國神山 | `mountain-shield` | 13.6°N、159.3°E | 16 m/s／1004 hPa | 216 h |
+| 韋恩三進 | `wayne-three-entries` | 16°N、117°E | 18 m/s／1002 hPa | 360 h |
 
 通用 `Level` 必須具有：
 
@@ -32,7 +29,10 @@ Phase 6 提供第一個可完整遊玩的資料驅動關卡「那霸風雨」。
   `historicalInspiration`、`disclaimer`、`durationHours`、`seed`。
 - 初始條件：`spawn`、`environmentPreset`、`allowedControls`。
 - 規則：`objectives`、`bonusObjectives`、`failureConditions`、
-  `referenceZones`。
+  `referenceZones`、`stationGroups`、`warningZones`。
+- 關卡校準：`oceanCoolingMultiplier` 與
+  `steeringMeridionalMultiplier`；兩者是明示的教育遊戲參數，不是
+  歷史觀測值。
 - 呈現：`scoring`、`tutorialMessages`。
 
 `validateLevel` 採完全欄位白名單、有限數值、字串／陣列大小限制、
@@ -63,6 +63,20 @@ current  minimum  maximum  any
 - `station.gust`
 - `station.accumulatedRain`
 - `storm.maxWindWithinStationRadius`
+- `event.centralMountainCrossed`
+- `event.landfallCoastOccurred`
+- `event.landfallCount`
+- `event.seaReentryCoastOccurred`
+- `station.groupAccumulatedRain`
+- `station.groupMaximumGust`
+- `station.groupRainThresholdCount`
+- `storm.maximumWindAfterFirstSeaReentry`
+- `storm.maximumWindBeforeFirstLandfall`
+- `storm.minimumPressureBeforeFirstLandfall`
+- `warningZone.entryCount`
+- `warningZone.minimumEntryPeakWind`
+- `warningZone.stationGroupAccumulatedRain`
+- `warningZone.stationGroupMaximumGust`
 
 失敗 metric 白名單：
 
@@ -70,6 +84,7 @@ current  minimum  maximum  any
 - `storm.maxWind`
 - `simulation.minutes`
 - `event.regionEnteredBeforeZone`
+- `storm.inlandDepthInRegion`
 
 `ObjectiveEvaluator` 與 `FailureEvaluator` 以固定 resolver table 取值，
 不得使用 `eval`、`Function`、動態 import 或把字串轉為任意屬性路徑。
@@ -96,6 +111,20 @@ current  minimum  maximum  any
 那霸 150 km，均視為已抵達。失敗優先於同一步的勝利，以避免終端狀態
 含糊。
 
+## 第二、三關事件規則
+
+「護國神山」要求東岸登陸、西岸出海、登陸前 48 m/s、中部 35 m/s
+陣風、中央山區 600 mm 雨量及實際穿越中央山脈；附加目標涵蓋
+940 hPa、花蓮 45 m/s、出海後 25 m/s 與北中部豪雨。
+
+「韋恩三進」的 400 km 教育警戒圈固定以 23.70°N、120.95°E 為中心。
+狀態依序為 `OUTSIDE → ENTERING → INSIDE → EXITING`：圈外連續 36 步、
+圈內連續 18 步才計一次有效進圈，離圈連續 36 步後才可計下一次。
+勝利需三次有效進圈、至少兩次臺灣登陸、每次進圈峰值至少 28 m/s，
+並達中部事件雨量 400 mm 與陣風 35 m/s。邊界抖動或短暫離圈均不重複
+計數。中國大陸內陸深度以中心至 polygon 邊界的最近測地距離判定，
+超過 300 km 才觸發失敗。
+
 ## 固定更新與結算
 
 每個 10 分鐘步進順序固定為：
@@ -118,7 +147,7 @@ Environment
 最大冷水尾流、控制操作與各測站極值。結果一旦建立即凍結；重複
 `finalize` 會回傳同一物件。
 
-結算顯示路徑、最大風速、最低氣壓、那霸模型陣風／累積雨量、分數明細
+結算顯示路徑、最大風速、最低氣壓、關卡代表站模型陣風／累積雨量、分數明細
 及重啟。重啟會建立全新 session，清除時鐘、目標、失敗、結果、事件
 dedupe、控制操作、路徑、網格尾流與測站累積量。
 
@@ -140,30 +169,22 @@ dedupe、控制操作、路徑、網格尾流與測站累積量。
 
 ## 黃金重播
 
-`tests/fixtures/naha-storm-golden-replay.json` 記錄 schema、模型與 PRNG
-版本、seed、初始環境、合法控制範圍、依序操作、期望事件、終端結果及
-浮點容差。固定操作為開始前把風切設為 4 m/s、副高強度設為 85%。
+三份 fixture 都記錄 schema、模型與 PRNG 版本、seed、合法控制操作、
+目標完成步序、終端結果及浮點容差。Phase 7 正式基準：
 
-目前正式基準：
-
-| 項目 | 值 |
-|---|---:|
-| 勝利步數 | 861 |
-| 模擬時間 | 8,610 分鐘 |
-| fingerprint | `9bb637a1` |
-| 分數 | 5,519 |
-| 那霸最近距離 | 48.9323238690862 km |
-| 那霸最大模型陣風 | 53.86922134698026 m/s |
-| 那霸模型累積雨量 | 865.3074154513162 mm |
+| 關卡 | 勝利步數 | 模擬分鐘 | fingerprint | 分數 |
+|---|---:|---:|---|---:|
+| 那霸風雨 | 751 | 7,510 | `c75cfad2` | 5,539 |
+| 護國神山 | 1,150 | 11,500 | `cd630b1e` | 8,750 |
+| 韋恩三進 | 1,283 | 12,830 | `a0ecd38a` | 6,250 |
 
 同一 JavaScript 引擎使用絕對容差 `1e-9`；跨瀏覽器浮點數可用
 `1e-6`，但事件順序、勝敗、完成步數與 fingerprint 必須完全一致。
 
 ## 已知限制
 
-- 第一版只有一個關卡；Phase 7 的關卡尚未建立。
 - 歷史名稱只提供情境靈感，初始值及計分是教育遊戲設定。
-- 目標使用模型測站值，不等同實際 2018 年逐時觀測。
+- 目標使用模型測站值，不等同實際歷史逐時觀測。
 - 目前不提供關卡 JSON 匯入；未受信任資料即使未進入正式 UI，也必須先
   通過相同驗證器。
-- 沙盒、儲存、匯出與跨版本遷移不屬 Phase 6。
+- 沙盒、儲存、匯出與跨版本遷移不屬 Phase 7。

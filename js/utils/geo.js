@@ -261,6 +261,47 @@ export const pointInPolygon = (point, ring) => {
   return inside;
 };
 
+export const distanceToPolygonBoundaryKm = (point, ring) => {
+  assertCoordinate(point);
+
+  if (!Array.isArray(ring) || ring.length < 4) {
+    throw new TypeError("Polygon ring must contain at least four coordinates.");
+  }
+
+  const latitudeScale = (Math.PI * EARTH_RADIUS_KM) / 180;
+  const longitudeScale =
+    latitudeScale * Math.cos(toRadians(point.lat));
+  let minimumDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = 1; index < ring.length; index += 1) {
+    const [startLon, startLat] = ring[index - 1];
+    const [endLon, endLat] = ring[index];
+    const startX = (startLon - point.lon) * longitudeScale;
+    const startY = (startLat - point.lat) * latitudeScale;
+    const endX = (endLon - point.lon) * longitudeScale;
+    const endY = (endLat - point.lat) * latitudeScale;
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    const lengthSquared = deltaX ** 2 + deltaY ** 2;
+    const fraction =
+      lengthSquared === 0
+        ? 0
+        : clamp(
+            -(startX * deltaX + startY * deltaY) / lengthSquared,
+            0,
+            1
+          );
+    const closestX = startX + fraction * deltaX;
+    const closestY = startY + fraction * deltaY;
+    minimumDistance = Math.min(
+      minimumDistance,
+      Math.hypot(closestX, closestY)
+    );
+  }
+
+  return minimumDistance;
+};
+
 const orientation = (first, second, third) => {
   const value =
     (second.lat - first.lat) * (third.lon - second.lon) -
