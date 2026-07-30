@@ -1,6 +1,7 @@
 import { SimulationClock } from "../js/core/SimulationClock.js";
 import { GameState, StateMachine } from "../js/core/StateMachine.js";
 import { computeCanvasDimensions } from "../js/ui/CanvasViewport.js";
+import { haversineDistanceKm } from "../js/utils/geo.js";
 
 const results = document.querySelector("#test-results");
 const summary = document.querySelector("#test-summary");
@@ -48,6 +49,14 @@ test("高 DPI Canvas 上限為 2", () => {
   });
   equal(dimensions.scale, 2, "DPR scale");
   equal(dimensions.pixelWidth, 600, "pixel width");
+});
+
+test("赤道一度經差約為 111.2 km", () => {
+  const distance = haversineDistanceKm(
+    { lat: 0, lon: 100 },
+    { lat: 0, lon: 101 }
+  );
+  equal(Math.abs(distance - 111.195) < 0.01, true, "Haversine distance");
 });
 
 let passed = 0;

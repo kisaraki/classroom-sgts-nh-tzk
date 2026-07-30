@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "type": "FeatureCollection",
+  "bounds": {
+    "minLon": 100,
+    "maxLon": 160,
+    "minLat": 0,
+    "maxLat": 40
+  },
+  "metadata": {
+    "formatVersion": "sgts-map-1",
+    "source": {
+      "name": "Natural Earth 1:50m physical coastline",
+      "publisher": "Natural Earth",
+      "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/"
+    },
+    "license": {
+      "name": "Public domain",
+      "url": "https://www.naturalearthdata.com/about/terms-of-use/"
+    },
+    "simplification": "Manually generalized and redrawn into low-vertex educational polygons; clipped to 100E–160E and 0N–40N. Not for surveying or navigation.",
+    "generatedAt": "2026-07-30",
+    "coordinateOrder": "[lon, lat]",
+    "ringOrientation": "clockwise exterior rings",
+    "boundaryRule": "polygon boundary and vertices are land"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "china-southeast",
+        "name": "中國東南沿岸"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[100,40],[124,40],[123,35],[122,31],[121.2,28],[120.4,26],[119.3,24.3],[117.2,23.1],[114.8,22.5],[111.3,21.4],[108.5,21.7],[106.5,24],[104,27],[101.5,31],[100,34],[100,40]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "vietnam-north",
+        "name": "越南北部"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[102,23.5],[106.5,24],[108.5,21.7],[107.8,20.2],[106.5,17.5],[104.2,18.2],[102.5,20.5],[102,23.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "hainan",
+        "name": "海南"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[108.6,20.2],[110.4,20.3],[111.1,19.2],[110.3,18.1],[108.9,18.2],[108.3,19.2],[108.6,20.2]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "taiwan-main",
+        "name": "臺灣",
+        "coastSegments": [
+          {
+            "coastSide": "north",
+            "coordinates": [[120.5,24.8],[121.55,25.3],[121.9,24.8]]
+          },
+          {
+            "coastSide": "east",
+            "coordinates": [[121.9,24.8],[121.75,23.8],[121.25,22],[120.75,21.9]]
+          },
+          {
+            "coastSide": "south",
+            "coordinates": [[120.75,21.9],[120.2,22.6]]
+          },
+          {
+            "coastSide": "west",
+            "coordinates": [[120.2,22.6],[120,23.7],[120.5,24.8]]
+          }
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[121.55,25.3],[121.9,24.8],[121.75,23.8],[121.25,22],[120.75,21.9],[120.2,22.6],[120,23.7],[120.5,24.8],[121.55,25.3]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "philippines-luzon",
+        "name": "呂宋島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[119.7,18.7],[121.1,18.8],[122.4,17.2],[122.1,14.2],[120.7,13.6],[119.8,15.5],[119.7,18.7]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "philippines-mindoro",
+        "name": "民都洛島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[120.2,13.5],[121.5,13.6],[121.3,12.2],[120.4,12.1],[120.2,13.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "philippines-palawan",
+        "name": "巴拉望島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[117,11.8],[118.1,12.3],[119.5,10.1],[118.4,8.2],[117.1,7.2],[117.3,9.5],[117,11.8]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "philippines-visayas",
+        "name": "維薩亞群島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[121.8,12.5],[124.5,12.6],[125.3,10.2],[123.4,9.1],[121.5,10.1],[121.8,12.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "philippines-mindanao",
+        "name": "民答那峨島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[123.2,9.5],[125.8,9.8],[126.6,7.4],[125.1,5.5],[123,6.2],[122,7.8],[123.2,9.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "ryukyu-ishigaki",
+        "name": "八重山群島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[123.6,24.6],[124.5,24.7],[124.6,24.2],[123.7,24.1],[123.6,24.6]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "ryukyu-okinawa",
+        "name": "沖繩本島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[127.5,26.9],[128.3,26.8],[128.1,25.9],[127.4,26.1],[127.5,26.9]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "ryukyu-amami",
+        "name": "奄美群島"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[129.2,28.5],[130.1,28.4],[130.1,27.7],[129.3,27.8],[129.2,28.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "japan-kyushu",
+        "name": "九州"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[129.4,33.8],[131.8,33.7],[132.1,31.5],[130.6,30.8],[129.2,31.8],[129.4,33.8]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "japan-shikoku",
+        "name": "四國"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[132.1,34.5],[134.7,34.4],[134.5,33.3],[132.5,33.2],[132.1,34.5]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "japan-honshu",
+        "name": "本州"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[130.8,35],[133.2,34.4],[135.5,35.8],[138,37.5],[139.4,40],[141.7,40],[141.2,38],[139.8,35.2],[137.1,36.2],[135.2,35.1],[133,35.6],[130.8,35]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "regionId": "japan-hokkaido",
+        "name": "北海道"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [[139.5,40],[142.2,40],[141.2,39.7],[139.5,40]]
+        ]
+      }
+    }
+  ]
+}

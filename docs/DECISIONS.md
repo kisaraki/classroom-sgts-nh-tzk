@@ -70,3 +70,32 @@
   `npm ci`、Playwright Chromium 及 `npm run check`。
 - 遠端狀態：workflow 只完成本機定義與測試；因未獲 push 授權，
   GitHub Actions 為未執行，Pages 仍未設定及未部署。
+
+## DEC-0009｜Natural Earth 衍生教育地圖
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：以 Natural Earth 1:50m physical coastline 為視覺參考，人工重繪成
+  低頂點 Polygon，來源、Public Domain 授權、方法、日期及限制直接寫入 JSON。
+- 驗證：Phase 2 採等效的明確 `validateMapData` 契約，固定必要欄位、
+  bounds、ring、版本及 URL，拒絕未知欄位與不支援版本；負面測試隨資料提交。
+- 理由：地圖資料可與渲染程式分離、可自動驗證，也不引入遠端執行依賴。
+- 限制：只供教育模擬與簡化海陸判定，不具測繪、行政邊界或導航精度。
+
+## DEC-0010｜座標顯示與測地計算分離
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：Canvas 採 bounds 內線性 equirectangular 轉換；實際距離、
+  方位角與目的地計算採球面公式。
+- 邊界：polygon exterior ring 順時針，邊及頂點視為陸地；所有穩定識別
+  使用 `regionId`，經度只使用 `lon`。
+- 互動：pointer 以 CSS rect 轉換，DPR 只影響 backing store，避免 resize
+  或高 DPI 造成點選偏移。
+
+## DEC-0011｜Phase 2 地理與測站範圍
+
+- 日期：2026-07-30。
+- 狀態：accepted。
+- 決策：Phase 2 只保存六站位置、來源與靜態教育係數，不建立觀測風雨值。
+- 理由：測站物理觀測屬 Phase 5；提前寫死數值會破壞模型邊界。

@@ -6,9 +6,9 @@
 ## 文件狀態
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 1 completed，待使用者批准。
-- Phase 1 已建立固定時間步進、狀態機、事件匯流排、Canvas 診斷視窗與
-  響應式介面；尚未實作地圖及颱風物理。
+- 目前 Phase：Phase 2 completed，待使用者批准。
+- Phase 2 已加入版本化地圖、座標純函式、海陸／線段判定、測站位置、
+  Canvas 分層渲染及點選查詢；尚未實作颱風實體與物理。
 
 ## 正式執行邊界
 
@@ -52,19 +52,25 @@ CanvasViewport／DOM diagnostics
 - `utils` 不得隱藏可變的全域模擬狀態。
 - 所有可調常數集中於 `js/config.js` 或後續明確拆分的設定模組。
 
-## Phase 1 檔案責任
+## Phase 2 檔案責任
 
 | 檔案 | 責任 |
 |---|---|
-| `index.html` | 三區介面、控制項、診斷資料、品牌與非預報聲明 |
+| `index.html` | 三區介面、地圖查詢、控制項、診斷資料、品牌與聲明 |
 | `js/config.js` | 不可變的專案身份、版本及引擎常數 |
-| `js/app.js` | DOM 綁定、引擎組裝、錯誤呈現與分頁可見性 |
+| `js/app.js` | DOM 綁定、引擎／地圖組裝、查詢呈現、錯誤與可見性 |
 | `js/core/GameEngine.js` | requestAnimationFrame loop、update/render 分離與生命週期 |
 | `js/core/SimulationClock.js` | 累積器、固定步進、倍速、截斷與補算上限 |
 | `js/core/StateMachine.js` | 八種遊戲狀態及合法轉換 |
 | `js/core/EventBus.js` | 具順序 ID、同一步順序與 dedupe 的事件傳遞 |
-| `js/ui/CanvasViewport.js` | 高 DPI resize 與 Phase 1 診斷繪製 |
-| `js/utils/*.js` | 純函式數學工具與輸入驗證 |
+| `js/ui/CanvasViewport.js` | 高 DPI backing store 與 resize |
+| `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、診斷 overlay 與 pointer 轉換 |
+| `js/rendering/FieldRenderer.js` | 海洋背景與每 5 度經緯線 |
+| `js/rendering/MapRenderer.js` | land polygon、coastSide、測站及查詢游標 |
+| `js/data/geography.js` | JSON 載入、驗證、海陸與位置描述 |
+| `js/data/stations.js` | 六站不可變位置與來源 |
+| `js/utils/geo.js` | 座標、測地線、polygon、segment 與最近站純函式 |
+| `assets/maps/northwest-pacific.json` | 來源／授權完整的簡化地圖資料 |
 | `css/*.css` | tokens、桌面三區、平板／手機斷點、元件及無障礙 |
 | `scripts/serve.mjs` | 僅供本機的靜態伺服器 |
 | `tests/*.test.js` | 狀態、時鐘、事件、Canvas、文件及 workflow 單元測試 |
@@ -81,6 +87,24 @@ CanvasViewport／DOM diagnostics
   歸零，不補算隱藏期間。
 - update 只在完整步進發生；render 可使用 interpolation alpha，但不得推進物理。
 
+## 地理資料流
+
+```text
+northwest-pacific.json
+  ↓ fetch + validateMapData
+geography.js（權威 bounds／海陸）
+  ├─ describeGeographicPoint → DOM 查詢結果
+  └─ read-only map data → CanvasRenderer
+       ├─ FieldRenderer（背景／經緯線）
+       └─ MapRenderer（陸地／岸段／測站／選取）
+```
+
+- 渲染器不決定海陸；它只讀受驗證的資料。
+- 所有公開經度欄位只使用 `lon`。
+- pointer 使用 CSS pixel rect 反轉座標，與 Canvas backing-store DPR 分離。
+- Phase 2 採地理經緯度的線性 equirectangular 顯示；測地距離另用
+  Haversine，不以 Canvas pixel 距離代替。
+
 ## GitHub Pages 路徑
 
 - 正式 base path：`/classroom-sgts-nh-tzk/`。
@@ -90,7 +114,7 @@ CanvasViewport／DOM diagnostics
 
 ## 尚未實作
 
-下列均屬 Phase 2 以後，Phase 1 不提供假實作：
+下列均屬 Phase 3 以後，Phase 2 不提供假實作：
 
-- 地圖、座標、颱風實體、物理模型與導引氣流。
+- 颱風實體、強度模型與導引氣流。
 - 海陸、地形、降雨、測站、關卡、沙盒、儲存及匯出。

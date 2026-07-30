@@ -175,6 +175,41 @@ button:disabled {
   font-weight: 700;
 }
 
+.map-probe {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: rgb(6 17 31 / 48%);
+}
+
+.map-probe h3 {
+  margin: 0 0 0.45rem;
+  color: var(--color-cyan-100);
+  font-size: 0.92rem;
+}
+
+.map-probe dl {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.map-probe dl div {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.map-probe dt {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.map-probe dd {
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
 .disclaimer h3 {
   margin: 0 0 0.35rem;
   font-size: 0.92rem;

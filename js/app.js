@@ -3,9 +3,11 @@ import { GameEngine } from "./core/GameEngine.js";
 import { GameState } from "./core/StateMachine.js";
 import { SimulationClock } from "./core/SimulationClock.js";
 import {
-  CanvasViewport,
-  formatSimulationTime
-} from "./ui/CanvasViewport.js";
+  describeGeographicPoint,
+  loadGeography
+} from "./data/geography.js";
+import { CanvasRenderer } from "./rendering/CanvasRenderer.js";
+import { formatSimulationTime } from "./ui/CanvasViewport.js";
 
 const requireElement = (selector) => {
   const element = document.querySelector(selector);
@@ -17,14 +19,18 @@ const requireElement = (selector) => {
   return element;
 };
 
-const bootstrap = () => {
+const bootstrap = async () => {
   const elements = {
     canvas: requireElement("#simulation-canvas"),
     currentSpeed: requireElement("#current-speed"),
     engineState: requireElement("#engine-state"),
     error: requireElement("#app-error"),
     fps: requireElement("#fps-readout"),
+    mapDataStatus: requireElement("#map-data-status"),
     pauseButton: requireElement("#pause-button"),
+    probeCoordinate: requireElement("#probe-coordinate"),
+    probeStation: requireElement("#probe-station"),
+    probeSurface: requireElement("#probe-surface"),
     simulationTime: requireElement("#sim-time"),
     speedButtons: [...document.querySelectorAll("[data-speed]")],
     startButton: requireElement("#start-button"),
@@ -37,7 +43,9 @@ const bootstrap = () => {
     throw new Error("Simulation speed controls are incomplete.");
   }
 
-  const viewport = new CanvasViewport(elements.canvas);
+  const canvasRenderer = new CanvasRenderer(elements.canvas);
+  let mapData = null;
+  let mapReady = false;
   let updateCount = 0;
 
   const clock = new SimulationClock({
@@ -61,10 +69,9 @@ const bootstrap = () => {
       ? "頁面隱藏｜停止累積"
       : "頁面可見";
 
-    elements.startButton.disabled = ![
-      GameState.MENU,
-      GameState.TUTORIAL
-    ].includes(state);
+    elements.startButton.disabled =
+      !mapReady ||
+      ![GameState.MENU, GameState.TUTORIAL].includes(state);
     elements.pauseButton.disabled = ![
       GameState.RUNNING,
       GameState.PAUSED
@@ -79,7 +86,7 @@ const bootstrap = () => {
       );
     }
 
-    viewport.draw({
+    canvasRenderer.draw({
       fps,
       simulationMinutes: clockState.simulationMinutes,
       speed: clockState.speed,
@@ -101,6 +108,30 @@ const bootstrap = () => {
     elements.error.hidden = false;
     elements.error.textContent = `模擬器發生錯誤：${message}`;
     engine.enterError(error);
+  };
+
+  const selectMapPoint = (point) => {
+    if (!mapData) {
+      return;
+    }
+
+    const description = describeGeographicPoint(point, mapData);
+    const { landRegion, nearestStation, nearestStationDistanceKm } =
+      description;
+    elements.probeCoordinate.textContent =
+      `${point.lat.toFixed(2)}°N, ${point.lon.toFixed(2)}°E`;
+    elements.probeSurface.textContent = landRegion
+      ? `陸地｜${landRegion.properties.name} (${landRegion.properties.regionId})`
+      : "海洋";
+    elements.probeStation.textContent =
+      `${nearestStation.name}｜${nearestStationDistanceKm.toFixed(1)} km`;
+    elements.canvas.setAttribute(
+      "aria-label",
+      `查詢位置 ${elements.probeCoordinate.textContent}，` +
+        `${elements.probeSurface.textContent}，最近測站` +
+        `${elements.probeStation.textContent}`
+    );
+    canvasRenderer.setSelection(description);
   };
 
   elements.startButton.addEventListener("click", () => {
@@ -135,6 +166,21 @@ const bootstrap = () => {
     });
   }
 
+  elements.canvas.addEventListener("pointerup", (event) => {
+    try {
+      selectMapPoint(canvasRenderer.clientPointToGeo(event));
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+  elements.canvas.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      selectMapPoint({ lat: 23.7, lon: 121 });
+    }
+  });
+
   document.addEventListener("visibilitychange", () => {
     engine.setVisibilityHidden(document.hidden);
   });
@@ -150,7 +196,7 @@ const bootstrap = () => {
   window.addEventListener(
     "pagehide",
     () => {
-      viewport.destroy();
+      canvasRenderer.destroy();
       engine.destroy();
     },
     { once: true }
@@ -158,11 +204,21 @@ const bootstrap = () => {
 
   engine.setVisibilityHidden(document.hidden);
   engine.boot();
+
+  try {
+    mapData = await loadGeography();
+    canvasRenderer.setGeography(mapData);
+    mapReady = true;
+    elements.mapDataStatus.textContent =
+      `${mapData.features.length} regions · v${mapData.metadata.formatVersion}`;
+    selectMapPoint({ lat: 23.7, lon: 121 });
+  } catch (error) {
+    elements.mapDataStatus.textContent = "載入失敗";
+    handleError(error);
+  }
 };
 
-try {
-  bootstrap();
-} catch (error) {
+bootstrap().catch((error) => {
   document.documentElement.dataset.appState = "error";
   const errorMessage = document.querySelector("#app-error");
 
@@ -172,6 +228,4 @@ try {
       error instanceof Error ? error.message : String(error)
     }`;
   }
-
-  throw error;
-}
+});

@@ -29,7 +29,8 @@
 
 - `index.html`。
 - `css/`、`js/`。
-- 公開執行所需的 `assets/` 與 JSON。
+- 公開執行所需的 `assets/` 與 JSON，包括
+  `assets/maps/northwest-pacific.json`。
 - 必要的授權及 attribution 文件。
 
 不得包含：
@@ -43,6 +44,8 @@
 
 - HTML、CSS、JavaScript 及資料使用相對路徑。
 - JavaScript 動態資源使用可在子目錄解析的 URL。
+- 地圖 URL 使用 `new URL(relativePath, import.meta.url)`，不得硬編碼
+  網域根路徑。
 - 自動 smoke test 同時驗證 `/` 與 `/classroom-sgts-nh-tzk/`。
 - 第一版只有 `index.html` 入口，不依賴伺服器 rewrite。
 

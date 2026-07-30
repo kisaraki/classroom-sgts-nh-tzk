@@ -15,7 +15,7 @@
     "test": "npm run test:unit",
     "test:unit": "node --test tests/*.test.js",
     "test:integration": "node --test tests/integration/*.test.js",
-    "test:scenario": "node -e \"console.log('Phase 1: scenario tests not applicable')\"",
+    "test:scenario": "node -e \"console.log('Phase 2: scenario tests not applicable')\"",
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run test:unit && npm run test:integration && npm run test:scenario && npm run test:e2e"
   },

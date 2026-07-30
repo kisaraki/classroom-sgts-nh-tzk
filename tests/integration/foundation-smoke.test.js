@@ -73,6 +73,17 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
     /text\/javascript/
   );
 
+  const mapResponse = await fetch(
+    `${baseUrl}/classroom-sgts-nh-tzk/assets/maps/northwest-pacific.json`
+  );
+  const mapData = await mapResponse.json();
+  assert.equal(mapResponse.status, 200);
+  assert.match(
+    mapResponse.headers.get("content-type") ?? "",
+    /application\/json/
+  );
+  assert.equal(mapData.metadata.formatVersion, "sgts-map-1");
+
   const missingResponse = await fetch(`${baseUrl}/missing-resource.json`);
   assert.equal(missingResponse.status, 404);
 });

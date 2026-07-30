@@ -9,7 +9,7 @@
 - npm 11。
 - ESLint。
 - Node.js 內建 `node:test`。
-- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1 E2E；CI
+- Playwright 1.62.0，以本機實際 Google Chrome 執行 Phase 1～2 E2E；CI
   定義使用 Chromium。
 - WebKit 模擬不得冒充實際 Safari 或 iPadOS。
 
@@ -25,15 +25,15 @@ npm run check
 npm run serve
 ```
 
-Phase 1：
+Phase 2：
 
-- `test:unit` 驗證 Phase 0 基礎及數學、狀態機、時鐘、事件、引擎、
-  Canvas resize 與 workflow。
-- `test:integration` 驗證引擎固定步進事件，以及 `/` 與
-  `/classroom-sgts-nh-tzk/` 靜態服務。
+- `test:unit` 除既有基礎外，驗證座標、測地線、polygon、segment、
+  地圖 metadata／負面驗證、海陸、測站及 resize click。
+- `test:integration` 驗證引擎固定步進、Pages 子路徑靜態服務，以及
+  地圖 JSON MIME／版本。
 - `test:scenario` 尚不適用，指令會明確回報。
-- `test:e2e` 驗證實際 Chrome 操作、暫停、平板／窄螢幕版面、44 px
-  觸控目標及靜態瀏覽器 harness。
+- `test:e2e` 驗證實際 Chrome 操作、平板／窄螢幕、靜態 browser
+  harness、地圖載入、臺灣海陸查詢及 resize 後座標穩定。
 
 ## Phase 0 需求追蹤
 
@@ -67,11 +67,11 @@ Phase 1：
 
 ## 瀏覽器與外部環境矩陣
 
-| 環境 | Phase 1 狀態 | 說明 |
+| 環境 | Phase 2 狀態 | 說明 |
 |---|---|---|
-| Node HTTP smoke | passed | 根目錄及 Pages 子路徑均為 200，ES Module MIME 正確 |
-| Codex in-app Browser | passed | 桌面三區、24× 啟動、固定步進、暫停及 Canvas 目視 |
-| 實際 Chrome | passed | 150.0.7871.187；3 個 Playwright E2E、Console error 0 |
+| Node HTTP smoke | passed | Pages 子路徑、ES Module 及 map JSON MIME／版本正確 |
+| Codex in-app Browser | passed | 16 regions、測站、臺灣／海洋查詢、Canvas 目視 |
+| 實際 Chrome | passed | 150.0.7871.187；4 個 Playwright E2E、Console error 0 |
 | 自動 Chromium | not_run | workflow 已定義但未 push；本機 E2E 指定實際 Chrome |
 | 實際 Edge | not_verified | 本機未安裝 |
 | 實際 macOS Safari | not_run | Phase 9 必要實機驗證 |
@@ -79,6 +79,39 @@ Phase 1：
 | GitHub Actions | not_run | test workflow 已建立；未獲 push 授權 |
 | GitHub Pages | not_deployed | Phase 9 前不得部署 |
 | 公開網站 | not_verified | Pages 尚未部署 |
+
+## Phase 2 需求追蹤
+
+| Requirement ID | 需求 | 測試／證據 | 狀態 |
+|---|---|---|---|
+| GEO-BOUNDS-001 | 100°E～160°E、0°N～40°N 及四角 | geo／data tests | passed |
+| GEO-CONVERT-001 | 經緯度／Canvas 雙向與 round trip | `geo.test.js` | passed |
+| GEO-GEODESY-001 | Haversine、方位角、目的地推算 | `geo.test.js`、browser harness | passed |
+| GEO-POLYGON-001 | point、邊界、頂點、segment 交會 | geo／data tests | passed |
+| GEO-LAND-001 | 臺灣內部為陸、東側海面為海 | `geography-data.test.js`、E2E | passed |
+| GEO-DATA-001 | 來源、授權、版本、簡化及唯一 regionId | data／negative tests | passed |
+| GEO-COAST-001 | 臺灣 east／west／north／south | `geography-data.test.js` | passed |
+| GEO-STATION-001 | 六站唯一且在範圍內 | `geography-data.test.js` | passed |
+| GEO-POINTER-001 | resize 後點選位置不偏移 | renderer／geo tests、Chrome E2E | passed |
+| DEPLOY-PAGES-002 | map JSON 可由 Pages 子路徑載入 | integration／Chrome E2E | passed |
+
+## Phase 2 實際結果
+
+- 完成時間：2026-07-30T19:25:29+08:00。
+- Node.js：24.18.1 LTS；npm：11.16.0。
+- `npm ci`：通過；audit 74 個套件，0 vulnerabilities。
+- ESLint：通過，0 errors、0 warnings。
+- 單元測試：44 passed、0 failed。
+- 整合測試：2 passed、0 failed。
+- 情境測試：Phase 2 不適用。
+- 實際 Chrome E2E：4 passed、0 failed；包含 Pages 子路徑 map fetch、
+  臺灣點選及 390 px resize 後座標。
+- Browser harness：4/4 passed。
+- Browser smoke：16 regions 與 6 測站可見；預設臺灣查詢為
+  `taiwan-main`、最近日月潭 22.2 km；點選中央海域切換為海洋並重算最近站。
+- GitHub Actions：未執行。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
 
 ## Phase 1 實際結果
 

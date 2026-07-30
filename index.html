@@ -38,11 +38,11 @@
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 01</p>
+        <p class="phase-badge">SGTS-NH · Phase 02</p>
         <h2 id="control-title">模擬控制</h2>
         <p class="panel-copy">
-          啟動固定時間步進引擎，檢查暫停、速度與事件順序。Phase 01
-          不包含地圖及颱風物理。
+          啟動固定時間步進引擎，或直接點選地圖查詢座標、海陸與最近測站。
+          Phase 02 不包含颱風物理。
         </p>
 
         <div class="control-stack">
@@ -66,7 +66,7 @@
 
         <aside class="scope-note" aria-label="本階段範圍">
           <strong>本階段邊界</strong>
-          <p>僅驗證引擎、狀態機、事件匯流排、Canvas 與響應式介面。</p>
+          <p>僅加入地圖、座標、海陸判定與測站位置；颱風仍未生成。</p>
         </aside>
       </section>
 
@@ -85,10 +85,16 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 01 模擬診斷視窗"
+            aria-label="Phase 02 西北太平洋地圖；點選或觸控以查詢位置"
+            aria-describedby="map-query-help"
             data-testid="simulation-canvas"
+            tabindex="0"
           ></canvas>
         </div>
+        <p id="map-query-help" class="map-query-help">
+          地圖範圍 100°E～160°E、0°N～40°N。海岸線為教育用簡化圖，
+          不具導航或測繪精度。
+        </p>
 
         <div class="time-strip" aria-label="時間步進資訊">
           <p><span>固定步長</span><strong>10 分鐘</strong></p>
@@ -121,7 +127,34 @@
             <dt>正式平台</dt>
             <dd>GitHub Pages</dd>
           </div>
+          <div>
+            <dt>地理資料</dt>
+            <dd id="map-data-status">載入中</dd>
+          </div>
         </dl>
+
+        <section
+          id="map-probe"
+          class="map-probe"
+          aria-labelledby="map-probe-title"
+          aria-live="polite"
+        >
+          <h3 id="map-probe-title">地圖查詢</h3>
+          <dl>
+            <div>
+              <dt>座標</dt>
+              <dd id="probe-coordinate">等待地圖載入</dd>
+            </div>
+            <div>
+              <dt>海陸</dt>
+              <dd id="probe-surface">—</dd>
+            </div>
+            <div>
+              <dt>最近測站</dt>
+              <dd id="probe-station">—</dd>
+            </div>
+          </dl>
+        </section>
 
         <div class="disclaimer" aria-label="用途聲明">
           <h3>教育與責任聲明</h3>

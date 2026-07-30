@@ -1,6 +1,7 @@
 const browserGlobals = {
   CustomEvent: "readonly",
   document: "readonly",
+  URL: "readonly",
   window: "readonly"
 };
 

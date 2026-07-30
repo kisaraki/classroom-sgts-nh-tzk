@@ -38,6 +38,13 @@
   display: block;
   width: 100%;
   height: 100%;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+
+.map-query-help {
+  color: var(--color-muted);
+  font-size: 0.76rem;
 }
 
 .time-strip {

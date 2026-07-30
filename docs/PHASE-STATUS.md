@@ -8,8 +8,8 @@
 | Phase | 狀態 | 分支 | 完成 Commit | 批准 Commit | 測試 | completedAt | approvedAt | 批准原文 | 阻塞原因 |
 |---|---|---|---|---|---|---|---|---|---|
 | 0 | approved | `phase/00-foundation` | `10eb51c` | `67697c6` | lint、4 unit、1 integration、browser smoke passed；scenario／E2E N/A | 2026-07-30T18:44:39+08:00 | 2026-07-30T18:50:36+08:00 | 同意執行 Phase 01 |  |
-| 1 | approved | `phase/01-engine-ui` | `0e3a086` |  | lint、25 unit、2 integration、3 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:06:41+08:00 | 2026-07-30T19:09:14+08:00 | 批准 Phase 1，並同意執行 Phase 2 |  |
-| 2 | pending |  |  |  | not_run |  |  |  |  |
+| 1 | approved | `phase/01-engine-ui` | `0e3a086` | `a86d9da` | lint、25 unit、2 integration、3 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:06:41+08:00 | 2026-07-30T19:09:14+08:00 | 批准 Phase 1，並同意執行 Phase 2 |  |
+| 2 | completed | `phase/02-map-geography` |  |  | lint、44 unit、2 integration、4 Chrome E2E、browser smoke passed；scenario N/A；Actions not_run | 2026-07-30T19:25:29+08:00 |  |  |  |
 | 3 | pending |  |  |  | not_run |  |  |  |  |
 | 4 | pending |  |  |  | not_run |  |  |  |  |
 | 5 | pending |  |  |  | not_run |  |  |  |  |
@@ -64,3 +64,17 @@
 
 - 解讀：Phase 1 驗收通過，批准執行 Phase 2。
 - 未授權：push、GitHub Pages 設定及部署。
+
+## Phase 2 完成紀錄
+
+- 完成時間：2026-07-30T19:25:29+08:00。
+- 狀態：`completed`，不等於 `approved`。
+- 分支：`phase/02-map-geography`。
+- 本機檢查：ESLint、44 unit、2 integration、4 實際 Chrome E2E、
+  Browser smoke 均通過；scenario 不適用。
+- 資料：16 個穩定 land regions、臺灣四岸段、6 個測站；來源與授權完整。
+- GitHub Actions：workflow 未 push，因此未執行。
+- GitHub Pages API／部署：未執行／未部署。
+- 公開網站：未驗證。
+- 未授權：push、GitHub Pages 設定及部署。
+- 下一階段：Phase 3「颱風實體與強度模型」，尚未批准，不得執行。

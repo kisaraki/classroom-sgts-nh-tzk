@@ -7,7 +7,16 @@ export const PROJECT_CONFIG = Object.freeze({
   repository: "kisaraki/classroom-sgts-nh-tzk",
   pagesUrl: "https://kisaraki.github.io/classroom-sgts-nh-tzk/",
   schemaVersion: 1,
-  modelVersion: "0.1.0-engine",
+  modelVersion: "0.2.0-geography",
+  geography: Object.freeze({
+    bounds: Object.freeze({
+      maxLat: 40,
+      maxLon: 160,
+      minLat: 0,
+      minLon: 100
+    }),
+    graticuleDegrees: 5
+  }),
   simulation: Object.freeze({
     maxCatchUpSteps: 8,
     maxFrameDeltaMs: 250,

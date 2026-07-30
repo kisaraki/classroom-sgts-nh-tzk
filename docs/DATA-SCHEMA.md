@@ -6,11 +6,12 @@
 ## 版本
 
 - `schemaVersion`：資料形狀版本，第一版起始值為整數 `1`。
-- `modelVersion`：模型行為版本；Phase 0 為 `0.0.0-foundation`。
+- `modelVersion`：模型行為版本；Phase 2 為 `0.2.0-geography`。
 - PRNG 演算法版本：自 Phase 3 起記錄。
 - 外部匯入資料必須先驗證，再轉換成新的內部物件。
 
-Phase 0 尚未建立正式 Typhoon、Environment、Level 或儲存 JSON Schema；各模型於其指定 Phase 建立時必須同步加入 schema 與負面測試。
+Phase 2 已建立地圖與測站位置契約。Typhoon、Environment、Level
+或儲存 JSON Schema 仍應於其指定 Phase 建立並加入負面測試。
 
 ## 第一版單位字典
 
@@ -45,6 +46,54 @@ Phase 0 尚未建立正式 Typhoon、Environment、Level 或儲存 JSON Schema�
 - 每個區域具有穩定 `regionId`。
 - 臺灣岸段需支援 `east`、`west`、`north`、`south` 的 `coastSide`。
 - 地圖檔需包含格式版本、來源、授權、簡化方法與產生日期。
+
+### `northwest-pacific.json`
+
+頂層必要欄位：
+
+| 欄位 | 型別／規則 |
+|---|---|
+| `schemaVersion` | 整數，目前為 `1` |
+| `type` | 固定 `FeatureCollection` |
+| `bounds` | `minLon: 100`、`maxLon: 160`、`minLat: 0`、`maxLat: 40` |
+| `metadata.formatVersion` | 非空字串，目前為 `sgts-map-1` |
+| `metadata.source` | 名稱、發布者及 HTTPS URL |
+| `metadata.license` | 授權名稱及 URL |
+| `metadata.simplification` | 具體簡化／重繪方式及精度限制 |
+| `metadata.generatedAt` | `YYYY-MM-DD` |
+| `features` | 非空 land Polygon 陣列 |
+
+Feature 規則：
+
+- `properties.regionId` 必須唯一且符合小寫 ASCII kebab-case；判定不得依
+  顯示名稱。
+- Phase 2 只使用無洞的 `Polygon`。
+- exterior ring 採順時針、首尾座標完全相同，至少三個不同頂點。
+- 所有座標均需位於地圖 bounds。
+- 位於邊或頂點的座標都視為陸地。
+- 若未來加入 holes，需提升資料契約並規定反向 ring；不得靜默混用。
+- 臺灣 `coastSegments` 必須各有 `east`、`west`、`north`、`south`，
+  coordinates 同樣使用 `[lon, lat]`。
+- Phase 2 以 `validateMapData` 作為主規格允許的等效自動驗證：
+  拒絕未知欄位、不支援版本、非 HTTPS 來源／授權 URL、錯誤 bounds、
+  非閉合／逆向／越界 ring、重複 `regionId` 及不完整岸段。
+
+### 測站位置
+
+Phase 2 每站必要欄位：
+
+| 欄位 | 規則 |
+|---|---|
+| `id` | 唯一、穩定 kebab-case |
+| `name` | 繁體中文顯示名稱 |
+| `lat`、`lon` | 位於 Phase 2 bounds |
+| `elevation` | m |
+| `exposure` | 教育模型 0～1 係數；Phase 5 才參與觀測模型 |
+| `region` | 穩定區域分類 |
+| `isVirtual` | 布林；目前六站均為 `false` |
+| `source` | authority、stationCode、URL |
+
+正式氣象觀測值尚未在 Phase 2 建立，測站資料不得包含寫死風雨數值。
 
 ## Schema 最低要求
 

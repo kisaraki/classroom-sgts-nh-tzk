@@ -13,6 +13,7 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
   await page.goto("./");
   await expect(page.locator("#engine-state")).toHaveText("MENU");
   await expect(page.locator("#simulation-canvas")).toBeVisible();
+  await expect(page.locator("#map-data-status")).toContainText("regions");
 
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
@@ -70,5 +71,35 @@ test("standalone browser harness passes from the Pages subpath", async ({
     "data-test-status",
     "passed"
   );
-  await expect(page.locator("#test-summary")).toHaveText("3/3 tests passed");
+  await expect(page.locator("#test-summary")).toHaveText("4/4 tests passed");
+});
+
+test("map query identifies Taiwan and stays aligned after resize", async ({
+  page
+}) => {
+  const selectCoordinate = async ({ lat, lon }) => {
+    const canvas = page.locator("#simulation-canvas");
+    const box = await canvas.boundingBox();
+    const x = 38 + ((lon - 100) / 60) * (box.width - 38 - 12);
+    const y = 14 + ((40 - lat) / 40) * (box.height - 14 - 26);
+
+    await page.mouse.click(box.x + x, box.y + y);
+  };
+
+  await page.goto("./");
+  await expect(page.locator("#map-data-status")).toContainText("regions");
+  await selectCoordinate({ lat: 23.7, lon: 121 });
+  await expect(page.locator("#probe-coordinate")).toHaveText(
+    "23.70°N, 121.00°E"
+  );
+  await expect(page.locator("#probe-surface")).toContainText(
+    "taiwan-main"
+  );
+
+  await page.setViewportSize({ height: 844, width: 390 });
+  await selectCoordinate({ lat: 23.7, lon: 121 });
+  await expect(page.locator("#probe-coordinate")).toHaveText(
+    "23.70°N, 121.00°E"
+  );
+  await expect(page.locator("#probe-station")).toContainText("km");
 });

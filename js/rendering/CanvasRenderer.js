@@ -1,0 +1,151 @@
+import { MAP_BOUNDS } from "../data/geography.js";
+import { WEATHER_STATIONS } from "../data/stations.js";
+import {
+  CanvasViewport,
+  formatSimulationTime
+} from "../ui/CanvasViewport.js";
+import { clientPointToGeo } from "../utils/geo.js";
+import { FieldRenderer } from "./FieldRenderer.js";
+import { MapRenderer } from "./MapRenderer.js";
+
+export const MAP_PADDING = Object.freeze({
+  bottom: 26,
+  left: 38,
+  right: 12,
+  top: 14
+});
+
+export class CanvasRenderer {
+  #canvas;
+  #fieldRenderer;
+  #geography = null;
+  #mapRenderer;
+  #selection = null;
+  #stations;
+  #viewport;
+
+  constructor(
+    canvas,
+    {
+      fieldRenderer = new FieldRenderer(),
+      mapRenderer = new MapRenderer(),
+      stations = WEATHER_STATIONS,
+      viewportOptions
+    } = {}
+  ) {
+    this.#canvas = canvas;
+    this.#fieldRenderer = fieldRenderer;
+    this.#mapRenderer = mapRenderer;
+    this.#stations = stations;
+    this.#viewport = new CanvasViewport(canvas, viewportOptions);
+  }
+
+  setGeography(geography) {
+    this.#geography = geography;
+  }
+
+  setSelection(selection) {
+    this.#selection = selection;
+  }
+
+  clientPointToGeo(event) {
+    return clientPointToGeo(event, {
+      bounds: MAP_BOUNDS,
+      padding: MAP_PADDING,
+      rect: this.#canvas.getBoundingClientRect()
+    });
+  }
+
+  draw({ fps, simulationMinutes, speed, state, stepIndex }) {
+    const dimensions = this.#viewport.resize();
+
+    if (!dimensions) {
+      return;
+    }
+
+    const context = this.#canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Canvas 2D context is unavailable.");
+    }
+
+    const { cssHeight: height, cssWidth: width, scale } = dimensions;
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+    context.clearRect(0, 0, width, height);
+
+    this.#fieldRenderer.draw({
+      bounds: MAP_BOUNDS,
+      context,
+      height,
+      padding: MAP_PADDING,
+      width
+    });
+
+    if (this.#geography) {
+      this.#mapRenderer.draw({
+        context,
+        geography: this.#geography,
+        height,
+        padding: MAP_PADDING,
+        selection: this.#selection,
+        stations: this.#stations,
+        width
+      });
+    } else {
+      context.fillStyle = "#d9f9ff";
+      context.font = "700 16px system-ui, sans-serif";
+      context.fillText("載入地理資料…", 56, 48);
+    }
+
+    this.#drawDiagnostics({
+      context,
+      fps,
+      height,
+      simulationMinutes,
+      speed,
+      state,
+      stepIndex,
+      width
+    });
+  }
+
+  destroy() {
+    this.#viewport.destroy();
+  }
+
+  #drawDiagnostics({
+    context,
+    fps,
+    height,
+    simulationMinutes,
+    speed,
+    state,
+    stepIndex,
+    width
+  }) {
+    const lines = [
+      `STATE ${state}`,
+      `TIME ${formatSimulationTime(simulationMinutes)} · STEP ${stepIndex}`,
+      `SPEED ${speed}× · FPS ${Number.isFinite(fps) ? fps.toFixed(0) : "0"}`
+    ];
+    const boxWidth = Math.min(310, width - 32);
+    const boxHeight = 66;
+    const boxX = 16;
+    const boxY = height - boxHeight - 32;
+
+    context.fillStyle = "rgba(6, 17, 31, 0.82)";
+    context.fillRect(boxX, boxY, boxWidth, boxHeight);
+    context.fillStyle = "#eef7ff";
+    context.font = "650 11px ui-monospace, monospace";
+
+    lines.forEach((line, index) => {
+      context.fillText(line, boxX + 10, boxY + 17 + index * 18);
+    });
+
+    context.fillStyle = "rgba(217, 249, 255, 0.72)";
+    context.font = "600 11px system-ui, sans-serif";
+    const hint = "點選或觸控地圖以查詢";
+    const measured = context.measureText(hint);
+    context.fillText(hint, width - measured.width - 18, height - 36);
+  }
+}
