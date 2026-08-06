@@ -393,3 +393,29 @@
 - Phase 狀態：本授權只解除 commit、push 與部署閘門，不等於 Phase 9
   驗收批准；Phase 9 維持 `in_progress`，Phase 10 維持 `pending`。
 - 未驗證項目：Microsoft Edge 與 iPadOS Safari 維持 `not_verified`。
+
+## Phase 9 四象限版面發布結果
+
+- 發布完成時間：2026-08-06T15:18:44+08:00。
+- 紀錄時間：2026-08-06T15:21:36+08:00。
+- 發布 source：`73e5a3676db1787b9ff4147cd05f8b34a18759b1`；遠端 `main`
+  由 `b2ddc42b4a675111dd422f6c977157bc534d9ea5` 非強制快轉更新。
+- GitHub Actions：push event 已由 GitHub 接收但未自動建立 run，故依既有發布
+  流程手動觸發一次 Pages workflow；run `31080240842` passed。
+- Jobs：test `92547169714`、build `92547547410`、deploy `92547621782`
+  全部 passed；Pages workflow 內的 `npm run check` 及 artifact 閘門通過。
+- 獨立 `Test` workflow：本次 push 未自動排程，`not_run`；未以 Pages 以外的
+  獨立 workflow 結果冒充。
+- GitHub Pages：deployment `5775272960`，最新狀態 `success`；Pages API
+  `build_type=workflow`、`public=true`、`https_enforced=true`。
+- 正式網址：`https://kisaraki.github.io/classroom-sgts-nh-tzk/`；deployment
+  狀態提供相同 environment URL。
+- 公開網站瀏覽器驗證：Codex in-app Browser 因管理政策無法完成網站安全
+  檢查，兩次開啟均被拒絕，故本輪實際瀏覽器 smoke test 為 `not_verified`；
+  未以 Actions、Pages API 或部署狀態冒充實際瀏覽器通過。
+- Schema／資料：既有地圖、關卡、沙盒、儲存與後台 I/O 契約未變；完整
+  Actions 檢查 passed。TypeScript：`not_applicable`。
+- 分支：遠端 `phase/09-release` 已在 `main` 成功部署後刪除，GitHub 僅保留
+  `main`。
+- Phase 狀態：仍為 `in_progress`；Microsoft Edge、iPadOS Safari 與本輪
+  公開站實際瀏覽器 smoke test 維持 `not_verified`，Phase 10 維持 `pending`。
