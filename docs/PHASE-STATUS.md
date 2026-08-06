@@ -376,3 +376,20 @@
 - 授權邊界：未取得新的 commit、push 或部署授權，故未執行。
 - 下一階段：仍不得進入 Phase 10；須先完成第 9 階段剩餘相容性證據並由
   使用者明確批准。
+
+## Phase 9 四象限版面發布授權
+
+- 授權時間：2026-08-06T15:10:13+08:00。
+- 使用者原文：
+
+> 同意准予 commt、push及部署至 Github 及 github pages
+
+- 解讀：明確批准將目前已驗證的 Phase 9 四象限版面成果建立必要 commit、
+  快轉更新至 GitHub `main`，並透過既有 GitHub Actions 部署 GitHub Pages。
+- 分支範圍：依使用者先前的 `main` only 指示，發布與公開網站驗證成功後，
+  GitHub 僅保留 `main`；不得使用強制推送，不建立新的遠端 Phase 分支。
+- 發布閘門：測試 workflow 及 Pages workflow 必須通過後才可刪除既有遠端
+  `phase/09-release`，以保留可回復錨點。
+- Phase 狀態：本授權只解除 commit、push 與部署閘門，不等於 Phase 9
+  驗收批准；Phase 9 維持 `in_progress`，Phase 10 維持 `pending`。
+- 未驗證項目：Microsoft Edge 與 iPadOS Safari 維持 `not_verified`。
