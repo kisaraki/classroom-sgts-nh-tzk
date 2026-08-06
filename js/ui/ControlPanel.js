@@ -18,7 +18,21 @@ export const formatControlValue = (name, value) => {
     return `${(value * 100).toFixed(0)}%`;
   }
 
-  return `${value.toFixed(definition.step < 1 ? 1 : 0)} ${definition.unit}`;
+  const formattedValue = value.toFixed(definition.step < 1 ? 1 : 0);
+
+  if (definition.unit === "°E") {
+    return `東經 ${formattedValue}°`;
+  }
+
+  if (definition.unit === "°N") {
+    return `北緯 ${formattedValue}°`;
+  }
+
+  if (definition.unit === "m/s") {
+    return `${formattedValue} 公尺／秒`;
+  }
+
+  return `${formattedValue} ${definition.unit}`;
 };
 
 export const describeControlTrend = (trend) =>
@@ -148,7 +162,7 @@ export class ControlPanel {
         state.target
       );
       record.trend.textContent =
-        `${describeControlTrend(state.trend)} · τ ${state.responseHours}h`;
+        `${describeControlTrend(state.trend)} · 反應時間 ${state.responseHours} 小時`;
       record.trend.dataset.trend = String(state.trend);
     }
   }

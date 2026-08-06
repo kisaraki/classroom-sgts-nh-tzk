@@ -313,3 +313,66 @@
   DEC-0035 的 fingerprint 邊界正規化已由本機與 Linux x64 完整驗證。
 - 剩餘狀態：Edge 與 iPadOS 依使用者指示維持 `not_verified`；Phase 9
   繼續為 `in_progress`，不得進入 Phase 10。
+
+## Phase 9 介面修正本機紀錄
+
+- 完成時間：2026-08-06T13:14:05+08:00。
+- 狀態：仍為 `in_progress`，不得標記 `completed` 或 `approved`。
+- 分支：`phase/09-release`；本次變更尚未 commit。
+- 主規格：更新至 1.0.2，新增官方繁體中文完整用語、左側戰況資訊／
+  右側策略操作／右下指令區、玩家介面隱藏資料匯入匯出，以及擬真地圖
+  呈現邊界。
+- 玩家介面：戰況地圖與任務情報在左，策略指揮台在右；1024×600 的
+  行動指令完整位於首屏右下方，390×844 依序改為地圖、戰況情報、策略操作。
+- 地圖：新增分層海洋、連續海面溫度、陸地明暗與紋理、雙層海岸線及
+  臺灣中央山脈脊線；沿用既有授權地理資料，未加入外部影像服務。
+- 後台：`SimulationIO` 與安全驗證／重播／輸出測試保留，但所有資料
+  匯入匯出控制在玩家介面皆為隱藏。
+- 本機驗證：Node.js 24.18.1；lint、build、109 unit、6 integration、
+  16 scenario、15 actual Chrome E2E、1 artifact test 全部通過。
+- Browser：1180×720、1024×600、390×844 無水平 overflow；開始／暫停
+  正常；Console warning／error 0。
+- GitHub Actions：本次差異 `not_run`；尚未 push。
+- GitHub Pages API／部署：本次差異 `not_run`；未部署。
+- 公開網站：本次差異 `not_verified`；現有網站仍為 2026-07-30 已發布版本。
+- Microsoft Edge：`not_verified`；iPadOS Safari：`not_verified`。
+- 授權邊界：本次未取得新的 commit、push 或部署授權，故未執行。
+- 下一階段：仍不得進入 Phase 10；須先處理第 9 階段剩餘相容性證據並由
+  使用者明確批准。
+
+## Phase 9 右下指令區本機修正紀錄
+
+- 完成時間：2026-08-06T13:32:50+08:00。
+- 狀態：仍為 `in_progress`；屬主規格 1.0.2 的介面空間利用修正。
+- 版面：移除指令標題、倍速與動作按鈕各自占列的浪費；1180×720 採
+  單列停靠區，1024×600 採雙列停靠區，三個任務動作保持同列。
+- 可觸控性：所有倍速及任務按鈕維持至少 44 px 高度。
+- 自動驗證：響應式實際 Chrome E2E passed；完整回歸結果見 TESTING。
+- Codex in-app Browser：本輪因管理政策驗證暫時無法存取 localhost，
+  `not_run`；未以 Chrome 結果冒充。
+- GitHub Actions／Pages API／部署／公開網站：本次差異均未執行或未驗證。
+- Git：尚未 commit、push；沒有新的遠端寫入授權。
+- Microsoft Edge／iPadOS Safari：維持 `not_verified`；不得進入 Phase 10。
+
+## Phase 9 四象限版面本機修正紀錄
+
+- 完成時間：2026-08-06T13:45:20+08:00。
+- 狀態：仍為 `in_progress`；主規格更新至 1.0.3，本次變更尚未 commit。
+- 版面：主 Canvas 擬真地圖移至上方並橫跨第一、二象限；戰況資訊位於
+  第三象限；原第一象限的任務、環境與沙盒參數輸入移至第四象限。
+- 空間：第三、第四象限同列等高、長內容各自捲動；緊湊即時指令保留在
+  第四象限下緣，避免右下形成無功能空白。
+- 響應式：1180×720、1024×600 維持上方全幅地圖與下方雙欄；390×844
+  依地圖、戰況資訊、參數操作順序改為單欄。
+- 本機驗證：Node.js 24；lint、build、109 unit、6 integration、16 scenario、
+  15 actual Chrome E2E、1 artifact test 全部通過。
+- Codex in-app Browser：因管理政策驗證暫時無法存取 localhost，`not_run`；
+  未以實際 Chrome E2E 冒充。
+- Schema／資料：既有地圖、關卡、沙盒、儲存與後台 I/O 契約未變，passed。
+- TypeScript：`not_applicable`；專案為原生 JavaScript ES Modules。
+- GitHub Actions／Pages API／部署：本次差異 `not_run`；未 push、未部署。
+- 公開網站：本次差異 `not_verified`；既有公開站不是本輪變更證據。
+- Microsoft Edge／iPadOS Safari：維持 `not_verified`。
+- 授權邊界：未取得新的 commit、push 或部署授權，故未執行。
+- 下一階段：仍不得進入 Phase 10；須先完成第 9 階段剩餘相容性證據並由
+  使用者明確批准。

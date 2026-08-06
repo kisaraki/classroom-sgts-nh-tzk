@@ -26,27 +26,28 @@
         <p class="subtitle">北半球颱風模擬器</p>
       </div>
       <div class="header-status" aria-label="模擬器狀態">
-        <p>ENGINE STATE</p>
-        <strong id="engine-state">BOOT</strong>
+        <p>遊戲狀態</p>
+        <strong id="engine-state" data-state-code="BOOT">啟動中</strong>
         <span id="visibility-status">頁面可見</span>
       </div>
     </header>
 
     <main id="main-content" class="site-main" data-testid="simulation-shell">
       <p class="narrow-screen-hint">
-        螢幕較窄，控制區已改為垂直排列；建議橫向使用以取得更完整的模擬視野。
+        螢幕較窄，戰況情報與策略指揮台已改為垂直排列；建議橫向使用以取得完整操作視野。
       </p>
 
       <section class="control-panel panel" aria-labelledby="control-title">
-        <p class="phase-badge">SGTS-NH · Phase 09</p>
-        <h2 id="control-title">關卡控制</h2>
+        <p class="phase-badge">風暴指揮中心</p>
+        <h2 id="control-title">策略指揮台</h2>
         <p class="panel-copy">
-          選擇資料驅動關卡，或在無勝敗沙盒中設定初始環境並匯出結果。
-          所有控制仍具有反應延遲。
+          選擇任務，研判環境後下達調整指令。大氣與海洋不會瞬間回應，
+          每一次操作都會改變後續戰局。
         </p>
 
+        <div class="control-scroll">
         <label class="level-picker" for="level-select">
-          選擇關卡
+          選擇任務
           <select id="level-select">
             <option value="naha-storm">01｜那霸風雨</option>
             <option value="mountain-shield">02｜護國神山</option>
@@ -60,43 +61,25 @@
           <div class="sandbox-grid">
             <label>名稱<input data-sandbox-field="name" type="text" maxlength="48"></label>
             <label>種子<input data-sandbox-field="seed" type="text" maxlength="128"></label>
-            <label>緯度 °N<input data-sandbox-field="lat" type="number" min="0" max="40" step="0.1"></label>
-            <label>經度 °E<input data-sandbox-field="lon" type="number" min="100" max="160" step="0.1"></label>
-            <label>初始風速 m/s<input data-sandbox-field="maxWind" type="number" min="5" max="85" step="1"></label>
-            <label>中心氣壓 hPa<input data-sandbox-field="centralPressure" type="number" min="880" max="1010" step="1"></label>
+            <label>生成緯度（北緯）<input data-sandbox-field="lat" type="number" min="0" max="40" step="0.1"></label>
+            <label>生成經度（東經）<input data-sandbox-field="lon" type="number" min="100" max="160" step="0.1"></label>
+            <label>初始近中心最大風速（公尺／秒）<input data-sandbox-field="maxWind" type="number" min="5" max="85" step="1"></label>
+            <label>中心氣壓（百帕）<input data-sandbox-field="centralPressure" type="number" min="880" max="1010" step="1"></label>
             <label>組織度<input data-sandbox-field="organization" type="number" min="0" max="1" step="0.05"></label>
             <label>對稱度<input data-sandbox-field="symmetry" type="number" min="0" max="1" step="0.05"></label>
             <label>風暴水氣<input data-sandbox-field="moisture" type="number" min="0" max="1" step="0.05"></label>
-            <label>SST °C<input data-sandbox-field="seaSurfaceTemperature" type="number" min="24" max="34" step="0.5"></label>
-            <label>OHC<input data-sandbox-field="oceanHeatContent" type="number" min="0.2" max="1" step="0.05"></label>
+            <label>海面溫度（攝氏度）<input data-sandbox-field="seaSurfaceTemperature" type="number" min="24" max="34" step="0.5"></label>
+            <label>海洋熱含量（相對係數）<input data-sandbox-field="oceanHeatContent" type="number" min="0.2" max="1" step="0.05"></label>
             <label>地形倍率<input data-sandbox-field="terrainMultiplier" type="number" min="0" max="2" step="0.1"></label>
-            <label>副高強度<input data-sandbox-field="subtropicalHighIntensity" type="number" min="0" max="1" step="0.05"></label>
-            <label>副高西界 °E<input data-sandbox-field="subtropicalHighWestwardExtent" type="number" min="112" max="150" step="1"></label>
-            <label>副高脊線 °N<input data-sandbox-field="subtropicalHighRidgeLatitude" type="number" min="20" max="34" step="1"></label>
-            <label>垂直風切 m/s<input data-sandbox-field="verticalWindShear" type="number" min="0" max="30" step="1"></label>
-            <label>西南季風<input data-sandbox-field="southwestMonsoonIntensity" type="number" min="0" max="1" step="0.05"></label>
-            <label>季風水氣<input data-sandbox-field="southwestMonsoonMoisture" type="number" min="0.5" max="0.95" step="0.05"></label>
+            <label>太平洋副熱帶高壓強度<input data-sandbox-field="subtropicalHighIntensity" type="number" min="0" max="1" step="0.05"></label>
+            <label>太平洋副熱帶高壓西伸邊界（東經）<input data-sandbox-field="subtropicalHighWestwardExtent" type="number" min="112" max="150" step="1"></label>
+            <label>太平洋副熱帶高壓脊線（北緯）<input data-sandbox-field="subtropicalHighRidgeLatitude" type="number" min="20" max="34" step="1"></label>
+            <label>垂直風切（公尺／秒）<input data-sandbox-field="verticalWindShear" type="number" min="0" max="30" step="1"></label>
+            <label>西南季風強度<input data-sandbox-field="southwestMonsoonIntensity" type="number" min="0" max="1" step="0.05"></label>
+            <label>西南季風水氣<input data-sandbox-field="southwestMonsoonMoisture" type="number" min="0.5" max="0.95" step="0.05"></label>
           </div>
           <button id="apply-sandbox-button" type="button">套用並儲存沙盒設定</button>
         </details>
-
-        <div class="control-stack">
-          <button id="start-button" class="primary-button" type="button">
-            開始「那霸風雨」
-          </button>
-          <button id="pause-button" type="button" disabled>暫停</button>
-          <button id="reset-button" type="button" disabled>重啟並清除狀態</button>
-        </div>
-
-        <fieldset class="speed-picker">
-          <legend>模擬速度</legend>
-          <div class="segmented-control">
-            <button type="button" data-speed="1" aria-pressed="true">1×</button>
-            <button type="button" data-speed="4" aria-pressed="false">4×</button>
-            <button type="button" data-speed="12" aria-pressed="false">12×</button>
-            <button type="button" data-speed="24" aria-pressed="false">24×</button>
-          </div>
-        </fieldset>
 
         <section
           id="tutorial-panel"
@@ -105,7 +88,7 @@
           aria-live="polite"
         >
           <p class="eyebrow">教學提示</p>
-          <h3 id="tutorial-panel-title" data-tutorial-title>先觀察副高</h3>
+          <h3 id="tutorial-panel-title" data-tutorial-title>先觀察太平洋副熱帶高壓</h3>
           <p data-tutorial-body></p>
         </section>
 
@@ -114,14 +97,14 @@
           class="environment-controls"
           aria-labelledby="environment-controls-title"
         >
-          <h3 id="environment-controls-title">環境目標控制</h3>
-          <p>滑桿設定目標；實際環境依 τ 時間逐步反應。</p>
+          <h3 id="environment-controls-title">環境調度</h3>
+          <p>滑桿設定目標；實際環境會依反應時間逐步改變。</p>
 
           <div
             class="environment-control"
             data-control-name="subtropicalHighIntensity"
           >
-            <label for="control-high-intensity">副高強度</label>
+            <label for="control-high-intensity">太平洋副熱帶高壓強度</label>
             <input
               id="control-high-intensity"
               type="range"
@@ -138,7 +121,7 @@
             class="environment-control"
             data-control-name="subtropicalHighWestwardExtent"
           >
-            <label for="control-high-west">副高西伸邊界</label>
+            <label for="control-high-west">太平洋副熱帶高壓西伸邊界</label>
             <input
               id="control-high-west"
               type="range"
@@ -155,7 +138,7 @@
             class="environment-control"
             data-control-name="subtropicalHighRidgeLatitude"
           >
-            <label for="control-high-ridge">副高脊線緯度</label>
+            <label for="control-high-ridge">太平洋副熱帶高壓脊線緯度</label>
             <input
               id="control-high-ridge"
               type="range"
@@ -189,7 +172,7 @@
             class="environment-control"
             data-control-name="southwestMonsoonMoisture"
           >
-            <label for="control-monsoon-moisture">西南季風水氣</label>
+            <label for="control-monsoon-moisture">西南季風水氣供應</label>
             <input
               id="control-monsoon-moisture"
               type="range"
@@ -220,27 +203,38 @@
           </div>
         </section>
 
-        <label class="particle-toggle">
-          <input id="particles-enabled" type="checkbox" checked>
-          <span>顯示視覺粒子（不參與物理）</span>
-        </label>
-        <label class="particle-profile" for="particle-profile">
-          粒子效能層級
-          <select id="particle-profile">
-            <option value="low">低｜300</option>
-            <option value="medium" selected>中｜700</option>
-            <option value="high">高｜1200</option>
-          </select>
-        </label>
+        <details class="display-settings">
+          <summary>地圖與動態顯示設定</summary>
+          <label class="particle-toggle">
+            <input id="particles-enabled" type="checkbox" checked>
+            <span>顯示風暴粒子（不參與物理計算）</span>
+          </label>
+          <label class="particle-profile" for="particle-profile">
+            畫面粒子數量
+            <select id="particle-profile">
+              <option value="low">低｜300</option>
+              <option value="medium" selected>中｜700</option>
+              <option value="high">高｜1200</option>
+            </select>
+          </label>
 
-        <fieldset class="layer-controls">
-          <legend>圖層切換</legend>
-          <label><input id="environment-layer" type="checkbox" checked>環境場</label>
-          <label><input id="track-layer" type="checkbox" checked>軌跡</label>
-          <label><input id="targets-layer" type="checkbox" checked>目標／警戒圈</label>
-        </fieldset>
+          <fieldset class="layer-controls">
+            <legend>地圖圖層</legend>
+            <label><input id="environment-layer" type="checkbox" checked>環境場</label>
+            <label><input id="track-layer" type="checkbox" checked>颱風路徑</label>
+            <label><input id="targets-layer" type="checkbox" checked>任務區與教學警戒區</label>
+          </fieldset>
+        </details>
 
-        <section class="export-panel" aria-labelledby="export-title">
+        <aside class="scope-note" aria-label="遊戲規則">
+          <strong>遊戲規則</strong>
+          <p>
+            沙盒模式不設勝敗；玩家只能調整環境，不能直接移動颱風或改寫風速。
+          </p>
+        </aside>
+        </div>
+
+        <section class="export-panel" aria-labelledby="export-title" hidden aria-hidden="true" data-back-office="simulation-io">
           <h3 id="export-title">儲存、匯入與匯出</h3>
           <div class="export-actions">
             <button type="button" data-export="csv">軌跡 CSV</button>
@@ -260,24 +254,39 @@
 
         <div id="app-error" class="error-message" role="alert" hidden></div>
 
-        <aside class="scope-note" aria-label="本階段範圍">
-          <strong>本階段邊界</strong>
-          <p>
-            沙盒沒有勝敗；localStorage 不保存敏感個資。所有輸出僅供
-            科學教育，Not for Forecasting。
-          </p>
-        </aside>
+        <section class="command-deck" aria-labelledby="command-deck-title">
+          <div class="command-deck-heading">
+            <p class="eyebrow">即時操作</p>
+            <h3 id="command-deck-title">行動指令</h3>
+          </div>
+          <fieldset class="speed-picker">
+            <legend>時間推進速度</legend>
+            <div class="segmented-control">
+              <button type="button" data-speed="1" aria-pressed="true">1×</button>
+              <button type="button" data-speed="4" aria-pressed="false">4×</button>
+              <button type="button" data-speed="12" aria-pressed="false">12×</button>
+              <button type="button" data-speed="24" aria-pressed="false">24×</button>
+            </div>
+          </fieldset>
+          <div class="control-stack">
+            <button id="start-button" class="primary-button" type="button">
+              開始「那霸風雨」
+            </button>
+            <button id="pause-button" type="button" disabled>暫停</button>
+            <button id="reset-button" type="button" disabled>重新部署任務</button>
+          </div>
+        </section>
       </section>
 
       <section class="viewport-panel panel" aria-labelledby="viewport-title">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">西北太平洋篇</p>
-            <h2 id="viewport-title">模擬視窗</h2>
+            <h2 id="viewport-title">戰況地圖</h2>
           </div>
           <p class="live-time" aria-live="off">
             <span>模擬時間</span>
-            <strong id="sim-time">00d 00h 00m</strong>
+            <strong id="sim-time">00 日 00 時 00 分</strong>
           </p>
         </div>
 
@@ -298,7 +307,7 @@
           ></canvas>
         </div>
         <p id="map-query-help" class="map-query-help">
-          地圖範圍 100°E～160°E、0°N～40°N。海岸線為教育用簡化圖，
+          地圖範圍東經 100°～160°、北緯 0°～40°。海岸線與地形陰影為教育用簡化圖，
           不具導航或測繪精度。
         </p>
         <p id="canvas-summary" class="visually-hidden">
@@ -313,23 +322,25 @@
       </section>
 
       <aside class="diagnostics-panel panel" aria-labelledby="diagnostics-title">
-        <p class="phase-badge">ENGINE DIAGNOSTICS</p>
-        <h2 id="diagnostics-title">即時診斷</h2>
-        <dl class="diagnostic-list">
+        <p class="phase-badge">即時戰況</p>
+        <h2 id="diagnostics-title">戰況情報</h2>
+        <details class="developer-diagnostics">
+          <summary>效能診斷</summary>
+          <dl class="diagnostic-list">
           <div>
-            <dt>FPS</dt>
+            <dt>每秒畫面格數</dt>
             <dd id="fps-readout">0</dd>
           </div>
           <div>
-            <dt>平均／最低 FPS</dt>
+            <dt>平均／最低每秒畫面格數</dt>
             <dd id="fps-range-readout">0 / 0</dd>
           </div>
           <div>
-            <dt>Update／Render</dt>
-            <dd id="timing-readout">0.00 / 0.00 ms</dd>
+            <dt>模型更新／畫面繪製</dt>
+            <dd id="timing-readout">0.00 / 0.00 毫秒</dd>
           </div>
           <div>
-            <dt>Long tasks</dt>
+            <dt>長工作數量</dt>
             <dd id="long-task-readout">0</dd>
           </div>
           <div>
@@ -337,15 +348,15 @@
             <dd id="particle-readout">中｜700</dd>
           </div>
           <div>
-            <dt>Simulation step</dt>
-            <dd>10 min</dd>
+            <dt>固定模擬步長</dt>
+            <dd>10 分鐘</dd>
           </div>
           <div>
-            <dt>Update 次數</dt>
+            <dt>模型更新次數</dt>
             <dd id="update-count">0</dd>
           </div>
           <div>
-            <dt>DPR 上限</dt>
+            <dt>顯示像素比例上限</dt>
             <dd>2×</dd>
           </div>
           <div>
@@ -360,7 +371,8 @@
             <dt>環境網格</dt>
             <dd id="environment-grid-status">建立中</dd>
           </div>
-        </dl>
+          </dl>
+        </details>
 
         <section
           class="storm-dashboard"
@@ -369,13 +381,13 @@
         >
           <h3 id="storm-dashboard-title">KOSMOS-06 關卡颱風</h3>
           <dl class="storm-metrics">
-            <div><dt>中心位置</dt><dd id="storm-position">14.00°N, 145.00°E</dd></div>
-            <div><dt>移動</dt><dd id="storm-motion">12.0 km/h · 305°</dd></div>
+            <div><dt>中心位置</dt><dd id="storm-position">北緯 14.00°、東經 145.00°</dd></div>
+            <div><dt>移動</dt><dd id="storm-motion">每小時 12.0 公里 · 305°</dd></div>
             <div><dt>導引向量</dt><dd id="steering-vector">—</dd></div>
-            <div><dt>最大風速</dt><dd id="storm-wind">15.0 m/s</dd></div>
-            <div><dt>中心氣壓</dt><dd id="storm-pressure">1005 hPa</dd></div>
-            <div><dt>暴風半徑</dt><dd id="storm-radius">80 km</dd></div>
-            <div><dt>目標風速</dt><dd id="target-wind">15.0 m/s</dd></div>
+            <div><dt>近中心最大風速</dt><dd id="storm-wind">每秒 15.0 公尺</dd></div>
+            <div><dt>中心氣壓</dt><dd id="storm-pressure">1005 百帕</dd></div>
+            <div><dt>七級風暴風半徑</dt><dd id="storm-radius">80 公里</dd></div>
+            <div><dt>目標近中心最大風速</dt><dd id="target-wind">每秒 15.0 公尺</dd></div>
             <div><dt>組織度</dt><dd id="storm-organization">28%</dd></div>
             <div><dt>對稱度</dt><dd id="storm-symmetry">34%</dd></div>
             <div><dt>結構</dt><dd id="storm-stage">cluster</dd></div>
@@ -385,15 +397,15 @@
             <div><dt>有效海溫</dt><dd id="effective-sst">—</dd></div>
             <div><dt>出海重組</dt><dd id="terrain-recovery">100% · 9.0 h</dd></div>
             <div><dt>最近海陸事件</dt><dd id="surface-events">尚無海陸轉換</dd></div>
-            <div><dt>Fingerprint</dt><dd id="storm-fingerprint">—</dd></div>
+            <div><dt>模擬驗證碼</dt><dd id="storm-fingerprint">—</dd></div>
           </dl>
           <h4>環境因子</h4>
           <dl class="factor-grid">
-            <div><dt>海溫</dt><dd data-factor="heat">—</dd></div>
+            <div><dt>海面溫度</dt><dd data-factor="heat">—</dd></div>
             <div><dt>海洋熱含量</dt><dd data-factor="oceanDepth">—</dd></div>
-            <div><dt>科氏組織</dt><dd data-factor="coriolisOrganization">—</dd></div>
-            <div><dt>低風切</dt><dd data-factor="shear">—</dd></div>
-            <div><dt>水氣</dt><dd data-factor="moisture">—</dd></div>
+            <div><dt>科氏力組織效率</dt><dd data-factor="coriolisOrganization">—</dd></div>
+            <div><dt>低垂直風切有利度</dt><dd data-factor="shear">—</dd></div>
+            <div><dt>環境水氣</dt><dd data-factor="moisture">—</dd></div>
             <div><dt>海陸</dt><dd data-factor="land">—</dd></div>
             <div><dt>地形</dt><dd data-factor="terrain">—</dd></div>
             <div><dt>冷水尾流</dt><dd data-factor="coldWake">—</dd></div>
@@ -410,7 +422,7 @@
           aria-labelledby="station-dashboard-title"
         >
           <h3 id="station-dashboard-title">六站模型觀測</h3>
-          <p>持續風／陣風為 m/s；雨率為 mm/h，累積雨量為 mm。</p>
+          <p>持續風與陣風單位為公尺／秒；雨率為毫米／小時，累積雨量為毫米。</p>
           <div id="station-observations" class="station-observations"></div>
         </section>
 
@@ -456,12 +468,12 @@
       hidden
     >
       <div class="result-card">
-        <p class="eyebrow">LEVEL RESULT</p>
+        <p class="eyebrow">任務結算</p>
         <h2 id="result-title" data-result-title>關卡結算</h2>
         <p data-result-summary></p>
         <dl class="result-metrics">
           <div><dt>模擬時間</dt><dd data-result-time>—</dd></div>
-          <div><dt>最大風速</dt><dd data-result-wind>—</dd></div>
+          <div><dt>近中心最大風速</dt><dd data-result-wind>—</dd></div>
           <div><dt>最低氣壓</dt><dd data-result-pressure>—</dd></div>
           <div><dt>路徑</dt><dd data-result-path>—</dd></div>
           <div><dt>測站摘要</dt><dd data-result-station>—</dd></div>

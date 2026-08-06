@@ -18,9 +18,9 @@ SGTS-NH 是以西北太平洋熱帶氣旋為題材的互動式科學教育模擬
 | Repository | `classroom-sgts-nh-tzk` |
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
 | GitHub Pages URL | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
-| 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.1 |
+| 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.3 |
 | 第一版 | 西北太平洋篇 |
-| 目前階段 | Phase 9 發布執行中；Pages 已獲授權，結果待驗證 |
+| 目前階段 | Phase 9 執行中；既有 Pages 已發布，本次介面修正僅在本機 |
 
 正式網站是純靜態 GitHub Pages 應用，只使用 HTML、CSS、原生 ES
 Modules、Canvas 2D、JSON、localStorage 與瀏覽器下載 API。正式執行不需要
@@ -33,11 +33,12 @@ Node.js 後端、資料庫、登入或秘密 API 金鑰，所有資源均支援
 - 無勝敗沙盒，可自訂生成點、強度、海洋與環境初始條件。
 - 10 模擬分鐘固定步進及 1×／4×／12×／24×；畫格率不改變物理公式。
 - 具種子的 PRNG、操作紀錄、fingerprint 與三關黃金重播。
-- 1° 環境網格、副高、西南季風、風切、β 漂移與平滑導引。
+- 1° 環境網格、太平洋副熱帶高壓、西南季風、垂直風切、β 漂移與平滑導引。
 - 臺灣地形、分段海陸作用、登陸／再出海事件及再組織延遲。
 - 動態冷水尾流、六測站持續風／陣風／雨率／累積雨量。
-- localStorage v1 安全回復，以及嚴格驗證的 JSON 匯入與重播。
-- CSV、模擬 JSON、沙盒 preset JSON、Canvas PNG 與文字摘要匯出。
+- localStorage v1 安全回復，以及後台使用的嚴格 JSON 驗證與重播能力。
+- 後台保留 CSV、模擬 JSON、沙盒設定 JSON、Canvas PNG 與文字摘要輸出，
+  不在玩家介面顯示。
 - 300／700／1200 粒子層級、即時效能診斷與減少動態模式。
 - 鍵盤操作、可見焦點、文字狀態、Canvas 文字摘要及錯誤 live region。
 
@@ -93,7 +94,10 @@ DOM controls
 ```
 
 渲染與粒子不能回寫物理狀態；玩家只能設定有反應時間的環境目標，不能
-直接拖動颱風。靜態地圖只載入／驗證一次，固定地理圖層快取於離屏 Canvas。
+直接拖動颱風。玩家介面由上方橫跨第一、二象限的戰況地圖、第三象限戰況資訊、
+第四象限參數操作組成，主要指令固定於第四象限下緣；
+靜態地圖只載入／驗證一次，固定地理圖層以海洋層次、陸地明暗、地形紋理及
+海岸線繪製後快取於離屏 Canvas。
 隱藏分頁停止更新與渲染，回到頁面時不補算隱藏期間。
 
 延伸文件：

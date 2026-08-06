@@ -5,8 +5,8 @@
 
 ## 文件狀態
 
-- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.1。
-- 目前 Phase：Phase 9 in progress；本機發布準備已完成，外部發布待授權。
+- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.3。
+- 目前 Phase：Phase 9 in progress；既有版本已發布，本次介面修正只在本機。
 - Phase 9 不改物理模型；加入可觀測效能、靜態地圖快取、無障礙與
   可重現 Pages artifact／deployment workflow。
 
@@ -69,7 +69,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 
 | 檔案 | 責任 |
 |---|---|
-| `index.html` | 三區介面、地圖查詢、控制項、診斷資料、品牌與聲明 |
+| `index.html` | 上方橫跨第一、二象限的地圖、第三象限戰況資訊、第四象限參數與遊戲指令、地圖查詢、品牌與聲明；後台 I/O 控制保持隱藏 |
 | `js/config.js` | 不可變的專案身份、版本及引擎常數 |
 | `js/app.js` | DOM 綁定、引擎／地圖組裝、查詢呈現、錯誤與可見性 |
 | `js/core/GameEngine.js` | requestAnimationFrame loop、update/render 分離與生命週期 |
@@ -78,8 +78,8 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/core/EventBus.js` | 具順序 ID、同一步順序與 dedupe 的事件傳遞 |
 | `js/ui/CanvasViewport.js` | 高 DPI backing store 與 resize |
 | `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、診斷 overlay 與 pointer 轉換 |
-| `js/rendering/FieldRenderer.js` | 海洋背景與每 5 度經緯線 |
-| `js/rendering/MapRenderer.js` | land polygon、coastSide、測站及查詢游標 |
+| `js/rendering/FieldRenderer.js` | 分層海洋背景、連續海面溫度場、環境場及座標標示 |
+| `js/rendering/MapRenderer.js` | 陸地明暗、地形紋理、雙層海岸線、臺灣山脈脊線、測站及查詢游標 |
 | `js/data/geography.js` | JSON 載入、驗證、海陸與位置描述 |
 | `js/data/stations.js` | 六站不可變位置與來源 |
 | `js/model/Typhoon.js` | 颱風完整欄位、結構 enum、路徑／事件歷史及物理 snapshot |
@@ -98,12 +98,12 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/rendering/TyphoonRenderer.js` | 五種颱風結構的 Canvas 表現 |
 | `js/rendering/TrackRenderer.js` | 只讀 trackHistory 的路徑線 |
 | `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
-| `js/rendering/FieldRenderer.js` | SST 底圖、等壓線、副高、季風槽及導引箭頭 |
+| `js/rendering/FieldRenderer.js` | 海面溫度底圖、等壓線、太平洋副熱帶高壓、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
 | `js/data/levels.js` | Level 等效 schema、DSL 白名單、站群／警戒區及三關資料 |
 | `js/data/sandbox.js` | 沙盒 preset schema、預設值及無勝敗 Level adapter |
 | `js/persistence/StorageManager.js` | localStorage v1 驗證、遷移入口與損壞回復 |
-| `js/io/SimulationIO.js` | 安全 JSON 匯入、重播資料及 CSV／JSON／PNG／文字匯出 |
+| `js/io/SimulationIO.js` | 後台專用的安全 JSON 匯入、重播資料及 CSV／JSON／PNG／文字輸出；不得成為玩家介面控制 |
 | `js/model/LevelState.js` | 目標／失敗、岸側／山脈／警戒事件、計分與不可變結果 |
 | `js/core/ObjectiveEvaluator.js` | 只以白名單 metric 計算目標及單次事件 |
 | `js/core/FailureEvaluator.js` | 邊界、消散、超時及區域順序失敗判定 |
@@ -111,7 +111,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/ui/Tutorial.js` | 依固定步數顯示資料驅動提示 |
 | `js/ui/ResultDialog.js` | 單次結算、模型統計、分數明細與重啟 |
 | `assets/maps/northwest-pacific.json` | 來源／授權完整的簡化地圖資料 |
-| `css/*.css` | tokens、桌面三區、平板／手機斷點、元件及無障礙 |
+| `css/*.css` | 遊戲化 HUD、上方全幅地圖、下方第三／第四象限等高雙欄、第四象限下緣緊湊指令停靠區（寬螢幕單列、較窄螢幕雙列）、手機斷點、元件及無障礙 |
 | `scripts/serve.mjs` | 僅供本機的靜態伺服器 |
 | `tests/*.test.js` | 狀態、時鐘、事件、Canvas、文件及 workflow 單元測試 |
 | `tests/integration/*.test.js` | 引擎固定步進事件及 Pages 子路徑整合測試 |

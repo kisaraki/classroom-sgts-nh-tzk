@@ -28,8 +28,8 @@
 | 19 | 測站值由模型產生 | passed | observation／pipeline tests |
 | 20 | 韋恩是三次進入警戒區 | passed | level schema／Wayne fixture |
 | 21 | localStorage 損壞安全回復 | passed | storage unit／Chrome／Safari |
-| 22 | 匯入資料先驗證 | passed | I/O negative unit／Chrome E2E |
-| 23 | CSV、JSON、PNG、摘要可用 | passed | unit／Chrome；Safari 摘要下載 |
+| 22 | 後台匯入資料先驗證 | passed | I/O negative unit；玩家介面不顯示匯入控制 |
+| 23 | 後台 CSV、JSON、PNG、摘要可用 | passed | I/O unit／integration；主規格 1.0.3 延續不在玩家介面顯示的規定 |
 | 24 | Chrome、Edge、macOS Safari、iPadOS Safari | **blocked** | Chrome／macOS Safari passed；Edge／iPadOS not_verified |
 | 25 | Console 無持續錯誤 | passed | 本機 E2E／Browser、Safari、公開 Chrome smoke |
 | 26 | 非預報聲明可見 | passed | foundation／Browser／Safari AX |

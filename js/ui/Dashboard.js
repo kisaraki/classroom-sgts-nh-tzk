@@ -5,6 +5,26 @@ const STATUS_LABELS = Object.freeze({
   pending: "未完成"
 });
 
+const UNIT_LABELS = Object.freeze({
+  "": "",
+  "hPa": "百帕",
+  "km": "公里",
+  "m/s": "公尺／秒",
+  "min": "分鐘",
+  "mm": "毫米",
+  entries: "次進入",
+  landfalls: "次登陸",
+  stations: "個測站"
+});
+
+const formatPlayerFacingText = (text) =>
+  text
+    .replaceAll("最大風速", "近中心最大風速")
+    .replace(/([0-9.]+) m\/s/g, "每秒 $1 公尺")
+    .replace(/([0-9.]+) hPa/g, "$1 百帕")
+    .replace(/([0-9.]+) km/g, "$1 公里")
+    .replace(/([0-9.]+) mm/g, "$1 毫米");
+
 const formatValue = (value, unit) => {
   if (value === null) {
     return "尚無資料";
@@ -14,7 +34,10 @@ const formatValue = (value, unit) => {
     return value ? "是" : "否";
   }
 
-  return `${value.toFixed(unit === "km" || unit === "mm" ? 1 : 2)} ${unit}`;
+  const label = UNIT_LABELS[unit] ?? unit;
+  return `${value.toFixed(unit === "km" || unit === "mm" ? 1 : 2)}${
+    label ? ` ${label}` : ""
+  }`;
 };
 
 export class Dashboard {
@@ -51,7 +74,7 @@ export class Dashboard {
       const remainingHours = Math.floor(remainingMinutes / 60);
       const remainingRemainder = remainingMinutes % 60;
       remainingElement.textContent =
-        `${remainingHours}h ${String(remainingRemainder).padStart(2, "0")}m`;
+        `${remainingHours} 小時 ${String(remainingRemainder).padStart(2, "0")} 分鐘`;
     }
 
     for (const objective of levelState.objectivesSnapshot()) {
@@ -88,8 +111,8 @@ export class Dashboard {
     eyebrow.className = "eyebrow";
     const levelIndex = LEVELS.indexOf(this.#level);
     eyebrow.textContent = this.#level.id === "sandbox"
-      ? "SANDBOX · NO WIN / LOSS"
-      : `LEVEL ${String(levelIndex + 1).padStart(2, "0")} · ${this.#level.id}`;
+      ? "自由實驗｜不設勝敗"
+      : `第 ${String(levelIndex + 1).padStart(2, "0")} 關｜任務識別 ${this.#level.id}`;
     title.textContent = this.#level.title;
     context.textContent =
       `${this.#level.historicalInspiration}｜${this.#level.disclaimer}`;
@@ -101,7 +124,7 @@ export class Dashboard {
     remainingValue.textContent =
       this.#level.id === "sandbox"
         ? "無勝敗"
-        : `${this.#level.durationHours}h 00m`;
+        : `${this.#level.durationHours} 小時 00 分鐘`;
     remaining.append(remainingValue);
     heading.append(eyebrow, title, context, remaining);
     const list = document.createElement("ol");
@@ -121,7 +144,7 @@ export class Dashboard {
       status.dataset.objectiveStatus = "";
       status.textContent = "未完成";
       rowHeading.append(label, status);
-      description.textContent = objective.description;
+      description.textContent = formatPlayerFacingText(objective.description);
       value.dataset.objectiveValue = "";
       value.textContent =
         `尚無資料 / ${formatValue(objective.threshold, objective.unit)}`;

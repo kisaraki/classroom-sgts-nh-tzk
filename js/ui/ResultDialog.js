@@ -1,6 +1,6 @@
 const formatSimulationMinutes = (minutes) => {
   const hours = Math.floor(minutes / 60);
-  return `${Math.floor(hours / 24)}d ${String(hours % 24).padStart(2, "0")}h`;
+  return `${Math.floor(hours / 24)} 日 ${String(hours % 24).padStart(2, "0")} 小時`;
 };
 
 export class ResultDialog {
@@ -46,12 +46,12 @@ export class ResultDialog {
     this.#root.querySelector("[data-result-time]").textContent =
       formatSimulationMinutes(result.simulationMinutes);
     this.#root.querySelector("[data-result-wind]").textContent =
-      `${result.statistics.maximumWind.toFixed(1)} m/s`;
+      `每秒 ${result.statistics.maximumWind.toFixed(1)} 公尺`;
     this.#root.querySelector("[data-result-pressure]").textContent =
-      `${result.statistics.minimumPressure.toFixed(0)} hPa`;
+      `${result.statistics.minimumPressure.toFixed(0)} 百帕`;
     this.#root.querySelector("[data-result-path]").textContent =
-      `${result.path.length} points · ` +
-      `${result.statistics.pathLengthKm.toFixed(0)} km`;
+      `${result.path.length} 個路徑點 · ` +
+      `${result.statistics.pathLengthKm.toFixed(0)} 公里`;
     this.#root.querySelector("[data-result-score]").textContent =
       `${result.score.total} / ${result.score.maximum}`;
     const stations = Object.values(result.statistics.stations);
@@ -65,8 +65,8 @@ export class ResultDialog {
     );
     this.#root.querySelector("[data-result-station]").textContent =
       stations.length > 0
-        ? `全站最大陣風 ${maximumGust.toFixed(1)} m/s · ` +
-          `單站最高累積雨量 ${maximumRain.toFixed(1)} mm`
+        ? `全站最大陣風每秒 ${maximumGust.toFixed(1)} 公尺 · ` +
+          `單站最高累積雨量 ${maximumRain.toFixed(1)} 毫米`
         : "尚無測站資料";
     this.#restartButton.textContent = `重啟「${level.title}」`;
     const scoreList = this.#root.querySelector("[data-result-breakdown]");

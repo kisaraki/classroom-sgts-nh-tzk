@@ -45,6 +45,7 @@ h1 {
 }
 
 .panel {
+  position: relative;
   min-width: 0;
   padding: clamp(1rem, 2vw, 1.4rem);
   border: 1px solid var(--color-border);
@@ -52,6 +53,16 @@ h1 {
   background: var(--color-panel);
   box-shadow: var(--shadow-panel);
   backdrop-filter: blur(14px);
+}
+
+.panel::before {
+  position: absolute;
+  inset: 0.55rem;
+  content: "";
+  pointer-events: none;
+  border-top: 1px solid rgb(217 249 255 / 8%);
+  border-left: 1px solid rgb(217 249 255 / 5%);
+  clip-path: polygon(0 0, 34px 0, 34px 1px, 1px 1px, 1px 34px, 0 34px);
 }
 
 .panel h2 {
@@ -67,8 +78,13 @@ h1 {
 
 .control-stack {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem;
-  margin-block: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.control-stack .primary-button {
+  grid-column: 1 / -1;
 }
 
 button {
@@ -96,6 +112,7 @@ button:disabled {
   color: var(--color-ocean-950);
   border-color: var(--color-cyan-300);
   background: var(--color-cyan-300);
+  box-shadow: 0 0 1.4rem rgb(118 228 247 / 22%);
 }
 
 .speed-picker {
@@ -135,6 +152,39 @@ button:disabled {
   margin-top: 0.9rem;
   color: var(--color-muted);
   font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.control-scroll {
+  min-height: 0;
+  margin-top: 0.75rem;
+  padding-right: 0.35rem;
+  overflow-y: auto;
+  scrollbar-color: rgb(118 228 247 / 40%) transparent;
+}
+
+.level-picker {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-cyan-100);
+  font-size: 0.8rem;
+  font-weight: 720;
+}
+
+.display-settings,
+.developer-diagnostics {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: rgb(6 17 31 / 48%);
+}
+
+.display-settings summary,
+.developer-diagnostics summary {
+  color: var(--color-cyan-100);
+  font-size: 0.84rem;
+  font-weight: 750;
   cursor: pointer;
 }
 
@@ -225,6 +275,17 @@ button:disabled {
   background: rgb(6 17 31 / 48%);
 }
 
+.export-panel[hidden] {
+  display: none;
+}
+
+.display-settings .layer-controls {
+  margin-top: 0.8rem;
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+}
+
 .sandbox-settings summary,
 .export-panel h3,
 .layer-controls legend {
@@ -294,6 +355,81 @@ button:disabled {
   font-size: 0.7rem;
 }
 
+.command-deck {
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 0.8fr) minmax(11rem, 1.2fr);
+  gap: 0.55rem;
+  align-items: end;
+  margin-top: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid rgb(255 210 125 / 40%);
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(135deg, rgb(58 40 10 / 88%), rgb(8 25 39 / 96%));
+  box-shadow:
+    0 -0.8rem 2rem rgb(2 10 20 / 82%),
+    inset 0 1px 0 rgb(255 241 206 / 9%);
+}
+
+.command-deck-heading {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-width: 2.25rem;
+  padding-right: 0.45rem;
+  border-right: 1px solid rgb(255 210 125 / 24%);
+}
+
+.command-deck-heading h3 {
+  color: var(--color-warning);
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  writing-mode: vertical-rl;
+}
+
+.command-deck-heading .eyebrow {
+  display: none;
+}
+
+.command-deck .speed-picker legend {
+  margin-bottom: 0.25rem;
+  font-size: 0.68rem;
+}
+
+.command-deck .control-stack {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 0.35rem;
+  align-self: end;
+  margin-top: 0;
+}
+
+.command-deck .control-stack .primary-button {
+  grid-column: auto;
+}
+
+.command-deck button {
+  min-height: 44px;
+  padding: 0.35rem 0.4rem;
+  font-size: clamp(0.68rem, 0.85vw, 0.78rem);
+  line-height: 1.2;
+}
+
+@media (width < 1100px) {
+  .command-deck {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .command-deck-heading {
+    grid-row: 1 / span 2;
+  }
+
+  .command-deck .control-stack {
+    grid-column: 2;
+  }
+}
+
 @media (width < 600px) {
   .sandbox-grid,
   .export-actions {
@@ -361,7 +497,7 @@ button:disabled {
 
 .objective-list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.7rem;
   padding: 0;
@@ -442,6 +578,8 @@ button:disabled {
 
 .diagnostic-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
 }
 
 .diagnostic-list div {
@@ -490,6 +628,7 @@ button:disabled {
 .storm-metrics,
 .factor-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.4rem;
 }
 
@@ -535,6 +674,7 @@ button:disabled {
 
 .station-observations {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
 }
 
@@ -683,28 +823,26 @@ button:disabled {
   }
 
   .objective-list,
+  .diagnostic-list,
+  .storm-metrics,
+  .factor-grid,
+  .station-observations,
   .result-metrics,
   .score-breakdown {
     grid-template-columns: 1fr;
   }
 }
 
-@media (height <= 760px) and (width >= 1100px) {
+@media (height <= 760px) and (width >= 900px) {
   h1 {
-    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    font-size: clamp(2rem, 4vw, 3.25rem);
   }
 
   .panel {
     padding: 1rem;
   }
 
-  .control-panel {
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
-  }
-
-  .diagnostics-panel {
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
+  .command-deck {
+    padding: 0.55rem;
   }
 }

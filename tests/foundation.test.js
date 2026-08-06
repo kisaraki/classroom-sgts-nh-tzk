@@ -44,13 +44,13 @@ test("project identity is stable and frozen", () => {
   assert.equal(Object.isFrozen(PROJECT_CONFIG), true);
 });
 
-test("main specification is version 1.0.1", async () => {
+test("main specification is version 1.0.3", async () => {
   const specification = await readFile(
     path.join(PROJECT_ROOT, "SGTS-NH_MASTER_SPEC.md"),
     "utf8"
   );
 
-  assert.match(specification, /\| 文件版本 \| 1\.0\.1 \|/);
+  assert.match(specification, /\| 文件版本 \| 1\.0\.3 \|/);
   assert.match(specification, new RegExp(BRAND, "u"));
 });
 

@@ -98,8 +98,8 @@ export const formatSimulationTime = (simulationMinutes) => {
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
 
-  return `${String(days).padStart(2, "0")}d ${String(hours).padStart(
+  return `${String(days).padStart(2, "0")} 日 ${String(hours).padStart(
     2,
     "0"
-  )}h ${String(minutes).padStart(2, "0")}m`;
+  )} 時 ${String(minutes).padStart(2, "0")} 分`;
 };

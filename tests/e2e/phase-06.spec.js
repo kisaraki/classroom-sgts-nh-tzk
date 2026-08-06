@@ -11,24 +11,24 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
   });
 
   await page.goto("./");
-  await expect(page.locator("#engine-state")).toHaveText("MENU");
+  await expect(page.locator("#engine-state")).toHaveAttribute("data-state-code", "MENU");
   await expect(page.locator("#simulation-canvas")).toBeVisible();
-  await expect(page.locator("#map-data-status")).toContainText("regions");
+  await expect(page.locator("#map-data-status")).toContainText("地理區域");
   const positionBefore = await page.locator("#storm-position").textContent();
 
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
-  await expect(page.locator("#engine-state")).toHaveText("RUNNING");
+  await expect(page.locator("#engine-state")).toHaveAttribute("data-state-code", "RUNNING");
   await expect
     .poll(async () => Number(await page.locator("#step-count").textContent()))
     .toBeGreaterThan(0);
-  await expect(page.locator("#storm-wind")).not.toHaveText("15.0 m/s");
+  await expect(page.locator("#storm-wind")).not.toHaveText("每秒 15.0 公尺");
   await expect(page.locator("#storm-fingerprint")).toHaveText(/^[0-9a-f]{8}$/u);
   await expect(page.locator("#storm-position")).not.toHaveText(positionBefore);
-  await expect(page.locator("#storm-motion")).toContainText("km/h");
+  await expect(page.locator("#storm-motion")).toContainText("每小時");
 
   await page.locator("#pause-button").click();
-  await expect(page.locator("#engine-state")).toHaveText("PAUSED");
+  await expect(page.locator("#engine-state")).toHaveAttribute("data-state-code", "PAUSED");
   const pausedStep = await page.locator("#step-count").textContent();
   await page.waitForTimeout(350);
   await expect(page.locator("#step-count")).toHaveText(pausedStep);
@@ -38,23 +38,90 @@ test("application controls fixed-step simulation and pauses cleanly", async ({
 test("responsive layouts retain controls and narrow-screen guidance", async ({
   page
 }) => {
-  await page.setViewportSize({ height: 768, width: 1024 });
+  await page.setViewportSize({ height: 600, width: 1024 });
   await page.goto("./");
 
   const tabletLayout = await page.evaluate(() => {
     const control = document.querySelector(".control-panel");
+    const diagnostics = document.querySelector(".diagnostics-panel");
     const viewport = document.querySelector(".viewport-panel");
+    const controlBox = control.getBoundingClientRect();
+    const diagnosticsBox = diagnostics.getBoundingClientRect();
+    const viewportBox = viewport.getBoundingClientRect();
 
     return {
       clientWidth: document.documentElement.clientWidth,
-      controlTop: control.getBoundingClientRect().top,
+      control: {
+        bottom: controlBox.bottom,
+        left: controlBox.left,
+        right: controlBox.right,
+        top: controlBox.top
+      },
+      diagnostics: {
+        bottom: diagnosticsBox.bottom,
+        left: diagnosticsBox.left,
+        right: diagnosticsBox.right,
+        top: diagnosticsBox.top
+      },
       scrollWidth: document.documentElement.scrollWidth,
-      viewportTop: viewport.getBoundingClientRect().top
+      viewport: {
+        bottom: viewportBox.bottom,
+        left: viewportBox.left,
+        right: viewportBox.right,
+        top: viewportBox.top
+      }
     };
   });
 
   expect(tabletLayout.scrollWidth).toBe(tabletLayout.clientWidth);
-  expect(tabletLayout.controlTop).toBeGreaterThan(tabletLayout.viewportTop);
+  expect(tabletLayout.viewport.left).toBeCloseTo(tabletLayout.diagnostics.left, 0);
+  expect(tabletLayout.viewport.right).toBeCloseTo(tabletLayout.control.right, 0);
+  expect(tabletLayout.viewport.bottom).toBeLessThanOrEqual(tabletLayout.control.top);
+  expect(tabletLayout.viewport.bottom).toBeLessThanOrEqual(tabletLayout.diagnostics.top);
+  expect(tabletLayout.diagnostics.right).toBeLessThanOrEqual(tabletLayout.control.left);
+  expect(tabletLayout.diagnostics.top).toBeCloseTo(tabletLayout.control.top, 0);
+  expect(tabletLayout.diagnostics.bottom).toBeCloseTo(tabletLayout.control.bottom, 0);
+  await expect(page.locator(".command-deck")).toBeVisible();
+
+  const compactTabletDeck = await page.locator(".command-deck").evaluate(
+    (deck) => {
+      const buttons = [...deck.querySelectorAll(".control-stack button")];
+      const boxes = buttons.map((button) => button.getBoundingClientRect());
+
+      return {
+        buttonHeights: boxes.map((box) => box.height),
+        buttonTops: boxes.map((box) => box.top),
+        height: deck.getBoundingClientRect().height
+      };
+    }
+  );
+
+  expect(compactTabletDeck.height).toBeLessThanOrEqual(145);
+  expect(new Set(compactTabletDeck.buttonTops).size).toBe(1);
+  expect(Math.min(...compactTabletDeck.buttonHeights)).toBeGreaterThanOrEqual(44);
+
+  await page.setViewportSize({ height: 720, width: 1180 });
+
+  const desktopLayout = await page.evaluate(() => {
+    const deck = document.querySelector(".command-deck").getBoundingClientRect();
+    const diagnostics = document.querySelector(".diagnostics-panel").getBoundingClientRect();
+    const control = document.querySelector(".control-panel").getBoundingClientRect();
+    const viewport = document.querySelector(".viewport-panel").getBoundingClientRect();
+
+    return {
+      control: { left: control.left, right: control.right, top: control.top },
+      deckHeight: deck.height,
+      diagnostics: { left: diagnostics.left, right: diagnostics.right, top: diagnostics.top },
+      viewport: { bottom: viewport.bottom, left: viewport.left, right: viewport.right }
+    };
+  });
+
+  expect(desktopLayout.deckHeight).toBeLessThanOrEqual(100);
+  expect(desktopLayout.viewport.left).toBeCloseTo(desktopLayout.diagnostics.left, 0);
+  expect(desktopLayout.viewport.right).toBeCloseTo(desktopLayout.control.right, 0);
+  expect(desktopLayout.viewport.bottom).toBeLessThanOrEqual(desktopLayout.control.top);
+  expect(desktopLayout.diagnostics.right).toBeLessThanOrEqual(desktopLayout.control.left);
+  expect(desktopLayout.diagnostics.top).toBeCloseTo(desktopLayout.control.top, 0);
 
   await page.setViewportSize({ height: 844, width: 390 });
 
@@ -86,9 +153,10 @@ test("particle control is explicitly visual-only and preserves the dashboard", a
   const toggle = page.locator("#particles-enabled");
 
   await expect(toggle).toBeChecked();
+  await page.locator(".display-settings summary").click();
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
-  await expect(page.locator("#storm-stage")).toHaveText("cluster");
+  await expect(page.locator("#storm-stage")).toHaveText("鬆散雲團");
   await expect(page.locator('[data-factor="developmentPotential"]')).toHaveText(
     /%$/u
   );
@@ -100,7 +168,7 @@ test("environment target changes are delayed and never directly move the storm",
 }) => {
   await page.goto("./");
   await expect(page.locator("#environment-grid-status")).toHaveText(
-    "2501 cells · 1°"
+    "2501 個網格 · 1° 間距"
   );
   const control = page.locator(
     '[data-control-name="subtropicalHighIntensity"]'
@@ -119,7 +187,9 @@ test("environment target changes are delayed and never directly move the storm",
     .poll(async () => control.locator("[data-control-actual]").textContent())
     .not.toBe("82%");
   await expect(control.locator("[data-control-actual]")).not.toHaveText("100%");
-  await expect(control.locator("[data-control-trend]")).toContainText("τ 12h");
+  await expect(control.locator("[data-control-trend]")).toContainText(
+    "反應時間 12 小時"
+  );
 });
 
 test("map query identifies Taiwan and stays aligned after resize", async ({
@@ -135,21 +205,21 @@ test("map query identifies Taiwan and stays aligned after resize", async ({
   };
 
   await page.goto("./");
-  await expect(page.locator("#map-data-status")).toContainText("regions");
+  await expect(page.locator("#map-data-status")).toContainText("地理區域");
   await selectCoordinate({ lat: 23.7, lon: 121 });
   await expect(page.locator("#probe-coordinate")).toHaveText(
-    "23.70°N, 121.00°E"
+    "北緯 23.70°、東經 121.00°"
   );
   await expect(page.locator("#probe-surface")).toContainText(
-    "taiwan-main"
+    "臺灣"
   );
 
   await page.setViewportSize({ height: 844, width: 390 });
   await selectCoordinate({ lat: 23.7, lon: 121 });
   await expect(page.locator("#probe-coordinate")).toHaveText(
-    "23.70°N, 121.00°E"
+    "北緯 23.70°、東經 121.00°"
   );
-  await expect(page.locator("#probe-station")).toContainText("km");
+  await expect(page.locator("#probe-station")).toContainText("公里");
 });
 
 test("cold wake and six model stations update, then reset completely", async ({
@@ -157,14 +227,14 @@ test("cold wake and six model stations update, then reset completely", async ({
 }) => {
   await page.goto("./");
   await expect(page.locator("#station-observations article")).toHaveCount(6);
-  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+  await expect(page.locator("#center-cold-wake")).toContainText("攝氏 0.00 度");
 
   await page.locator("[data-speed='24']").click();
   await page.locator("#start-button").click();
   await expect
     .poll(async () => Number(await page.locator("#step-count").textContent()))
     .toBeGreaterThan(8);
-  await expect(page.locator("#center-cold-wake")).not.toContainText("0.00 °C");
+  await expect(page.locator("#center-cold-wake")).not.toContainText("攝氏 0.00 度");
   await expect(
     page.locator('[data-station-rain="hualien"]')
   ).toContainText("累積");
@@ -173,15 +243,15 @@ test("cold wake and six model stations update, then reset completely", async ({
   ).toContainText("陣風");
 
   await page.locator("#reset-button").click();
-  await expect(page.locator("#engine-state")).toHaveText("MENU");
+  await expect(page.locator("#engine-state")).toHaveAttribute("data-state-code", "MENU");
   await expect(page.locator("#step-count")).toHaveText("0");
-  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+  await expect(page.locator("#center-cold-wake")).toContainText("攝氏 0.00 度");
   await expect(page.locator("#surface-events")).toHaveText("尚無海陸轉換");
 
   for (const row of await page
     .locator("#station-observations article")
     .all()) {
-    await expect(row).toContainText("累積 0.0 mm");
+    await expect(row).toContainText("累積 0.0 毫米");
   }
 });
 
@@ -192,12 +262,14 @@ test("Naha objectives expose thresholds, progress, and time metadata", async ({
 
   await expect(page.locator("#level-dashboard")).toContainText("那霸風雨");
   await expect(page.locator("#level-dashboard")).toContainText("2018 潭美");
-  await expect(page.locator("[data-level-remaining]")).toHaveText("168h 00m");
+  await expect(page.locator("[data-level-remaining]")).toHaveText("168 小時 00 分鐘");
   await expect(page.locator(".objective-list > li")).toHaveCount(4);
   await expect(
     page.locator('[data-objective-id="naha-proximity"]')
   ).toHaveAttribute("data-status", "pending");
-  await expect(page.locator("#tutorial-panel")).toContainText("先觀察副高");
+  await expect(page.locator("#tutorial-panel")).toContainText(
+    "先觀察太平洋副熱帶高壓"
+  );
   await expect(page.locator("#result-dialog")).toBeHidden();
 });
 
@@ -240,7 +312,7 @@ test("golden browser replay wins, settles once, and restarts cleanly", async ({
   await page.locator("#start-button").click();
 
   await expect
-    .poll(async () => page.locator("#engine-state").textContent(), {
+    .poll(async () => page.locator("#engine-state").getAttribute("data-state-code"), {
       timeout: 45_000
     })
     .toBe("VICTORY");
@@ -259,18 +331,18 @@ test("golden browser replay wins, settles once, and restarts cleanly", async ({
   await expect(page.locator("#step-count")).toHaveText(settledStep);
 
   await page.locator("[data-result-restart]").click();
-  await expect(page.locator("#engine-state")).toHaveText("MENU");
+  await expect(page.locator("#engine-state")).toHaveAttribute("data-state-code", "MENU");
   await expect(page.locator("#step-count")).toHaveText("0");
   await expect(page.locator("#result-dialog")).toBeHidden();
   await expect(
     page.locator('.objective-list > li[data-status="pending"]')
   ).toHaveCount(4);
-  await expect(page.locator("#center-cold-wake")).toContainText("0.00 °C");
+  await expect(page.locator("#center-cold-wake")).toContainText("攝氏 0.00 度");
 
   for (const row of await page
     .locator("#station-observations article")
     .all()) {
-    await expect(row).toContainText("累積 0.0 mm");
+    await expect(row).toContainText("累積 0.0 毫米");
   }
 
   expect(consoleErrors).toEqual([]);

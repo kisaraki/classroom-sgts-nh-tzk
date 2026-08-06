@@ -13,9 +13,12 @@ test("environment control readouts preserve units", () => {
   );
   assert.equal(
     formatControlValue("subtropicalHighWestwardExtent", 128),
-    "128 °E"
+    "東經 128°"
   );
-  assert.equal(formatControlValue("verticalWindShear", 7), "7 m/s");
+  assert.equal(
+    formatControlValue("verticalWindShear", 7),
+    "7 公尺／秒"
+  );
 });
 
 test("environment control trends include a non-color text direction", () => {

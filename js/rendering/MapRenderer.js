@@ -5,13 +5,6 @@ import {
 } from "../data/terrain.js";
 import { destinationPoint, geoToCanvas } from "../utils/geo.js";
 
-const COAST_COLORS = Object.freeze({
-  east: "#76e4f7",
-  north: "#eef7ff",
-  south: "#ff9c9c",
-  west: "#ffd27d"
-});
-
 const STATION_LABEL_OFFSETS = Object.freeze({
   hualien: Object.freeze({ x: 9, y: 17 }),
   naha: Object.freeze({ x: 8, y: -7 }),
@@ -170,10 +163,17 @@ export class MapRenderer {
 
   #drawStaticMap(context, geography, viewport, width) {
     context.save();
-    context.fillStyle = "#294638";
-    context.strokeStyle = "rgba(217, 249, 255, 0.7)";
+    const land = context.createLinearGradient(
+      viewport.padding.left,
+      viewport.padding.top,
+      width - viewport.padding.right,
+      viewport.height - viewport.padding.bottom
+    );
+    land.addColorStop(0, "#53644a");
+    land.addColorStop(0.38, "#3e5b43");
+    land.addColorStop(0.68, "#314d3d");
+    land.addColorStop(1, "#243d35");
     context.lineJoin = "round";
-    context.lineWidth = 1.1;
 
     for (const feature of geography.features) {
       context.beginPath();
@@ -182,9 +182,24 @@ export class MapRenderer {
         traceRing(context, ring, viewport);
       }
 
+      context.save();
+      context.shadowBlur = 12;
+      context.shadowColor = "rgba(1, 7, 13, 0.72)";
+      context.shadowOffsetX = 3;
+      context.shadowOffsetY = 5;
+      context.fillStyle = land;
       context.fill("evenodd");
+      context.restore();
+
+      context.strokeStyle = "rgba(2, 12, 18, 0.86)";
+      context.lineWidth = 3.4;
+      context.stroke();
+      context.strokeStyle = "rgba(220, 239, 218, 0.76)";
+      context.lineWidth = 0.85;
       context.stroke();
     }
+
+    this.#drawLandRelief(context, geography, viewport);
 
     const taiwan = geography.features.find(
       (feature) => feature.properties.regionId === "taiwan-main"
@@ -197,11 +212,62 @@ export class MapRenderer {
     for (const segment of taiwan?.properties.coastSegments ?? []) {
       context.beginPath();
       traceLine(context, segment.coordinates, viewport);
-      context.strokeStyle = COAST_COLORS[segment.coastSide];
-      context.lineWidth = 2.5;
+      context.strokeStyle = "rgba(255, 241, 206, 0.28)";
+      context.lineWidth = 1.1;
       context.stroke();
     }
 
+    context.restore();
+  }
+
+  #drawLandRelief(context, geography, viewport) {
+    context.save();
+    context.strokeStyle = "rgba(224, 235, 196, 0.09)";
+    context.lineWidth = 0.65;
+
+    for (const feature of geography.features) {
+      context.save();
+      context.beginPath();
+      for (const ring of feature.geometry.coordinates) {
+        traceRing(context, ring, viewport);
+      }
+      context.clip("evenodd");
+
+      const primaryRing = feature.geometry.coordinates[0];
+      const center = primaryRing.reduce(
+        (total, [lon, lat]) => ({
+          lat: total.lat + lat / primaryRing.length,
+          lon: total.lon + lon / primaryRing.length
+        }),
+        { lat: 0, lon: 0 }
+      );
+      const point = geoToCanvas(center, viewport);
+      const relief = context.createRadialGradient(
+        point.x - 10,
+        point.y - 12,
+        0,
+        point.x,
+        point.y,
+        Math.max(24, viewport.width * 0.12)
+      );
+      relief.addColorStop(0, "rgba(226, 213, 155, 0.24)");
+      relief.addColorStop(0.48, "rgba(122, 145, 91, 0.12)");
+      relief.addColorStop(1, "rgba(3, 17, 15, 0.3)");
+      context.fillStyle = relief;
+      context.fillRect(0, 0, viewport.width, viewport.height);
+
+      for (
+        let diagonal = -viewport.height;
+        diagonal < viewport.width;
+        diagonal += 26
+      ) {
+        context.beginPath();
+        context.moveTo(diagonal, viewport.height);
+        context.lineTo(diagonal + viewport.height, 0);
+        context.stroke();
+      }
+      context.restore();
+    }
     context.restore();
   }
 
@@ -257,7 +323,7 @@ export class MapRenderer {
       context.fillStyle = "#d9f9ff";
       context.font = "750 9px ui-monospace, monospace";
       context.fillText(
-        `${zone.id.toUpperCase()} ${zone.radiusKm} km`,
+        `教育警戒區 ${zone.radiusKm} 公里`,
         center.x + 8,
         center.y - 10
       );
@@ -293,7 +359,7 @@ export class MapRenderer {
       context.fillStyle = "#fff1ce";
       context.font = "750 9px ui-monospace, monospace";
       context.fillText(
-        `EDU WARNING ${zone.radiusKm} km`,
+        `教學警戒區 ${zone.radiusKm} 公里`,
         center.x + 8,
         center.y - 10
       );
@@ -375,19 +441,21 @@ export class MapRenderer {
         context.lineTo(point.x, point.y);
       }
     });
-    context.strokeStyle = "rgba(255, 225, 167, 0.9)";
+    context.strokeStyle = "rgba(255, 225, 167, 0.92)";
     context.lineWidth = 2.2;
+    context.shadowBlur = 7;
+    context.shadowColor = "rgba(255, 210, 125, 0.72)";
     context.stroke();
     context.restore();
 
-    if (width >= 900) {
+    if (width >= 720) {
       const central = TAIWAN_TERRAIN_LABELS.find(
         (entry) => entry.zone === TerrainZone.CENTRAL_MOUNTAINS
       );
       const point = geoToCanvas(central, viewport);
       context.fillStyle = "#ffe1a7";
       context.font = "800 8px ui-monospace, monospace";
-      context.fillText("CMR", point.x + 4, point.y - 2);
+      context.fillText("中央山脈", point.x + 4, point.y - 2);
     }
   }
 }

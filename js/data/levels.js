@@ -763,13 +763,13 @@ export const NAHA_STORM_LEVEL = validateLevel({
   steeringMeridionalMultiplier: 1,
   tutorialMessages: [
     {
-      body: "副高較強且向西伸時，會提供偏西導引；環境需要數小時才會回應。",
+      body: "太平洋副熱帶高壓較強且向西伸展時，會提供偏西導引；環境需要數小時才會回應。",
       id: "high-guidance",
-      title: "先觀察副高",
+      title: "先觀察太平洋副熱帶高壓",
       triggerStep: 0
     },
     {
-      body: "保持低風切與充足水氣，讓初始擾動逐步組織，不能直接增加風速。",
+      body: "保持較弱的垂直風切與充足水氣，讓初始擾動逐步組織，不能直接增加風速。",
       id: "intensity-balance",
       title: "管理強度",
       triggerStep: 72
@@ -1210,7 +1210,7 @@ export const WAYNE_THREE_ENTRIES_LEVEL = validateLevel({
   title: "韋恩三進",
   tutorialMessages: [
     {
-      body: "教育警戒圈以 23.70°N、120.95°E 為中心、半徑 400 km；短暫擦邊不算一次有效進圈。",
+      body: "教育警戒圈以北緯 23.70°、東經 120.95°為中心、半徑 400 公里；短暫擦邊不算一次有效進圈。",
       id: "warning-zone",
       title: "先理解警戒圈",
       triggerStep: 0

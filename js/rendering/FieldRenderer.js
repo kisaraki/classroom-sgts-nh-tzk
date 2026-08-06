@@ -54,12 +54,29 @@ export class FieldRenderer {
   }
 
   draw({ bounds, context, environment, height, padding, width }) {
-    const ocean = context.createLinearGradient(0, 0, width, height);
-    ocean.addColorStop(0, "#061625");
-    ocean.addColorStop(0.55, "#0a2a40");
-    ocean.addColorStop(1, "#10384f");
+    const ocean = context.createLinearGradient(0, padding.top, width, height);
+    ocean.addColorStop(0, "#071522");
+    ocean.addColorStop(0.38, "#0b2d42");
+    ocean.addColorStop(0.72, "#0b3b55");
+    ocean.addColorStop(1, "#071b2c");
     context.fillStyle = ocean;
     context.fillRect(0, 0, width, height);
+
+    const basinLight = context.createRadialGradient(
+      width * 0.68,
+      height * 0.62,
+      0,
+      width * 0.68,
+      height * 0.62,
+      Math.max(width, height) * 0.72
+    );
+    basinLight.addColorStop(0, "rgba(37, 120, 145, 0.24)");
+    basinLight.addColorStop(0.56, "rgba(8, 52, 75, 0.09)");
+    basinLight.addColorStop(1, "rgba(1, 10, 20, 0.38)");
+    context.fillStyle = basinLight;
+    context.fillRect(0, 0, width, height);
+
+    this.#drawOceanTexture({ context, height, padding, width });
 
     if (environment?.cells.length > 0) {
       this.#drawTemperatureField({
@@ -156,6 +173,12 @@ export class FieldRenderer {
     const minimum = PROJECT_CONFIG.renderingConfig.coldWakeTileMinimum;
     const maximum = PROJECT_CONFIG.oceanCoolingConfig.maximumColdWake;
     const resolution = environment.gridResolution;
+    const horizontalScale =
+      (width - padding.left - padding.right) /
+      (bounds.maxLon - bounds.minLon);
+    const verticalScale =
+      (height - padding.top - padding.bottom) /
+      (bounds.maxLat - bounds.minLat);
 
     context.save();
 
@@ -164,31 +187,27 @@ export class FieldRenderer {
         continue;
       }
 
-      const topLeft = geoToCanvas(
-        {
-          lat: Math.min(bounds.maxLat, cell.lat + resolution / 2),
-          lon: Math.max(bounds.minLon, cell.lon - resolution / 2)
-        },
-        { bounds, height, padding, width }
-      );
-      const bottomRight = geoToCanvas(
-        {
-          lat: Math.max(bounds.minLat, cell.lat - resolution / 2),
-          lon: Math.min(bounds.maxLon, cell.lon + resolution / 2)
-        },
-        { bounds, height, padding, width }
-      );
+      const center = geoToCanvas(cell, { bounds, height, padding, width });
       const intensity = clamp(cell.coldWake / maximum, 0, 1);
-      context.fillStyle =
-        `rgba(${Math.round(38 + intensity * 58)}, ` +
-        `${Math.round(104 + intensity * 40)}, 216, ` +
-        `${0.15 + intensity * 0.5})`;
-      context.fillRect(
-        topLeft.x,
-        topLeft.y,
-        bottomRight.x - topLeft.x,
-        bottomRight.y - topLeft.y
+      const radius = Math.max(horizontalScale, verticalScale) * resolution;
+      const wake = context.createRadialGradient(
+        center.x,
+        center.y,
+        0,
+        center.x,
+        center.y,
+        radius
       );
+      wake.addColorStop(
+        0,
+        `rgba(${Math.round(45 + intensity * 45)}, 116, 211, ${0.22 + intensity * 0.48})`
+      );
+      wake.addColorStop(0.55, `rgba(58, 112, 194, ${0.12 + intensity * 0.28})`);
+      wake.addColorStop(1, "rgba(35, 84, 158, 0)");
+      context.fillStyle = wake;
+      context.beginPath();
+      context.arc(center.x, center.y, radius, 0, Math.PI * 2);
+      context.fill();
     }
 
     context.restore();
@@ -252,39 +271,68 @@ export class FieldRenderer {
     padding,
     width
   }) {
-    const spacing = PROJECT_CONFIG.renderingConfig.temperatureTileDegrees;
     const minSST = PROJECT_CONFIG.environmentConfig.seaSurfaceTemperatureMinimum;
     const maxSST = PROJECT_CONFIG.environmentConfig.baseSeaSurfaceTemperature;
+    const oceanHeat = context.createLinearGradient(
+      0,
+      padding.top,
+      0,
+      height - padding.bottom
+    );
+    const bandCount = 10;
 
     context.save();
 
-    for (let lat = bounds.minLat; lat < bounds.maxLat; lat += spacing) {
-      for (let lon = bounds.minLon; lon < bounds.maxLon; lon += spacing) {
-        const cell = environment.sampleAt({
-          lat: lat + spacing / 2,
-          lon: lon + spacing / 2
-        });
-        const topLeft = geoToCanvas(
-          { lat: lat + spacing, lon },
-          { bounds, height, padding, width }
-        );
-        const bottomRight = geoToCanvas(
-          { lat, lon: lon + spacing },
-          { bounds, height, padding, width }
-        );
-        const heat = clamp((cell.SST - minSST) / (maxSST - minSST), 0, 1);
-        context.fillStyle =
-          `rgba(${Math.round(18 + heat * 36)}, ` +
-          `${Math.round(80 + heat * 45)}, ${Math.round(118 + heat * 52)}, 0.2)`;
-        context.fillRect(
-          topLeft.x,
-          topLeft.y,
-          bottomRight.x - topLeft.x,
-          bottomRight.y - topLeft.y
-        );
-      }
+    for (let index = 0; index <= bandCount; index += 1) {
+      const ratio = index / bandCount;
+      const lat = bounds.maxLat - ratio * (bounds.maxLat - bounds.minLat);
+      const cell = environment.sampleAt({
+        lat,
+        lon: (bounds.minLon + bounds.maxLon) / 2
+      });
+      const heat = clamp((cell.SST - minSST) / (maxSST - minSST), 0, 1);
+      oceanHeat.addColorStop(
+        ratio,
+        `rgba(${Math.round(18 + heat * 48)}, ${Math.round(72 + heat * 70)}, ${Math.round(105 + heat * 68)}, ${0.1 + heat * 0.18})`
+      );
     }
 
+    context.fillStyle = oceanHeat;
+    context.fillRect(
+      padding.left,
+      padding.top,
+      width - padding.left - padding.right,
+      height - padding.top - padding.bottom
+    );
+
+    context.restore();
+  }
+
+  #drawOceanTexture({ context, height, padding, width }) {
+    const left = padding.left;
+    const right = width - padding.right;
+    const top = padding.top;
+    const bottom = height - padding.bottom;
+
+    context.save();
+    context.beginPath();
+    context.rect(left, top, right - left, bottom - top);
+    context.clip();
+    context.strokeStyle = "rgba(174, 226, 235, 0.045)";
+    context.lineWidth = 0.7;
+
+    for (let row = top + 12; row < bottom; row += 18) {
+      context.beginPath();
+      for (let x = left - 12; x <= right + 12; x += 12) {
+        const y = row + Math.sin((x + row * 0.7) * 0.035) * 2.2;
+        if (x === left - 12) {
+          context.moveTo(x, y);
+        } else {
+          context.lineTo(x, y);
+        }
+      }
+      context.stroke();
+    }
     context.restore();
   }
 
@@ -313,7 +361,7 @@ export class FieldRenderer {
       context.moveTo(top.x, top.y);
       context.lineTo(bottom.x, bottom.y);
       context.stroke();
-      context.fillText(`${lon}°E`, top.x + 3, height - 8);
+      context.fillText(`東經 ${lon}°`, top.x + 3, height - 8);
     }
 
     for (
@@ -336,7 +384,7 @@ export class FieldRenderer {
       context.stroke();
 
       if (lat > bounds.minLat) {
-        context.fillText(`${lat}°N`, 5, left.y - 3);
+        context.fillText(`北緯 ${lat}°`, 5, left.y - 3);
       }
     }
 
@@ -399,7 +447,7 @@ export class FieldRenderer {
 
     context.fillStyle = "#ffd27d";
     context.font = "800 11px system-ui, sans-serif";
-    context.fillText("副高 H", center.x - 18, center.y + 4);
+    context.fillText("太平洋副熱帶高壓 H", center.x - 54, center.y + 4);
 
     const troughPoints = [105, 120, 135, 150].map((lon, index) =>
       geoToCanvas(

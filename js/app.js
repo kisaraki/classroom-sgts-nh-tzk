@@ -62,6 +62,42 @@ import {
   createRandomStreams
 } from "./utils/random.js";
 
+const GAME_STATE_LABELS = Object.freeze({
+  [GameState.BOOT]: "啟動中",
+  [GameState.ERROR]: "發生錯誤",
+  [GameState.FAILURE]: "任務失敗",
+  [GameState.MENU]: "待命",
+  [GameState.PAUSED]: "已暫停",
+  [GameState.RUNNING]: "任務進行中",
+  [GameState.TUTORIAL]: "教學引導",
+  [GameState.VICTORY]: "任務完成"
+});
+
+const STRUCTURE_LABELS = Object.freeze({
+  cluster: "鬆散雲團",
+  comma: "不對稱逗號狀",
+  decaying: "衰減結構",
+  eye: "颱風眼",
+  spiral: "螺旋雨帶"
+});
+
+const TERRAIN_LABELS = Object.freeze({
+  "central-mountains": "中央山脈",
+  "coast-range": "海岸山脈",
+  "east-rift-valley": "東部縱谷",
+  "generic-land": "一般陸地",
+  ocean: "海洋",
+  "west-plain": "西部平原"
+});
+
+const SURFACE_EVENT_LABELS = Object.freeze({
+  LANDFALL: "登陸",
+  SEA_REENTRY: "再度出海"
+});
+
+const formatCoordinate = ({ lat, lon }) =>
+  `北緯 ${lat.toFixed(2)}°、東經 ${lon.toFixed(2)}°`;
+
 const requireElement = (selector) => {
   const element = document.querySelector(selector);
 
@@ -322,6 +358,11 @@ const bootstrap = async () => {
     level: activeLevel
   });
 
+  const regionDisplayName = (regionId) =>
+    mapData?.features.find(
+      (feature) => feature.properties.regionId === regionId
+    )?.properties.name ?? TERRAIN_LABELS[regionId] ?? "陸地";
+
   const saveStorage = (overrides = {}) => {
     const next = { ...storageRecord, ...overrides };
 
@@ -420,11 +461,11 @@ const bootstrap = async () => {
       const station = observation.station;
       const row = stationElements.get(station.id);
       row.metrics.textContent =
-        `風 ${station.sustainedWind.toFixed(1)} · ` +
-        `陣風 ${station.gust.toFixed(1)} m/s`;
+        `持續風 ${station.sustainedWind.toFixed(1)} · ` +
+        `陣風 ${station.gust.toFixed(1)} 公尺／秒`;
       row.rain.textContent =
-        `雨 ${station.hourlyRainRate.toFixed(1)} mm/h · ` +
-        `累積 ${station.accumulatedRain.toFixed(1)} mm · ` +
+        `雨率 ${station.hourlyRainRate.toFixed(1)} 毫米／小時 · ` +
+        `累積 ${station.accumulatedRain.toFixed(1)} 毫米 · ` +
         `地形 ×${station.terrainCorrection.toFixed(2)}`;
     }
   };
@@ -453,7 +494,8 @@ const bootstrap = async () => {
   }) => {
     const storm = session.typhoon;
     document.documentElement.dataset.appState = state.toLowerCase();
-    elements.engineState.textContent = state;
+    elements.engineState.dataset.stateCode = state;
+    elements.engineState.textContent = GAME_STATE_LABELS[state] ?? state;
     elements.simulationTime.textContent = formatSimulationTime(
       clockState.simulationMinutes
     );
@@ -465,7 +507,7 @@ const bootstrap = async () => {
       `${performanceState.minimumFps.toFixed(0)}`;
     elements.timing.textContent =
       `${performanceState.updateAverageMs.toFixed(2)} / ` +
-      `${performanceState.renderAverageMs.toFixed(2)} ms`;
+      `${performanceState.renderAverageMs.toFixed(2)} 毫秒`;
     elements.timing.dataset.medianFps =
       performanceState.medianFps.toFixed(2);
     elements.timing.dataset.averageFps =
@@ -488,54 +530,53 @@ const bootstrap = async () => {
       performanceState.longTaskDurationMs.toFixed(1);
     elements.longTask.textContent =
       `${performanceState.longTaskCount} · ` +
-      `${performanceState.longTaskDurationMs.toFixed(0)} ms`;
+      `${performanceState.longTaskDurationMs.toFixed(0)} 毫秒`;
     elements.updateCount.textContent = String(updateCount);
-    elements.stormWind.textContent = `${storm.maxWind.toFixed(1)} m/s`;
-    elements.stormPosition.textContent =
-      `${storm.lat.toFixed(2)}°N, ${storm.lon.toFixed(2)}°E`;
+    elements.stormWind.textContent = `每秒 ${storm.maxWind.toFixed(1)} 公尺`;
+    elements.stormPosition.textContent = formatCoordinate(storm);
     elements.stormMotion.textContent =
-      `${storm.translationSpeed.toFixed(1)} km/h · ` +
+      `每小時 ${storm.translationSpeed.toFixed(1)} 公里 · ` +
       `${storm.heading.toFixed(0)}°`;
     const { actualVector } = session.steeringDiagnostic;
     elements.steeringVector.textContent =
       `U ${actualVector.u >= 0 ? "+" : ""}${actualVector.u.toFixed(2)} · ` +
-      `V ${actualVector.v >= 0 ? "+" : ""}${actualVector.v.toFixed(2)} m/s`;
+      `V ${actualVector.v >= 0 ? "+" : ""}${actualVector.v.toFixed(2)} 公尺／秒`;
     elements.stormPressure.textContent =
-      `${storm.centralPressure.toFixed(0)} hPa`;
-    elements.stormRadius.textContent = `${storm.galeRadius.toFixed(0)} km`;
+      `${storm.centralPressure.toFixed(0)} 百帕`;
+    elements.stormRadius.textContent = `${storm.galeRadius.toFixed(0)} 公里`;
     elements.stormOrganization.textContent =
       `${(storm.organization * 100).toFixed(0)}%`;
     elements.stormSymmetry.textContent =
       `${(storm.symmetry * 100).toFixed(0)}%`;
-    elements.stormStage.textContent = storm.structureStage;
-    elements.targetWind.textContent = `${session.targetWind.toFixed(1)} m/s`;
+    elements.stormStage.textContent =
+      STRUCTURE_LABELS[storm.structureStage] ?? storm.structureStage;
+    elements.targetWind.textContent = `每秒 ${session.targetWind.toFixed(1)} 公尺`;
     elements.stormFingerprint.textContent = session.fingerprint;
     elements.stormSurface.textContent = session.landDiagnostic.isOverLand
-      ? `陸地｜${session.landDiagnostic.endProfile.regionId}`
+      ? `陸地｜${regionDisplayName(session.landDiagnostic.endProfile.regionId)}`
       : "海洋";
     elements.terrainZone.textContent =
-      `${session.landDiagnostic.endProfile.zone} · ` +
-      `${session.landDiagnostic.terrainHeight.toFixed(0)} m`;
+      `${TERRAIN_LABELS[session.landDiagnostic.endProfile.zone] ?? "未分類地形"} · ` +
+      `${session.landDiagnostic.terrainHeight.toFixed(0)} 公尺`;
     elements.centerColdWake.textContent =
-      `${session.oceanDiagnostic.centerColdWake.toFixed(2)} °C · ` +
-      `${session.oceanDiagnostic.affectedCellCount} cells`;
+      `攝氏 ${session.oceanDiagnostic.centerColdWake.toFixed(2)} 度 · ` +
+      `${session.oceanDiagnostic.affectedCellCount} 個網格`;
     elements.effectiveSST.textContent =
-      `${session.oceanDiagnostic.effectiveSST.toFixed(2)} °C`;
+      `攝氏 ${session.oceanDiagnostic.effectiveSST.toFixed(2)} 度`;
     elements.terrainRecovery.textContent =
       `${(session.landDiagnostic.reorganizationFactor * 100).toFixed(0)}% · ` +
-      `${session.landDiagnostic.seaRecoveryHours.toFixed(1)} h`;
+      `${session.landDiagnostic.seaRecoveryHours.toFixed(1)} 小時`;
     elements.surfaceEvents.textContent = session.latestSurfaceEvent
-      ? `${session.latestSurfaceEvent.type} · ` +
-        `${session.latestSurfaceEvent.regionId ?? "海岸"} · ` +
-        `${session.latestSurfaceEvent.lat.toFixed(2)}°N, ` +
-        `${session.latestSurfaceEvent.lon.toFixed(2)}°E`
+      ? `${SURFACE_EVENT_LABELS[session.latestSurfaceEvent.type] ?? session.latestSurfaceEvent.type} · ` +
+        `${regionDisplayName(session.latestSurfaceEvent.regionId)} · ` +
+        `${formatCoordinate(session.latestSurfaceEvent)}`
       : "尚無海陸轉換";
     elements.canvasSummary.textContent =
-      `引擎 ${state}，模擬時間 ${formatSimulationTime(
+      `遊戲狀態${GAME_STATE_LABELS[state] ?? state}，模擬時間 ${formatSimulationTime(
         clockState.simulationMinutes
-      )}。風暴 ${storm.name} 位於 ${storm.lat.toFixed(2)}°N、` +
-      `${storm.lon.toFixed(2)}°E，最大風速 ${storm.maxWind.toFixed(1)} m/s，` +
-      `中心氣壓 ${storm.centralPressure.toFixed(0)} hPa，` +
+      )}。風暴 ${storm.name} 位於${formatCoordinate(storm)}，` +
+      `近中心最大風速 ${storm.maxWind.toFixed(1)} 公尺／秒，` +
+      `中心氣壓 ${storm.centralPressure.toFixed(0)} 百帕，` +
       `${session.landDiagnostic.isOverLand ? "目前位於陸地" : "目前位於海上"}。`;
 
     for (const [name, element] of Object.entries(factorElements)) {
@@ -807,13 +848,12 @@ const bootstrap = async () => {
     const description = describeGeographicPoint(point, mapData);
     const { landRegion, nearestStation, nearestStationDistanceKm } =
       description;
-    elements.probeCoordinate.textContent =
-      `${point.lat.toFixed(2)}°N, ${point.lon.toFixed(2)}°E`;
+    elements.probeCoordinate.textContent = formatCoordinate(point);
     elements.probeSurface.textContent = landRegion
-      ? `陸地｜${landRegion.properties.name} (${landRegion.properties.regionId})`
+      ? `陸地｜${landRegion.properties.name}`
       : "海洋";
     elements.probeStation.textContent =
-      `${nearestStation.name}｜${nearestStationDistanceKm.toFixed(1)} km`;
+      `${nearestStation.name}｜${nearestStationDistanceKm.toFixed(1)} 公里`;
     elements.canvas.setAttribute(
       "aria-label",
       `查詢位置 ${elements.probeCoordinate.textContent}，` +
@@ -827,8 +867,8 @@ const bootstrap = async () => {
     controlPanel.setEnvironment(session.environment);
     controlPanel.setAllowedControls(session.level.allowedControls);
     elements.environmentGridStatus.textContent =
-      `${session.environment.cells.length} cells · ` +
-      `${session.environment.gridResolution}°`;
+      `${session.environment.cells.length} 個網格 · ` +
+      `${session.environment.gridResolution}° 間距`;
     canvasRenderer.setLevel(session.level);
     canvasRenderer.setTyphoon(session.typhoon);
     canvasRenderer.setEnvironment(session.environment);
@@ -854,7 +894,7 @@ const bootstrap = async () => {
     );
     elements.canvas.setAttribute(
       "aria-label",
-      `Phase 09「${session.level.title}」地圖；點選或觸控以查詢位置`
+      `「${session.level.title}」戰況地圖；點選或觸控以查詢位置`
     );
   };
 
@@ -1266,10 +1306,10 @@ const bootstrap = async () => {
     applySessionToView();
     mapReady = true;
     elements.mapDataStatus.textContent =
-      `${mapData.features.length} regions · v${mapData.metadata.formatVersion}`;
+      `${mapData.features.length} 個地理區域 · 格式版本 ${mapData.metadata.formatVersion}`;
     elements.environmentGridStatus.textContent =
-      `${session.environment.cells.length} cells · ` +
-      `${session.environment.gridResolution}°`;
+      `${session.environment.cells.length} 個網格 · ` +
+      `${session.environment.gridResolution}° 間距`;
     selectMapPoint({ lat: 23.7, lon: 121 });
   } catch (error) {
     elements.mapDataStatus.textContent = "載入失敗";

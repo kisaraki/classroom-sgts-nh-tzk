@@ -18,6 +18,17 @@ export const MAP_PADDING = Object.freeze({
   top: 14
 });
 
+const STATE_LABELS = Object.freeze({
+  BOOT: "啟動中",
+  ERROR: "發生錯誤",
+  FAILURE: "任務失敗",
+  MENU: "待命",
+  PAUSED: "已暫停",
+  RUNNING: "任務進行中",
+  TUTORIAL: "教學引導",
+  VICTORY: "任務完成"
+});
+
 export class CanvasRenderer {
   #canvas;
   #fieldRenderer;
@@ -239,11 +250,11 @@ export class CanvasRenderer {
     width
   }) {
     const lines = [
-      `STATE ${state}`,
-      `TIME ${formatSimulationTime(simulationMinutes)} · STEP ${stepIndex}`,
-      `SPEED ${speed}× · FPS ${Number.isFinite(fps) ? fps.toFixed(0) : "0"}`
+      `狀態 ${STATE_LABELS[state] ?? state}`,
+      `時間 ${formatSimulationTime(simulationMinutes)} · 步次 ${stepIndex}`,
+      `速度 ${speed}× · 每秒畫面格數 ${Number.isFinite(fps) ? fps.toFixed(0) : "0"}`
     ];
-    const boxWidth = Math.min(310, width - 32);
+    const boxWidth = Math.min(340, width - 32);
     const boxHeight = 66;
     const boxX = 16;
     const boxY = height - boxHeight - 32;

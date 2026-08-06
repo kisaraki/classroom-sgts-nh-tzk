@@ -61,6 +61,6 @@ test("canvas resize follows its latest CSS dimensions", () => {
 });
 
 test("simulation time uses a stable day-hour-minute format", () => {
-  assert.equal(formatSimulationTime(0), "00d 00h 00m");
-  assert.equal(formatSimulationTime(1510), "01d 01h 10m");
+  assert.equal(formatSimulationTime(0), "00 日 00 時 00 分");
+  assert.equal(formatSimulationTime(1510), "01 日 01 時 10 分");
 });

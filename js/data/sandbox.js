@@ -188,7 +188,7 @@ export const createSandboxLevel = (presetInput) => {
     title: "沙盒實驗室",
     tutorialMessages: [
       {
-        body: "沙盒不設勝敗；可暫停、倍速、重啟、切換圖層並匯出完整紀錄。",
+        body: "自由實驗不設勝敗；可暫停、調整時間倍速、重啟並切換顯示圖層。",
         id: "sandbox-free-experiment",
         title: "自由實驗",
         triggerStep: 0

@@ -30,7 +30,58 @@ npm run serve
 
 ## Phase 9 本機發布驗收
 
-### 自動化結果
+### 2026-08-06 介面修正本機驗證
+
+主規格 1.0.3 的繁體中文完整用語、上方全幅地圖、第三象限戰況資訊、
+第四象限參數操作與緊湊指令區、玩家介面隱藏資料匯入匯出，以及擬真地圖
+層次均已在本機驗證。這一組尚未提交的
+變更沒有執行 GitHub Actions、Pages API、部署或公開網站驗證；下方遠端
+證據仍是 2026-07-30 已發布基線，不得視為本次差異的發布證據。
+
+| 類別 | 本次結果 | 證據 |
+|---|---|---|
+| Schema／資料 | passed | 既有地圖、關卡、沙盒、儲存與後台 I/O 契約未變 |
+| lint | passed | ESLint 0 errors、0 warnings |
+| TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
+| 單元 | passed | 109 passed、0 failed |
+| 整合 | passed | 6 passed、0 failed；那霸黃金重播驗證碼維持不變 |
+| 情境／黃金重播 | passed | 16 passed、0 failed；三關 fixture 均通過 |
+| 實際 Chrome E2E | passed | 15 passed、0 failed；包含後台 I/O 不顯示、四象限幾何及響應式介面 |
+| build／Pages artifact | passed | 可重現建置；artifact 1 passed、0 failed，5 個允許根項目 |
+| Codex in-app Browser | not_run | 主規格 1.0.3 本輪因管理政策驗證暫時無法存取 localhost；1.0.2 的既有 Browser 證據不得代替本輪差異 |
+| Microsoft Edge | not_verified | 依既有使用者指示不安裝，未以 Chromium 代替 |
+| iPadOS Safari | not_verified | 無實體裝置證據，未以桌面縮放代替 |
+| GitHub Actions | not_run | 本次差異未 push |
+| Pages API／部署 | not_run | 本次差異未部署 |
+| 公開網站 | not_verified | 現有公開站仍是 2026-07-30 已發布版本 |
+
+需求追蹤：`UI-TERM-001` 官方繁體中文完整用語、`UI-LAYOUT-003` 上方
+全幅地圖／第三象限資訊／第四象限參數與操作、`UI-BACKOFFICE-001` 玩家
+介面不顯示資料匯入匯出、`UI-MAP-002` 海洋層次／陸地明暗／地形紋理／
+雙層海岸線，均為 `passed`。
+
+#### 2026-08-06 上方全幅地圖與下方雙象限
+
+- `UI-LAYOUT-003` 在 1180×720 與 1024×600 驗證地圖左右外緣分別對齊
+  第三、第四象限外緣，且地圖下緣位於兩面板上緣之前。
+- 第三、第四象限同列、等高，長內容各自捲動；參數與操作完整位於第四象限，
+  指令停靠區仍位於其下緣。
+- 390×844 依地圖、戰況資訊、參數操作順序改為單欄，開始按鈕可見且無
+  水平 overflow。
+- 目標與完整 Chrome E2E、lint、build、109 unit、6 integration、16 scenario、
+  1 artifact test 全部通過；Codex in-app Browser 因管理政策驗證暫時無法
+  存取 localhost，標記為 `not_run`。
+
+#### 2026-08-06 右下指令停靠區緊湊化
+
+- `UI-LAYOUT-002` 補充幾何回歸：1180×720 的指令區高度不超過 100 px；
+  1024×600 採雙列緊湊配置，高度不超過 145 px；三個任務按鈕同列。
+- 四個倍速按鈕及開始、暫停、重新部署按鈕的實際高度均至少 44 px。
+- 390×844 維持單欄、開始按鈕可見且無水平 overflow。
+- 目標 Chrome E2E 通過；Codex in-app Browser 本輪因管理政策驗證暫時
+  無法存取 localhost，標記為 `not_run`，沒有以其他結果冒充該環境。
+
+### 2026-07-30 已發布基線自動化結果
 
 | 類別 | 結果 | 證據 |
 |---|---|---|
