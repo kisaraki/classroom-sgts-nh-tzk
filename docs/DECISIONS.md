@@ -1,5 +1,5 @@
 # SGTS-NH 架構決策紀錄
-## Phase 0～6 架構決策
+## Phase 0～9 與發布後維護的架構決策
 
 > **KOSMOS TOOLKIT｜探真拓知酷**
 
@@ -392,3 +392,31 @@
   的狀態，不構成補測，也不得將例外改寫為 passed。
 - Repository：維持公開、GitHub Pages 啟用、預設且唯一分支為 `main`。
   結案不等於封存；封存、停用 Pages、改可見性或刪除功能仍需另行明確授權。
+
+## DEC-0041｜可拖曳低干擾六站卡與玩家診斷退場
+
+- 日期：2026-08-09。
+- 狀態：accepted。
+- 使用者指示：第一版結案後重新啟動修正；六站模型觀測數據移至中國大陸
+  內陸、新幾內亞等地圖空白區，可由滑鼠拖曳至使用者期望位置，改善文字
+  排版並刪除畫面上的開發用資訊。
+- 卡位：測站 `lon`／`lat`、模型觀測與定位點保持不變；資訊卡改用正規化
+  畫面座標，預設分置中國大陸內陸直列與南側新幾內亞附近橫列。相機只重投影
+  定位點與引線，玩家拖曳、方向鍵微調、Home／按兩下歸位只改 DOM 呈現狀態。
+- 隔離與安全：卡片以 Pointer Events 擷取指標，不把事件送至地圖平移；卡位
+  夾限於地圖、避免卡片碰撞及地圖控制。真實定位點使用卡片上方的獨立圖層；
+  相機移動時即使定位點經過卡片仍保持可見，且不得反向推動卡位。卡位不進入
+  物理、測站資料、步數、重播、匯出 schema、localStorage 或 fingerprint。
+- 排版：卡片改為完整氣象名詞的高密度兩欄資料格；窄螢幕採兩欄配置，淺
+  橫向採四欄兩列並保留右下地圖控制空間，核心欄位不得小於 10 px／11 px，
+  不再以 0.36rem 等極小字級換取空間。
+- 診斷：玩家畫面與 Canvas 移除 FPS、固定步長、步次、update／render、
+  Long Task、DPR、網格數、部署平台、fingerprint、U／V 導引向量、內部目標
+  風速及頁面可見性等開發資訊。`PerformanceMonitor`、fingerprint、固定步進、
+  後台 I/O、`canvas-summary` 與 `[hidden]` runtime telemetry 保留供測試、
+  重播驗證及無障礙，不把歷史效能證據改寫為通過。
+- 治理：本項 `accepted` 只表示 DEC-0041 的設計決策成立；`v1.0.1` Phase 9
+  發布後介面維護候選已在本機 `completed`，尚未 `approved` 或發布。Phase 9
+  `approved` 與 `v1.0.0` tag／Release 史實不倒退，Phase 10 維持 `pending` 且
+  不執行。本次未取得 push、新 tag、Release、GitHub 設定、Actions 手動觸發
+  或 Pages 部署授權。

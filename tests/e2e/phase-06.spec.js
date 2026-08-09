@@ -192,7 +192,7 @@ test("environment target changes are delayed and never directly move the storm",
   );
 });
 
-test("six model stations use non-blocking glass cards on the map", async ({
+test("six model stations use compact draggable glass cards on the map", async ({
   page
 }) => {
   await page.goto("./");
@@ -206,12 +206,14 @@ test("six model stations use non-blocking glass cards on the map", async ({
       const style = globalThis.getComputedStyle(card);
       return {
         backdrop: style.backdropFilter || style.webkitBackdropFilter,
+        cursor: style.cursor,
         pointerEvents: style.pointerEvents
       };
     }
   );
   expect(cardStyle.backdrop).toContain("blur");
-  expect(cardStyle.pointerEvents).toBe("none");
+  expect(cardStyle.cursor).toBe("grab");
+  expect(cardStyle.pointerEvents).toBe("auto");
   for (const text of [
     "模擬更新時間",
     "與颱風中心距離",
@@ -224,6 +226,93 @@ test("six model stations use non-blocking glass cards on the map", async ({
     await expect(page.locator(".station-card").first()).toContainText(text);
   }
 
+  const draggableCard = page.locator('[data-station-id="taichung"]');
+  const canvas = page.locator("#simulation-canvas");
+  await draggableCard.scrollIntoViewIfNeeded();
+  const beforeDrag = await draggableCard.boundingBox();
+  const defaultRelativePosition = await draggableCard.evaluate((card) => {
+    const cardRect = card.getBoundingClientRect();
+    const frameRect = card.closest(".canvas-frame").getBoundingClientRect();
+    return {
+      x: cardRect.left - frameRect.left,
+      y: cardRect.top - frameRect.top
+    };
+  });
+  const observationsBeforeDrag = await page
+    .locator(".station-card")
+    .allTextContents();
+  const cameraBeforeDrag = {
+    centerLat: await canvas.getAttribute("data-map-center-lat"),
+    centerLon: await canvas.getAttribute("data-map-center-lon"),
+    fingerprint: await page.locator("#storm-fingerprint").textContent(),
+    step: await page.locator("#step-count").textContent(),
+    zoom: await canvas.getAttribute("data-map-zoom")
+  };
+  expect(beforeDrag).not.toBeNull();
+  await page.mouse.move(
+    beforeDrag.x + beforeDrag.width / 2,
+    beforeDrag.y + beforeDrag.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    beforeDrag.x + beforeDrag.width / 2 + 210,
+    beforeDrag.y + beforeDrag.height / 2 + 30,
+    { steps: 5 }
+  );
+  await page.mouse.up();
+  await expect(page.locator("[data-station-placement-status]")).toContainText(
+    "臺中模型觀測卡已移至新位置"
+  );
+  const afterDrag = await draggableCard.boundingBox();
+  expect(afterDrag.x).toBeGreaterThan(beforeDrag.x + 100);
+  await expect(canvas).toHaveAttribute(
+    "data-map-center-lat",
+    cameraBeforeDrag.centerLat
+  );
+  await expect(canvas).toHaveAttribute(
+    "data-map-center-lon",
+    cameraBeforeDrag.centerLon
+  );
+  await expect(canvas).toHaveAttribute("data-map-zoom", cameraBeforeDrag.zoom);
+  await expect(page.locator("#storm-fingerprint")).toHaveText(
+    cameraBeforeDrag.fingerprint
+  );
+  await expect(page.locator("#step-count")).toHaveText(cameraBeforeDrag.step);
+  expect(await page.locator(".station-card").allTextContents()).toEqual(
+    observationsBeforeDrag
+  );
+
+  const relativeAfterDrag = await draggableCard.evaluate((card) => {
+    const cardRect = card.getBoundingClientRect();
+    const frameRect = card.closest(".canvas-frame").getBoundingClientRect();
+    return { x: cardRect.left - frameRect.left, y: cardRect.top - frameRect.top };
+  });
+  await page.locator("#map-zoom-in").click();
+  const relativeAfterCameraZoom = await draggableCard.evaluate((card) => {
+    const cardRect = card.getBoundingClientRect();
+    const frameRect = card.closest(".canvas-frame").getBoundingClientRect();
+    return { x: cardRect.left - frameRect.left, y: cardRect.top - frameRect.top };
+  });
+  expect(Math.abs(relativeAfterCameraZoom.x - relativeAfterDrag.x)).toBeLessThan(1);
+  expect(Math.abs(relativeAfterCameraZoom.y - relativeAfterDrag.y)).toBeLessThan(1);
+  await page.locator("#map-view-reset").click();
+  await draggableCard.dblclick();
+  await expect(page.locator("[data-station-placement-status]")).toContainText(
+    "臺中模型觀測卡已回到預設位置"
+  );
+  await expect
+    .poll(async () =>
+      draggableCard.evaluate((card, expected) => {
+        const cardRect = card.getBoundingClientRect();
+        const frameRect = card.closest(".canvas-frame").getBoundingClientRect();
+        return Math.max(
+          Math.abs(cardRect.left - frameRect.left - expected.x),
+          Math.abs(cardRect.top - frameRect.top - expected.y)
+        );
+      }, defaultRelativePosition)
+    )
+    .toBeLessThan(1);
+
   for (let count = 0; count < 5; count += 1) {
     await page.locator("#map-zoom-in").click();
   }
@@ -233,6 +322,14 @@ test("six model stations use non-blocking glass cards on the map", async ({
   );
   await expect(page.locator(".station-card:visible")).toHaveCount(6);
   await page.locator("#map-view-reset").click();
+
+  await page.locator("#start-button").click();
+  await expect
+    .poll(async () => Number(await page.locator("#step-count").textContent()))
+    .toBeGreaterThan(0);
+  await expect(page.locator(".station-card-update").first()).toContainText(
+    /\d{2} 日 \d{2} 時 \d{2} 分/u
+  );
 
   await page.setViewportSize({ height: 844, width: 390 });
   await expect(page.locator("#station-observations")).toHaveAttribute(
@@ -257,13 +354,6 @@ test("six model stations use non-blocking glass cards on the map", async ({
     const controls = document
       .querySelector(".map-controls")
       .getBoundingClientRect();
-    const markerPoints = [
-      ...document.querySelectorAll("[data-station-marker]")
-    ].map((marker) => ({
-      id: marker.dataset.stationMarker,
-      x: frame.left + Number(marker.getAttribute("cx")),
-      y: frame.top + Number(marker.getAttribute("cy"))
-    }));
     const overlap = cards.some((first, firstIndex) =>
       cards.some(
         (second, secondIndex) =>
@@ -281,19 +371,21 @@ test("six model stations use non-blocking glass cards on the map", async ({
         card.top < controls.bottom &&
         card.bottom > controls.top
     );
-    const coveredMarkers = markerPoints.flatMap((point) =>
-      cards
-        .filter(
-          (card) =>
-            point.x > card.left &&
-            point.x < card.right &&
-            point.y > card.top &&
-            point.y < card.bottom
-        )
-        .map((card) => `${point.id}:${card.id}`)
+    const cardLayer = document.querySelector(".station-card-layer");
+    const markerLayer = document.querySelector(".station-markers");
+    const labelSize = Number.parseFloat(
+      globalThis.getComputedStyle(
+        document.querySelector(".station-card dt")
+      ).fontSize
+    );
+    const valueSize = Number.parseFloat(
+      globalThis.getComputedStyle(
+        document.querySelector(".station-card dd")
+      ).fontSize
     );
     return {
       cards,
+      cardLayerZ: Number(globalThis.getComputedStyle(cardLayer).zIndex),
       clientWidth: document.documentElement.clientWidth,
       controlsOverlap,
       frame: {
@@ -302,14 +394,22 @@ test("six model stations use non-blocking glass cards on the map", async ({
         right: frame.right,
         top: frame.top
       },
-      coveredMarkers,
+      labelSize,
+      markerCount: document.querySelectorAll("[data-station-marker]").length,
+      markerLayerZ: Number(globalThis.getComputedStyle(markerLayer).zIndex),
       overlap,
-      scrollWidth: document.documentElement.scrollWidth
+      scrollWidth: document.documentElement.scrollWidth,
+      valueSize
     };
   });
   expect(compactGeometry.overlap).toBe(false);
   expect(compactGeometry.controlsOverlap).toBe(false);
-  expect(compactGeometry.coveredMarkers).toEqual([]);
+  expect(compactGeometry.markerCount).toBe(6);
+  expect(compactGeometry.markerLayerZ).toBeGreaterThan(
+    compactGeometry.cardLayerZ
+  );
+  expect(compactGeometry.labelSize).toBeGreaterThanOrEqual(10);
+  expect(compactGeometry.valueSize).toBeGreaterThanOrEqual(11);
   expect(compactGeometry.scrollWidth).toBe(compactGeometry.clientWidth);
   for (const card of compactGeometry.cards) {
     expect(card.clipped).toBe(false);
@@ -317,6 +417,60 @@ test("six model stations use non-blocking glass cards on the map", async ({
     expect(card.right).toBeLessThanOrEqual(compactGeometry.frame.right);
     expect(card.top).toBeGreaterThanOrEqual(compactGeometry.frame.top);
     expect(card.bottom).toBeLessThanOrEqual(compactGeometry.frame.bottom);
+  }
+
+  for (const width of [600, 640, 680, 720, 767, 800]) {
+    await page.setViewportSize({ height: 844, width });
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const cards = [...document.querySelectorAll(".station-card")].map(
+            (card) => {
+              const box = card.getBoundingClientRect();
+              return {
+                bottom: box.bottom,
+                clipped:
+                  card.scrollHeight > card.clientHeight + 1 ||
+                  card.scrollWidth > card.clientWidth + 1,
+                id: card.dataset.stationId,
+                left: box.left,
+                right: box.right,
+                top: box.top
+              };
+            }
+          );
+          const controls = document
+            .querySelector(".map-controls")
+            .getBoundingClientRect();
+          const violations = [];
+
+          for (const [index, first] of cards.entries()) {
+            if (first.clipped) {
+              violations.push(`clipped:${first.id}`);
+            }
+            if (
+              first.left < controls.right &&
+              first.right > controls.left &&
+              first.top < controls.bottom &&
+              first.bottom > controls.top
+            ) {
+              violations.push(`controls:${first.id}`);
+            }
+            for (const second of cards.slice(index + 1)) {
+              if (
+                first.left < second.right &&
+                first.right > second.left &&
+                first.top < second.bottom &&
+                first.bottom > second.top
+              ) {
+                violations.push(`overlap:${first.id}:${second.id}`);
+              }
+            }
+          }
+          return violations;
+        })
+      )
+      .toEqual([]);
   }
 });
 

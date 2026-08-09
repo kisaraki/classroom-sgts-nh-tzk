@@ -525,8 +525,7 @@ const bootstrap = async () => {
       `${TERRAIN_LABELS[session.landDiagnostic.endProfile.zone] ?? "未分類地形"} · ` +
       `${session.landDiagnostic.terrainHeight.toFixed(0)} 公尺`;
     elements.centerColdWake.textContent =
-      `攝氏 ${session.oceanDiagnostic.centerColdWake.toFixed(2)} 度 · ` +
-      `${session.oceanDiagnostic.affectedCellCount} 個網格`;
+      `攝氏 ${session.oceanDiagnostic.centerColdWake.toFixed(2)} 度`;
     elements.effectiveSST.textContent =
       `攝氏 ${session.oceanDiagnostic.effectiveSST.toFixed(2)} 度`;
     elements.terrainRecovery.textContent =
@@ -1226,6 +1225,7 @@ const bootstrap = async () => {
       controlPanel.destroy();
       mapInteractionController?.destroy();
       resultDialog?.destroy();
+      stationMapOverlay.destroy();
       reducedMotionQuery.removeEventListener(
         "change",
         handleReducedMotionChange

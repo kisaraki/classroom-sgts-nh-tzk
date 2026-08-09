@@ -28,9 +28,30 @@
       <div class="header-status" aria-label="模擬器狀態">
         <p>遊戲狀態</p>
         <strong id="engine-state" data-state-code="BOOT">啟動中</strong>
-        <span id="visibility-status">頁面可見</span>
       </div>
     </header>
+
+    <div
+      id="runtime-telemetry"
+      data-runtime-telemetry
+      hidden
+      aria-hidden="true"
+    >
+      <output id="visibility-status">頁面可見</output>
+      <output id="step-count">0</output>
+      <output id="current-speed">1×</output>
+      <output id="fps-readout">0</output>
+      <output id="fps-range-readout">0 / 0</output>
+      <output id="timing-readout">0.00 / 0.00 毫秒</output>
+      <output id="long-task-readout">0</output>
+      <output id="particle-readout">中｜700</output>
+      <output id="update-count">0</output>
+      <output id="map-data-status">載入中</output>
+      <output id="environment-grid-status">建立中</output>
+      <output id="steering-vector">—</output>
+      <output id="target-wind">每秒 15.0 公尺</output>
+      <output id="storm-fingerprint">—</output>
+    </div>
 
     <main id="main-content" class="site-main" data-testid="simulation-shell">
       <p class="narrow-screen-hint">
@@ -212,9 +233,9 @@
           <label class="particle-profile" for="particle-profile">
             畫面粒子數量
             <select id="particle-profile">
-              <option value="low">低｜300</option>
-              <option value="medium" selected>中｜700</option>
-              <option value="high">高｜1200</option>
+              <option value="low">低</option>
+              <option value="medium" selected>中</option>
+              <option value="high">高</option>
             </select>
           </label>
 
@@ -300,7 +321,7 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 09 關卡與沙盒戰況地圖；可拖曳平移，並以滑鼠滾輪、雙指手勢或鍵盤縮放"
+            aria-label="關卡與沙盒戰況地圖；可拖曳平移，並以滑鼠滾輪、雙指手勢或鍵盤縮放"
             aria-describedby="map-interaction-help canvas-summary station-observations-description"
             data-testid="simulation-canvas"
             tabindex="0"
@@ -316,7 +337,8 @@
             </h3>
             <p id="station-observations-description" class="visually-hidden">
               地圖上的六個有色毛玻璃資訊卡顯示持續風、最大陣風、當前雨率、
-              累積雨量、距離颱風中心、地形修正及模擬更新時間。
+              累積雨量、距離颱風中心、地形修正及模擬更新時間。資訊卡可以
+              拖曳移動，方向鍵可以微調，Home 鍵或按兩下可以恢復預設位置。
             </p>
             <svg
               class="station-leaders"
@@ -325,6 +347,18 @@
               focusable="false"
             ></svg>
             <div class="station-card-layer" data-station-card-layer></div>
+            <svg
+              class="station-markers"
+              data-station-markers
+              aria-hidden="true"
+              focusable="false"
+            ></svg>
+            <p
+              class="visually-hidden"
+              data-station-placement-status
+              role="status"
+              aria-live="polite"
+            ></p>
           </section>
           <div class="map-controls" aria-label="地圖視角控制">
             <output id="map-view-status" aria-live="off">
@@ -361,6 +395,7 @@
         <p id="map-interaction-help" class="map-caption">
           在地圖內拖曳即可平移；使用滑鼠滾輪、觸控板或雙指手勢縮放。
           鍵盤可使用加號、減號、方向鍵與 Home 鍵；窄螢幕請在地圖外捲動頁面。
+          六站模型觀測卡可個別拖曳；卡片聚焦時以方向鍵微調，Home 鍵或按兩下歸位。
           觀測卡的風速單位為公尺／秒，雨率為毫米／小時，累積雨量為毫米。
           地圖範圍東經 100°～160°、北緯 0°～40°。島嶼與陸地貼用 Natural Earth II
           真實地形陰影；海陸判定仍採教育用簡化資料，不具導航或測繪精度。
@@ -369,66 +404,11 @@
           模擬尚未開始，風暴與環境摘要準備中。
         </p>
 
-        <div class="time-strip" aria-label="時間步進資訊">
-          <p><span>固定步長</span><strong>10 分鐘</strong></p>
-          <p><span>步進次數</span><strong id="step-count">0</strong></p>
-          <p><span>目前倍速</span><strong id="current-speed">1×</strong></p>
-        </div>
       </section>
 
       <aside class="diagnostics-panel panel" aria-labelledby="diagnostics-title">
         <p class="phase-badge">即時戰況</p>
         <h2 id="diagnostics-title">戰況情報</h2>
-        <details class="developer-diagnostics">
-          <summary>效能診斷</summary>
-          <dl class="diagnostic-list">
-          <div>
-            <dt>每秒畫面格數</dt>
-            <dd id="fps-readout">0</dd>
-          </div>
-          <div>
-            <dt>平均／最低每秒畫面格數</dt>
-            <dd id="fps-range-readout">0 / 0</dd>
-          </div>
-          <div>
-            <dt>模型更新／畫面繪製</dt>
-            <dd id="timing-readout">0.00 / 0.00 毫秒</dd>
-          </div>
-          <div>
-            <dt>長工作數量</dt>
-            <dd id="long-task-readout">0</dd>
-          </div>
-          <div>
-            <dt>粒子層級</dt>
-            <dd id="particle-readout">中｜700</dd>
-          </div>
-          <div>
-            <dt>固定模擬步長</dt>
-            <dd>10 分鐘</dd>
-          </div>
-          <div>
-            <dt>模型更新次數</dt>
-            <dd id="update-count">0</dd>
-          </div>
-          <div>
-            <dt>顯示像素比例上限</dt>
-            <dd>2×</dd>
-          </div>
-          <div>
-            <dt>正式平台</dt>
-            <dd>GitHub Pages</dd>
-          </div>
-          <div>
-            <dt>地理資料</dt>
-            <dd id="map-data-status">載入中</dd>
-          </div>
-          <div>
-            <dt>環境網格</dt>
-            <dd id="environment-grid-status">建立中</dd>
-          </div>
-          </dl>
-        </details>
-
         <section
           class="storm-dashboard"
           aria-labelledby="storm-dashboard-title"
@@ -438,21 +418,18 @@
           <dl class="storm-metrics">
             <div><dt>中心位置</dt><dd id="storm-position">北緯 14.00°、東經 145.00°</dd></div>
             <div><dt>移動</dt><dd id="storm-motion">每小時 12.0 公里 · 305°</dd></div>
-            <div><dt>導引向量</dt><dd id="steering-vector">—</dd></div>
             <div><dt>近中心最大風速</dt><dd id="storm-wind">每秒 15.0 公尺</dd></div>
             <div><dt>中心氣壓</dt><dd id="storm-pressure">1005 百帕</dd></div>
             <div><dt>七級風暴風半徑</dt><dd id="storm-radius">80 公里</dd></div>
-            <div><dt>目標近中心最大風速</dt><dd id="target-wind">每秒 15.0 公尺</dd></div>
             <div><dt>組織度</dt><dd id="storm-organization">28%</dd></div>
             <div><dt>對稱度</dt><dd id="storm-symmetry">34%</dd></div>
             <div><dt>結構</dt><dd id="storm-stage">cluster</dd></div>
             <div><dt>海陸</dt><dd id="storm-surface">海洋</dd></div>
             <div><dt>地形區</dt><dd id="terrain-zone">ocean · 0 m</dd></div>
-            <div><dt>中心冷水尾流</dt><dd id="center-cold-wake">0.00 °C</dd></div>
+            <div><dt>中心冷水尾流</dt><dd id="center-cold-wake">攝氏 0.00 度</dd></div>
             <div><dt>有效海溫</dt><dd id="effective-sst">—</dd></div>
             <div><dt>出海重組</dt><dd id="terrain-recovery">100% · 9.0 h</dd></div>
             <div><dt>最近海陸事件</dt><dd id="surface-events">尚無海陸轉換</dd></div>
-            <div><dt>模擬驗證碼</dt><dd id="storm-fingerprint">—</dd></div>
           </dl>
           <h4>環境因子</h4>
           <dl class="factor-grid">

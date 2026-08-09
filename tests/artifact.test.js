@@ -56,10 +56,16 @@ test("Pages artifact contains only the intentional static runtime surface", asyn
   const files = await listFiles(DIST);
   assert.match(html, /src="\.\/js\/app\.js"/);
   assert.match(html, /id="station-observations"/);
+  assert.match(html, /data-station-placement-status/);
+  assert.match(html, /data-runtime-telemetry/);
   assert.match(html, /id="map-zoom-in"/);
   assert.match(html, /id="map-view-reset"/);
   assert.doesNotMatch(html, /id="map-probe"|id="probe-/);
   assert.doesNotMatch(html, /點選或觸控地圖以查詢/);
+  assert.doesNotMatch(
+    html,
+    /developer-diagnostics|class="time-strip"|模擬驗證碼|Phase 09/
+  );
   assert.doesNotMatch(html, /node_modules|tests\/|SGTS-NH_MASTER_SPEC/);
   assert.equal(
     files.some((file) => path.basename(file).startsWith("._")),

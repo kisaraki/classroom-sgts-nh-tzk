@@ -34,6 +34,45 @@ npm run serve
 iPadOS Safari 尚未驗證後，指示本案截至目前正式結案。以下測試結果保持
 原始狀態；結案批准不等於將 `failed` 或 `not_verified` 改列 `passed`。
 
+### 2026-08-09 v1.0.1 六站卡與玩家診斷退場維護驗證
+
+第一版正式結案後，使用者重新啟動 Phase 9 發布後介面維護。主規格 1.0.7
+將六站模型觀測資訊卡預設移至中國大陸內陸及南側低干擾區，新增個別拖曳、
+鍵盤微調與歸位，改採高密度完整氣象欄位排版，並自玩家畫面與 Canvas 移除
+開發診斷。此維護候選不改測站位置、觀測、地圖鏡頭、物理、重播、匯出
+schema 或 fingerprint。
+
+| 類別 | 本次結果 | 證據 |
+|---|---|---|
+| Schema／資料 | passed | `schemaVersion=1`、`modelVersion=0.7.0-taiwan-wayne`；測站、地理、關卡、沙盒、儲存與後台 I/O 契約未變；卡位只屬工作階段呈現狀態 |
+| lint | passed | ESLint 0 errors、0 warnings |
+| TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
+| 單元 | passed | 130 passed、0 failed；低干擾預設區、窄螢幕兩欄／淺橫向四欄兩列、正規化位置、邊界夾限、相機隔離與正式氣象用語 |
+| 整合 | passed | 6 passed、0 failed；Pages 子路徑模組與既有地形資源契約不變 |
+| 情境／黃金重播 | passed | 16 passed、0 failed；三份既有 fixture 與正式 fingerprint 不變 |
+| 實際 Google Chrome E2E | passed | 19 passed、0 failed；指標拖曳、按兩下歸位、鍵盤移動／Home 歸位；模擬前進並顯示完整更新時間後的 390～800 px 響應式幾何、卡片／控制避讓與無裁切；定位點上層可見、相機與物理隔離、玩家診斷退場 |
+| 指標拖曳／物理隔離 | passed | 卡片拖曳前後地圖中心、縮放倍率、step 與 fingerprint 不變；相機變更後卡片畫面位置維持，定位點與引線重投影 |
+| 玩家診斷退場 | passed | foundation、artifact 與 Chrome E2E 反向驗證可見 FPS、固定步長／步次、效能診斷、fingerprint、`Phase 09` 及模型中間值不再出現；隱藏 runtime telemetry、效能量測與 Canvas 無障礙摘要保留 |
+| build／Pages artifact | passed | 5 個允許根項目；artifact 1 passed、0 failed，未加入伺服器端或玩家匯入／匯出入口 |
+| 效能門檻 | passed | 中畫質中位 59.88 FPS、1% low 59.52、render 0.850／2.2 ms、update 1.687／3.7 ms、Long Task 0；本輪全部符合門檻 |
+| Codex in-app Browser | passed | 本機正式子路徑 DOM／視覺 smoke；六卡低干擾配置與完整文字可見、玩家診斷不可見；實際拖曳臺中卡約 160×20 px，地圖中心／縮放與 step 不變，按兩下精確歸位 |
+| Microsoft Edge | not_verified | 本機未安裝，未以 Chromium 代替 |
+| iPadOS Safari | not_verified | 無實體裝置證據，未以桌面窄視窗或 Chrome 觸控事件代替 |
+| GitHub Actions | not_run | 本輪差異未 commit、未 push，未手動觸發 workflow |
+| Pages API／部署 | not_run | 本輪差異未部署 |
+| 公開網站 | not_verified | 現有正式網址仍是已發布第一版，不是本機 `v1.0.1` 維護候選的證據 |
+
+需求追蹤：`UI-MAP-STATION-PLACEMENT-001` 低干擾預設卡位與定位點上層可見、
+`UI-MAP-STATION-DRAG-001` 個別拖曳與歸位、
+`UI-MAP-STATION-DENSITY-001` 完整高密度氣象排版、兩欄／四欄兩列及
+10 px／11 px 字級下限、
+`SIM-STATION-PRESENTATION-ISOLATION-001` 卡位與相機／物理隔離，以及
+`UI-DEV-DIAGNOSTIC-RETIRE-001` 玩家開發診斷退場均為 `passed`。
+本輪維護狀態為 `completed`，尚未取得 `approved` 或遠端發布授權；Phase 9
+第一版 `approved` 史實與 Phase 10 `pending` 狀態均不改變。
+本輪效能通過是 `v1.0.1` 候選的新量測；`v1.0.0` 結案時的 update p95
+6.1 ms `failed` 仍保留為歷史證據，不作回溯改寫。
+
 ### 2026-08-06 六站地圖卡、查詢退場與鏡頭操作本機驗證
 
 主規格 1.0.5 將六站模型觀測移入地圖內的有色毛玻璃卡，取消玩家
@@ -228,6 +267,11 @@ success/ocean 13.91:1，均高於一般文字 4.5:1。
 | PERF-MAP-001 | GeoJSON 不重複解析、靜態圖離屏快取 | geography unit、code inspection | passed |
 | UI-MAP-PROBE-RETIRE-001 | 玩家地圖查詢、面板與選取游標不存在 | foundation、artifact、Chrome E2E | passed |
 | UI-MAP-STATION-CARD-001 | 六站觀測以地圖內有色毛玻璃卡及引線呈現 | station overlay unit、Chrome E2E | passed |
+| UI-MAP-STATION-PLACEMENT-001 | 六站卡預設位於中國大陸內陸與南側低干擾區 | station overlay unit、Chrome E2E、in-app Browser | passed |
+| UI-MAP-STATION-DRAG-001 | 指標拖曳、鍵盤微調、取消與個別歸位 | station overlay unit、Chrome E2E、in-app Browser | passed |
+| UI-MAP-STATION-DENSITY-001 | 完整氣象用語的高密度可讀排版 | DOM／CSS inspection、Chrome E2E、in-app Browser | passed |
+| SIM-STATION-PRESENTATION-ISOLATION-001 | 卡位不改相機、物理、步次、重播或 fingerprint | station overlay unit、Chrome E2E | passed |
+| UI-DEV-DIAGNOSTIC-RETIRE-001 | 玩家 DOM 與 Canvas 不顯示開發診斷，內部量測保留 | foundation、artifact、Chrome E2E、in-app Browser | passed |
 | UI-MAP-CAMERA-001 | 滾輪、拖曳、雙指、按鈕、鍵盤與邊界限制 | camera／controller unit、Chrome E2E | passed |
 | SIM-VIEW-ISOLATION-001 | 視角操作不改變 step、物理或 fingerprint | unit、Chrome E2E、黃金重播 | passed |
 | A11Y-MAP-CAMERA-001 | 可見 44 px 控制、鍵盤等價操作與視角文字狀態 | Chrome E2E、CSS inspection | passed |

@@ -7,18 +7,40 @@ import { clamp } from "../utils/math.js";
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const CARD_EDGE_GAP = 8;
 const CARD_GAP = 8;
-const LEADER_GAP = 24;
+const COLLISION_EPSILON = 0.25;
 const COMPACT_BREAKPOINT = 600;
 const COMPACT_HEIGHT = 420;
-const COMPACT_COLUMNS = 3;
+const NARROW_COLUMNS = 2;
+const SHALLOW_COLUMNS = 4;
+const KEYBOARD_STEP = 8;
+const KEYBOARD_LARGE_STEP = 32;
+const SEARCH_STEP = 8;
 
-const STATION_SIDES = Object.freeze({
-  hualien: "right",
-  naha: "right",
-  penghu: "left",
-  "sun-moon-lake": "left",
-  taichung: "left",
-  taipei: "right"
+export const DEFAULT_CARD_PLACEMENTS = Object.freeze({
+  hualien: Object.freeze({ x: 0.82, y: 0.95 }),
+  naha: Object.freeze({ x: 0.28, y: 0.95 }),
+  penghu: Object.freeze({ x: 0.02, y: 0.51 }),
+  "sun-moon-lake": Object.freeze({ x: 0.02, y: 0.28 }),
+  taichung: Object.freeze({ x: 0.02, y: 0.05 }),
+  taipei: Object.freeze({ x: 0.55, y: 0.95 })
+});
+
+const NARROW_CARD_PLACEMENTS = Object.freeze({
+  hualien: Object.freeze({ x: 1, y: 0.82 }),
+  naha: Object.freeze({ x: 1, y: 0 }),
+  penghu: Object.freeze({ x: 0, y: 1 }),
+  "sun-moon-lake": Object.freeze({ x: 0, y: 0.58 }),
+  taichung: Object.freeze({ x: 0, y: 0 }),
+  taipei: Object.freeze({ x: 1, y: 0.41 })
+});
+
+const SHALLOW_CARD_PLACEMENTS = Object.freeze({
+  hualien: Object.freeze({ x: 1 / 3, y: 1 }),
+  naha: Object.freeze({ x: 1, y: 0 }),
+  penghu: Object.freeze({ x: 2 / 3, y: 0 }),
+  "sun-moon-lake": Object.freeze({ x: 1 / 3, y: 0 }),
+  taichung: Object.freeze({ x: 0, y: 0 }),
+  taipei: Object.freeze({ x: 0, y: 1 })
 });
 
 const formatNumber = (value, digits = 1) =>
@@ -72,178 +94,202 @@ export const stationObservationPresentation = (observation, storm) => {
   });
 };
 
-const layoutRail = (items, minimumY, maximumY) => {
-  const sorted = [...items].sort(
-    (first, second) => first.anchor.y - second.anchor.y ||
-      first.id.localeCompare(second.id)
+const mapRectForViewport = (viewport) =>
+  Object.freeze({
+    bottom: viewport.height - viewport.padding.bottom - CARD_EDGE_GAP,
+    left: viewport.padding.left + CARD_EDGE_GAP,
+    right: viewport.width - viewport.padding.right - CARD_EDGE_GAP,
+    top: viewport.padding.top + CARD_EDGE_GAP
+  });
+
+const normalizedPlacement = (placement) =>
+  Object.freeze({
+    x: clamp(Number(placement?.x) || 0, 0, 1),
+    y: clamp(Number(placement?.y) || 0, 0, 1)
+  });
+
+export const normalizedPlacementToPosition = ({
+  placement,
+  size,
+  viewport
+}) => {
+  const mapRect = mapRectForViewport(viewport);
+  const normalized = normalizedPlacement(placement);
+  const availableWidth = Math.max(0, mapRect.right - mapRect.left - size.width);
+  const availableHeight = Math.max(
+    0,
+    mapRect.bottom - mapRect.top - size.height
   );
-  const positions = [];
-  let cursor = minimumY;
 
-  for (const item of sorted) {
-    const height = item.size.height;
-    const desired = clamp(
-      item.anchor.y - height / 2,
-      minimumY,
-      maximumY - height
-    );
-    const y = Math.max(desired, cursor);
-    positions.push({ ...item, y });
-    cursor = y + height + CARD_GAP;
-  }
-
-  if (positions.length === 0) {
-    return positions;
-  }
-
-  const overflow =
-    positions.at(-1).y + positions.at(-1).size.height - maximumY;
-
-  if (overflow > 0) {
-    for (const position of positions) {
-      position.y -= overflow;
-    }
-  }
-
-  for (let index = positions.length - 2; index >= 0; index -= 1) {
-    const current = positions[index];
-    const next = positions[index + 1];
-    current.y = Math.min(
-      current.y,
-      next.y - CARD_GAP - current.size.height
-    );
-  }
-
-  const underflow = minimumY - positions[0].y;
-  if (underflow > 0) {
-    for (const position of positions) {
-      position.y += underflow;
-    }
-  }
-
-  return positions;
+  return Object.freeze({
+    x: mapRect.left + availableWidth * normalized.x,
+    y: mapRect.top + availableHeight * normalized.y
+  });
 };
 
-const compactLayout = (items, mapRect) => {
-  const columns = Math.min(COMPACT_COLUMNS, Math.max(1, items.length));
-  const rowHeights = [];
+export const positionToNormalizedPlacement = ({ position, size, viewport }) => {
+  const mapRect = mapRectForViewport(viewport);
+  const availableWidth = Math.max(0, mapRect.right - mapRect.left - size.width);
+  const availableHeight = Math.max(
+    0,
+    mapRect.bottom - mapRect.top - size.height
+  );
 
-  for (let index = 0; index < items.length; index += 1) {
-    const row = Math.floor(index / columns);
-    rowHeights[row] = Math.max(
-      rowHeights[row] ?? 0,
-      items[index].size.height
-    );
+  return Object.freeze({
+    x: availableWidth === 0
+      ? 0
+      : clamp((position.x - mapRect.left) / availableWidth, 0, 1),
+    y: availableHeight === 0
+      ? 0
+      : clamp((position.y - mapRect.top) / availableHeight, 0, 1)
+  });
+};
+
+const clampPositionToMap = ({ position, size, viewport }) => {
+  const mapRect = mapRectForViewport(viewport);
+
+  return Object.freeze({
+    x: clamp(
+      position.x,
+      mapRect.left,
+      Math.max(mapRect.left, mapRect.right - size.width)
+    ),
+    y: clamp(
+      position.y,
+      mapRect.top,
+      Math.max(mapRect.top, mapRect.bottom - size.height)
+    )
+  });
+};
+
+const rectangleForPosition = ({ size, x, y }) =>
+  Object.freeze({
+    bottom: y + size.height,
+    left: x,
+    right: x + size.width,
+    top: y
+  });
+
+const rectanglesOverlap = (first, second, gap = 0) =>
+  first.left < second.right + gap - COLLISION_EPSILON &&
+  first.right > second.left - gap + COLLISION_EPSILON &&
+  first.top < second.bottom + gap - COLLISION_EPSILON &&
+  first.bottom > second.top - gap + COLLISION_EPSILON;
+
+const positionIsAvailable = (position, size, blocked) => {
+  const rectangle = rectangleForPosition({ ...position, size });
+
+  return blocked.every(
+    (obstacle) =>
+      !rectanglesOverlap(rectangle, obstacle, obstacle.gap ?? CARD_GAP)
+  );
+};
+
+const availablePositionNearest = ({ blocked, desired, size, viewport }) => {
+  const clampedDesired = clampPositionToMap({
+    position: desired,
+    size,
+    viewport
+  });
+
+  if (positionIsAvailable(clampedDesired, size, blocked)) {
+    return clampedDesired;
   }
 
-  const rowOffsets = rowHeights.length <= 1
-    ? [mapRect.top + CARD_EDGE_GAP]
-    : rowHeights.map((height, index) =>
-        index === 0
-          ? mapRect.top + CARD_EDGE_GAP
-          : mapRect.bottom - CARD_EDGE_GAP - height
+  const mapRect = mapRectForViewport(viewport);
+  const maximumDistance = Math.max(
+    mapRect.right - mapRect.left,
+    mapRect.bottom - mapRect.top
+  );
+
+  for (let distance = SEARCH_STEP; distance <= maximumDistance; distance += SEARCH_STEP) {
+    const offsets = [];
+
+    for (let offset = -distance; offset <= distance; offset += SEARCH_STEP) {
+      offsets.push(
+        { x: offset, y: -distance },
+        { x: offset, y: distance },
+        { x: -distance, y: offset },
+        { x: distance, y: offset }
       );
+    }
 
-  return items.map((item, index) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
+    for (const offset of offsets) {
+      const candidate = clampPositionToMap({
+        position: {
+          x: clampedDesired.x + offset.x,
+          y: clampedDesired.y + offset.y
+        },
+        size,
+        viewport
+      });
 
-    return Object.freeze({
-      ...item,
-      x:
-        mapRect.left +
-        CARD_EDGE_GAP +
-        column * (item.size.width + CARD_GAP),
-      y: rowOffsets[row]
-    });
-  });
+      if (positionIsAvailable(candidate, size, blocked)) {
+        return candidate;
+      }
+    }
+  }
+
+  return clampedDesired;
 };
 
 export const layoutStationCards = ({
   anchors,
   compact = false,
+  compactColumns = NARROW_COLUMNS,
   obstacles = [],
+  placements = {},
   sizes,
   viewport
 }) => {
-  const mapRect = Object.freeze({
-    bottom: viewport.height - viewport.padding.bottom,
-    left: viewport.padding.left,
-    right: viewport.width - viewport.padding.right,
-    top: viewport.padding.top
-  });
-  const visibleItems = anchors
-    .filter((anchor) => anchor.visible)
+  const defaults = compact
+    ? compactColumns === SHALLOW_COLUMNS
+      ? SHALLOW_CARD_PLACEMENTS
+      : NARROW_CARD_PLACEMENTS
+    : DEFAULT_CARD_PLACEMENTS;
+  const items = anchors
+    .filter((anchor) => anchor.visible && sizes[anchor.id])
     .map((anchor) =>
-      Object.freeze({
-        anchor,
-        id: anchor.id,
-        size: sizes[anchor.id]
-      })
+      Object.freeze({ anchor, id: anchor.id, size: sizes[anchor.id] })
     );
+  const blocked = [...obstacles];
+  const positions = [];
 
-  if (compact) {
-    return Object.freeze(compactLayout(visibleItems, mapRect));
+  for (const [index, item] of items.entries()) {
+    const fallback = Object.freeze({
+      x:
+        compactColumns <= 1
+          ? 0
+          : (index % compactColumns) / (compactColumns - 1),
+      y: Math.floor(index / compactColumns) /
+        Math.max(1, Math.ceil(items.length / compactColumns) - 1)
+    });
+    const placement = normalizedPlacement(
+      placements[item.id] ?? defaults[item.id] ?? fallback
+    );
+    const desired = normalizedPlacementToPosition({
+      placement,
+      size: item.size,
+      viewport
+    });
+    const resolved = availablePositionNearest({
+      blocked,
+      desired,
+      size: item.size,
+      viewport
+    });
+    const position = Object.freeze({
+      ...item,
+      placement,
+      x: resolved.x,
+      y: resolved.y
+    });
+
+    positions.push(position);
+    blocked.push(rectangleForPosition(position));
   }
 
-  const leftItems = visibleItems.filter(
-    (item) => STATION_SIDES[item.id] !== "right"
-  );
-  const rightItems = visibleItems.filter(
-    (item) => STATION_SIDES[item.id] === "right"
-  );
-  const leftWidth = Math.max(0, ...leftItems.map((item) => item.size.width));
-  const rightWidth = Math.max(0, ...rightItems.map((item) => item.size.width));
-  const minimumAnchorX = Math.min(
-    mapRect.right,
-    ...visibleItems.map((item) => item.anchor.x)
-  );
-  const maximumAnchorX = Math.max(
-    mapRect.left,
-    ...visibleItems.map((item) => item.anchor.x)
-  );
-  let leftX = clamp(
-    minimumAnchorX - leftWidth - LEADER_GAP,
-    mapRect.left + CARD_EDGE_GAP,
-    mapRect.right - leftWidth - CARD_EDGE_GAP
-  );
-  let rightX = clamp(
-    maximumAnchorX + LEADER_GAP,
-    mapRect.left + CARD_EDGE_GAP,
-    mapRect.right - rightWidth - CARD_EDGE_GAP
-  );
-
-  if (
-    leftItems.length > 0 &&
-    rightItems.length > 0 &&
-    leftX + leftWidth + CARD_GAP > rightX
-  ) {
-    leftX = mapRect.left + CARD_EDGE_GAP;
-    rightX = mapRect.right - rightWidth - CARD_EDGE_GAP;
-  }
-
-  const minimumY = mapRect.top + CARD_EDGE_GAP;
-  const maximumY = mapRect.bottom - CARD_EDGE_GAP;
-  const maximumYForRail = (x, width) =>
-    obstacles.reduce((limit, obstacle) => {
-      const overlapsHorizontally =
-        x < obstacle.right + CARD_GAP &&
-        x + width > obstacle.left - CARD_GAP;
-
-      return overlapsHorizontally
-        ? Math.min(limit, obstacle.top - CARD_GAP)
-        : limit;
-    }, maximumY);
-  const leftPositions = layoutRail(leftItems, minimumY, maximumY).map(
-    (item) => Object.freeze({ ...item, x: leftX })
-  );
-  const rightPositions = layoutRail(
-    rightItems,
-    minimumY,
-    maximumYForRail(rightX, rightWidth)
-  ).map((item) => Object.freeze({ ...item, x: rightX }));
-
-  return Object.freeze([...leftPositions, ...rightPositions]);
+  return Object.freeze(positions);
 };
 
 const leaderEndpoint = ({ anchor, size, x, y }) => {
@@ -267,17 +313,27 @@ const leaderEndpoint = ({ anchor, size, x, y }) => {
 };
 
 export class StationMapOverlay {
+  #activeDrag = null;
+  #anchors = new Map();
   #cardLayer;
   #controls;
   #elements = new Map();
+  #geometryRevision = 0;
   #lastContentKey = "";
   #lastLayoutKey = "";
   #leaderLayer;
+  #markerLayer;
   #obstacles = [];
   #obstaclesKey = "";
+  #placementRevision = 0;
+  #placements = new Map();
+  #positions = new Map();
   #root;
+  #resizeObserver = null;
   #sizes = {};
   #sizesKey = "";
+  #status;
+  #viewport = null;
 
   constructor(root) {
     if (!root || typeof root.querySelector !== "function") {
@@ -287,12 +343,282 @@ export class StationMapOverlay {
     this.#root = root;
     this.#cardLayer = root.querySelector("[data-station-card-layer]");
     this.#leaderLayer = root.querySelector("[data-station-leaders]");
+    this.#markerLayer = root.querySelector("[data-station-markers]");
+    this.#status = root.querySelector("[data-station-placement-status]");
     this.#controls = root.parentElement?.querySelector(".map-controls") ?? null;
 
-    if (!this.#cardLayer || !this.#leaderLayer) {
+    if (!this.#cardLayer || !this.#leaderLayer || !this.#markerLayer) {
       throw new Error("Station map overlay layers are incomplete.");
     }
+
+    this.#cardLayer.addEventListener("pointerdown", this.#handlePointerDown);
+    this.#cardLayer.addEventListener("pointermove", this.#handlePointerMove);
+    this.#cardLayer.addEventListener("pointerup", this.#handlePointerUp);
+    this.#cardLayer.addEventListener("pointercancel", this.#handlePointerCancel);
+    this.#cardLayer.addEventListener(
+      "lostpointercapture",
+      this.#handlePointerCancel
+    );
+    this.#cardLayer.addEventListener("dblclick", this.#handleDoubleClick);
+    this.#cardLayer.addEventListener("keydown", this.#handleKeyDown);
+
+    const ResizeObserverClass = root.ownerDocument.defaultView?.ResizeObserver;
+    if (typeof ResizeObserverClass === "function") {
+      this.#resizeObserver = new ResizeObserverClass(() => {
+        this.#geometryRevision += 1;
+        this.#lastLayoutKey = "";
+        this.#obstaclesKey = "";
+        this.#sizesKey = "";
+      });
+      this.#resizeObserver.observe(this.#root);
+      if (this.#controls) {
+        this.#resizeObserver.observe(this.#controls);
+      }
+    }
   }
+
+  #announce(message) {
+    if (this.#status) {
+      this.#status.textContent = message;
+    }
+  }
+
+  #cardFromEvent(event) {
+    const card = event.target?.closest?.(".station-card");
+    return card && this.#cardLayer.contains(card) ? card : null;
+  }
+
+  #applyPosition(id, position) {
+    const element = this.#elements.get(id);
+    const anchor = this.#anchors.get(id);
+
+    if (!element || !anchor || !position) {
+      return;
+    }
+
+    const completePosition = Object.freeze({ ...position, anchor });
+    const endpoint = leaderEndpoint(completePosition);
+    element.article.style.transform =
+      `translate3d(${position.x}px, ${position.y}px, 0)`;
+    element.leader.setAttribute("x1", String(anchor.x));
+    element.leader.setAttribute("y1", String(anchor.y));
+    element.leader.setAttribute("x2", String(endpoint.x));
+    element.leader.setAttribute("y2", String(endpoint.y));
+    element.marker.setAttribute("cx", String(anchor.x));
+    element.marker.setAttribute("cy", String(anchor.y));
+    this.#positions.set(id, completePosition);
+  }
+
+  #commitPlacement(id, placement, message) {
+    if (placement) {
+      this.#placements.set(id, placement);
+    } else {
+      this.#placements.delete(id);
+    }
+    const article = this.#elements.get(id)?.article;
+    if (article) {
+      article.dataset.placement = placement ? "custom" : "default";
+    }
+    this.#placementRevision += 1;
+    this.#lastLayoutKey = "";
+    this.#announce(message);
+  }
+
+  #finishDrag({ commit }) {
+    const active = this.#activeDrag;
+
+    if (!active) {
+      return;
+    }
+
+    this.#activeDrag = null;
+    delete active.article.dataset.dragging;
+    delete this.#root.dataset.dragging;
+
+    if (active.article.hasPointerCapture?.(active.pointerId)) {
+      active.article.releasePointerCapture(active.pointerId);
+    }
+
+    if (commit && active.currentPlacement) {
+      this.#commitPlacement(
+        active.id,
+        active.currentPlacement,
+        `${active.name}模型觀測卡已移至新位置。`
+      );
+    } else {
+      this.#commitPlacement(
+        active.id,
+        active.startPlacement,
+        `${active.name}模型觀測卡已取消移動。`
+      );
+    }
+  }
+
+  #handlePointerDown = (event) => {
+    const article = this.#cardFromEvent(event);
+
+    if (
+      !article ||
+      event.isPrimary === false ||
+      (event.pointerType === "mouse" && event.button !== 0) ||
+      !this.#viewport
+    ) {
+      return;
+    }
+
+    const id = article.dataset.stationId;
+    const position = this.#positions.get(id);
+    const size = this.#sizes[id];
+
+    if (!position || !size) {
+      return;
+    }
+
+    const rootRect = this.#root.getBoundingClientRect();
+    event.preventDefault();
+    event.stopPropagation();
+    article.focus({ preventScroll: true });
+    article.setPointerCapture?.(event.pointerId);
+    article.dataset.dragging = "true";
+    this.#root.dataset.dragging = "true";
+    this.#activeDrag = {
+      article,
+      currentPlacement: null,
+      id,
+      name: this.#elements.get(id).title.textContent,
+      offsetX: event.clientX - rootRect.left - position.x,
+      offsetY: event.clientY - rootRect.top - position.y,
+      pointerId: event.pointerId,
+      rootRect,
+      size,
+      startPlacement: this.#placements.get(id) ?? null
+    };
+  };
+
+  #handlePointerMove = (event) => {
+    const active = this.#activeDrag;
+
+    if (!active || event.pointerId !== active.pointerId || !this.#viewport) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const position = clampPositionToMap({
+      position: {
+        x: event.clientX - active.rootRect.left - active.offsetX,
+        y: event.clientY - active.rootRect.top - active.offsetY
+      },
+      size: active.size,
+      viewport: this.#viewport
+    });
+    active.currentPlacement = positionToNormalizedPlacement({
+      position,
+      size: active.size,
+      viewport: this.#viewport
+    });
+    this.#applyPosition(active.id, { ...position, size: active.size });
+  };
+
+  #handlePointerUp = (event) => {
+    if (!this.#activeDrag || event.pointerId !== this.#activeDrag.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.#finishDrag({ commit: true });
+  };
+
+  #handlePointerCancel = (event) => {
+    if (!this.#activeDrag || event.pointerId !== this.#activeDrag.pointerId) {
+      return;
+    }
+
+    this.#finishDrag({ commit: false });
+  };
+
+  #handleDoubleClick = (event) => {
+    const article = this.#cardFromEvent(event);
+
+    if (!article) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.#commitPlacement(
+      article.dataset.stationId,
+      null,
+      `${this.#elements.get(article.dataset.stationId).title.textContent}` +
+        "模型觀測卡已回到預設位置。"
+    );
+  };
+
+  #handleKeyDown = (event) => {
+    const article = this.#cardFromEvent(event);
+
+    if (!article || !this.#viewport) {
+      return;
+    }
+
+    const id = article.dataset.stationId;
+    const name = this.#elements.get(id).title.textContent;
+
+    if (event.key === "Escape" && this.#activeDrag) {
+      event.preventDefault();
+      this.#finishDrag({ commit: false });
+      return;
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      event.stopPropagation();
+      this.#commitPlacement(
+        id,
+        null,
+        `${name}模型觀測卡已回到預設位置。`
+      );
+      return;
+    }
+
+    const direction = {
+      ArrowDown: { x: 0, y: 1 },
+      ArrowLeft: { x: -1, y: 0 },
+      ArrowRight: { x: 1, y: 0 },
+      ArrowUp: { x: 0, y: -1 }
+    }[event.key];
+
+    if (!direction) {
+      return;
+    }
+
+    const current = this.#positions.get(id);
+    const size = this.#sizes[id];
+
+    if (!current || !size) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const step = event.shiftKey ? KEYBOARD_LARGE_STEP : KEYBOARD_STEP;
+    const position = clampPositionToMap({
+      position: {
+        x: current.x + direction.x * step,
+        y: current.y + direction.y * step
+      },
+      size,
+      viewport: this.#viewport
+    });
+    const placement = positionToNormalizedPlacement({
+      position,
+      size,
+      viewport: this.#viewport
+    });
+    this.#applyPosition(id, { ...position, size });
+    this.#commitPlacement(id, placement, `${name}模型觀測卡位置已微調。`);
+  };
 
   #ensureElement(observation) {
     const station = observation.station;
@@ -307,75 +633,68 @@ export class StationMapOverlay {
     const heading = document.createElement("header");
     const title = document.createElement("h4");
     const update = document.createElement("span");
-    const distanceText = document.createElement("p");
-    const wind = document.createElement("p");
-    const rain = document.createElement("p");
-    const terrain = document.createElement("p");
+    const updateLabel = document.createElement("span");
+    const updateValue = document.createElement("strong");
+    const meta = document.createElement("dl");
+    const wind = document.createElement("dl");
+    const rain = document.createElement("dl");
     const leader = document.createElementNS(SVG_NAMESPACE, "line");
     const marker = document.createElementNS(SVG_NAMESPACE, "circle");
-    const appendLabeledValue = (container, labelText) => {
-      const label = document.createElement("span");
-      const value = document.createElement("strong");
-      label.className = "station-card-label";
+    const appendMetric = (container, labelText) => {
+      const metric = document.createElement("div");
+      const label = document.createElement("dt");
+      const value = document.createElement("dd");
+      metric.className = "station-card-metric";
       label.textContent = labelText;
-      value.className = "station-card-value";
-      container.append(label, value);
+      metric.append(label, value);
+      container.append(metric);
       return value;
     };
-    const createMetric = (labelText) => {
-      const metric = document.createElement("span");
-      metric.className = "station-card-metric";
-      return Object.freeze({
-        metric,
-        value: appendLabeledValue(metric, labelText)
-      });
-    };
-    const updateValue = appendLabeledValue(update, "模擬更新時間");
-    const distanceValue = appendLabeledValue(
-      distanceText,
-      "與颱風中心距離"
-    );
-    const sustainedWind = createMetric("持續風");
-    const gust = createMetric("最大陣風");
-    const hourlyRainRate = createMetric("當前雨率");
-    const accumulatedRain = createMetric("累積雨量");
-    const terrainValue = appendLabeledValue(terrain, "地形修正");
+    const distanceValue = appendMetric(meta, "與颱風中心距離");
+    const terrainValue = appendMetric(meta, "地形修正");
+    const sustainedWindValue = appendMetric(wind, "持續風");
+    const gustValue = appendMetric(wind, "最大陣風");
+    const hourlyRainRateValue = appendMetric(rain, "當前雨率");
+    const accumulatedRainValue = appendMetric(rain, "累積雨量");
 
     article.dataset.stationId = station.id;
+    article.dataset.placement = "default";
     article.className = "station-card";
+    article.tabIndex = 0;
+    article.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown ArrowLeft ArrowRight Home Escape");
+    article.setAttribute("aria-roledescription", "可拖曳模型觀測卡");
+    article.title = "拖曳可移動；方向鍵可微調；Home 鍵或按兩下可歸位";
     title.textContent = station.name;
     update.className = "station-card-update";
+    updateLabel.textContent = "模擬更新時間";
+    update.append(updateLabel, updateValue);
     heading.append(title, update);
-    distanceText.className = "station-card-distance";
+    meta.className = "station-card-meta";
     wind.className = "station-card-wind";
     wind.dataset.stationWind = station.id;
-    wind.append(sustainedWind.metric, gust.metric);
     rain.className = "station-card-rain";
     rain.dataset.stationRain = station.id;
-    rain.append(hourlyRainRate.metric, accumulatedRain.metric);
-    terrain.className = "station-card-terrain";
-    article.append(heading, distanceText, wind, rain, terrain);
+    article.append(heading, meta, wind, rain);
 
     leader.dataset.stationLeader = station.id;
     marker.dataset.stationMarker = station.id;
     marker.setAttribute("r", "3.5");
-    this.#leaderLayer.append(leader, marker);
+    this.#leaderLayer.append(leader);
+    this.#markerLayer.append(marker);
     this.#cardLayer.append(article);
 
     const created = Object.freeze({
+      accumulatedRainValue,
       article,
-      accumulatedRainValue: accumulatedRain.value,
       distanceValue,
-      gustValue: gust.value,
-      hourlyRainRateValue: hourlyRainRate.value,
+      gustValue,
+      hourlyRainRateValue,
       leader,
       marker,
-      rain,
-      sustainedWindValue: sustainedWind.value,
+      sustainedWindValue,
       terrainValue,
       title,
-      updateValue,
-      wind
+      updateValue
     });
     this.#elements.set(station.id, created);
     return created;
@@ -386,6 +705,7 @@ export class StationMapOverlay {
       return;
     }
 
+    this.#viewport = viewport;
     const presentations = observations.map((observation) =>
       stationObservationPresentation(observation, storm)
     );
@@ -405,7 +725,8 @@ export class StationMapOverlay {
       if (contentChanged) {
         element.article.setAttribute(
           "aria-label",
-          presentation.accessibleText
+          presentation.accessibleText +
+            "拖曳可移動資訊卡；方向鍵可微調；Home 鍵可重設位置。"
         );
         element.updateValue.textContent = presentation.updateTime;
         element.distanceValue.textContent = `${presentation.distance} 公里`;
@@ -427,14 +748,22 @@ export class StationMapOverlay {
         COMPACT_HEIGHT;
     const drawableWidth =
       viewport.width - viewport.padding.left - viewport.padding.right;
+    const compactColumns = viewport.width < COMPACT_BREAKPOINT
+      ? NARROW_COLUMNS
+      : SHALLOW_COLUMNS;
     const compactWidth =
-      (drawableWidth - CARD_EDGE_GAP * 2 - CARD_GAP * 2) /
-      COMPACT_COLUMNS;
+      (drawableWidth -
+        CARD_EDGE_GAP * 2 -
+        CARD_GAP * (compactColumns - 1)) /
+      compactColumns;
     const layoutKey = [
       viewport.cameraRevision,
       viewport.width,
       viewport.height,
       compact,
+      compactColumns,
+      this.#geometryRevision,
+      this.#placementRevision,
       ...Object.values(viewport.bounds)
     ].join(":");
 
@@ -443,11 +772,15 @@ export class StationMapOverlay {
     }
 
     this.#root.dataset.layout = compact ? "compact" : "callout";
-    this.#root.parentElement.dataset.stationLayout =
-      compact ? "compact" : "callout";
+    this.#root.dataset.columns = compact ? String(compactColumns) : "1";
+    if (this.#root.parentElement) {
+      this.#root.parentElement.dataset.stationLayout =
+        compact ? "compact" : "callout";
+    }
 
     for (const presentation of presentations) {
       const element = this.#elements.get(presentation.station.id);
+      element.article.hidden = false;
       if (compact) {
         element.article.style.inlineSize = `${compactWidth}px`;
       } else {
@@ -472,9 +805,8 @@ export class StationMapOverlay {
         )
       });
     });
-    for (const anchor of anchors) {
-      this.#elements.get(anchor.id).article.hidden = false;
-    }
+    this.#anchors = new Map(anchors.map((anchor) => [anchor.id, anchor]));
+
     const sizesKey = `${compact}:${compactWidth.toFixed(3)}:${viewport.height}`;
     if (sizesKey !== this.#sizesKey) {
       this.#sizes = Object.fromEntries(
@@ -490,12 +822,13 @@ export class StationMapOverlay {
       );
       this.#sizesKey = sizesKey;
     }
+
     const obstaclesKey = `${compact}:${viewport.width}:${viewport.height}`;
     if (obstaclesKey !== this.#obstaclesKey) {
       const rootRect = this.#root.getBoundingClientRect();
       const controlRect = this.#controls?.getBoundingClientRect();
       this.#obstacles =
-        !compact && controlRect?.width > 0 && controlRect?.height > 0
+        controlRect?.width > 0 && controlRect?.height > 0
           ? [
               Object.freeze({
                 bottom: controlRect.bottom - rootRect.top,
@@ -507,16 +840,26 @@ export class StationMapOverlay {
           : [];
       this.#obstaclesKey = obstaclesKey;
     }
+
     const positions = layoutStationCards({
       anchors,
       compact,
+      compactColumns,
       obstacles: this.#obstacles,
+      placements: Object.fromEntries(this.#placements),
       sizes: this.#sizes,
       viewport
     });
     const byId = new Map(positions.map((position) => [position.id, position]));
 
-    this.#leaderLayer.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
+    this.#leaderLayer.setAttribute(
+      "viewBox",
+      `0 0 ${viewport.width} ${viewport.height}`
+    );
+    this.#markerLayer.setAttribute(
+      "viewBox",
+      `0 0 ${viewport.width} ${viewport.height}`
+    );
     for (const anchor of anchors) {
       const element = this.#elements.get(anchor.id);
       const position = byId.get(anchor.id);
@@ -525,20 +868,33 @@ export class StationMapOverlay {
       element.leader.hidden = !visible;
       element.marker.hidden = !visible;
 
-      if (!visible) {
-        continue;
+      if (visible && this.#activeDrag?.id !== anchor.id) {
+        this.#applyPosition(anchor.id, position);
       }
-
-      element.article.style.transform =
-        `translate3d(${position.x}px, ${position.y}px, 0)`;
-      const endpoint = leaderEndpoint(position);
-      element.leader.setAttribute("x1", String(anchor.x));
-      element.leader.setAttribute("y1", String(anchor.y));
-      element.leader.setAttribute("x2", String(endpoint.x));
-      element.leader.setAttribute("y2", String(endpoint.y));
-      element.marker.setAttribute("cx", String(anchor.x));
-      element.marker.setAttribute("cy", String(anchor.y));
     }
     this.#lastLayoutKey = layoutKey;
+  }
+
+  destroy() {
+    this.#cardLayer.removeEventListener(
+      "pointerdown",
+      this.#handlePointerDown
+    );
+    this.#cardLayer.removeEventListener(
+      "pointermove",
+      this.#handlePointerMove
+    );
+    this.#cardLayer.removeEventListener("pointerup", this.#handlePointerUp);
+    this.#cardLayer.removeEventListener(
+      "pointercancel",
+      this.#handlePointerCancel
+    );
+    this.#cardLayer.removeEventListener(
+      "lostpointercapture",
+      this.#handlePointerCancel
+    );
+    this.#cardLayer.removeEventListener("dblclick", this.#handleDoubleClick);
+    this.#cardLayer.removeEventListener("keydown", this.#handleKeyDown);
+    this.#resizeObserver?.disconnect();
   }
 }

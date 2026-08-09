@@ -5,11 +5,14 @@
 
 ## 文件狀態
 
-- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.6。
+- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.7。
 - 目前 Phase：Phase 9 已由使用者按現況接受已知例外並批准，第一版正式結案；
-  Phase 10 不執行。
-- 結案例外：中畫質 update p95 6.1 ms 保持 `failed`；Microsoft Edge 與
-  iPadOS Safari 保持 `not_verified`，不影響架構事實但不得冒充通過。
+  `v1.0.1` 結案後介面維護候選已在本機 `completed`、尚未 `approved` 或發布，
+  Phase 10 維持 `pending` 且不執行。
+- 第一版結案歷史：`v1.0.0` 中畫質 update p95 6.1 ms 保持 `failed`；
+  Microsoft Edge 與 iPadOS Safari 保持 `not_verified`，不得回溯改寫。
+- 維護候選新證據：`v1.0.1` 本機中畫質 update p95 3.7 ms 為 `passed`；
+  Microsoft Edge 與 iPadOS Safari 仍為 `not_verified`。
 - Phase 9 不改物理模型；加入可觀測效能、靜態地圖快取、無障礙與
   可重現 Pages artifact／deployment workflow，並在呈現邊界加入六站地圖卡與
   純視角地圖鏡頭。
@@ -73,7 +76,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 
 | 檔案 | 責任 |
 |---|---|
-| `index.html` | 上方橫跨第一、二象限的地圖與六站毛玻璃觀測卡、第三象限戰況資訊、第四象限參數與遊戲指令、品牌與聲明；後台 I/O 控制保持隱藏 |
+| `index.html` | 上方橫跨第一、二象限的地圖與六站毛玻璃觀測卡、第三象限戰況資訊、第四象限參數與遊戲指令、品牌與聲明；後台 I/O 與 runtime telemetry 保持隱藏，玩家畫面不顯示開發診斷 |
 | `js/config.js` | 不可變的專案身份、版本及引擎常數 |
 | `js/app.js` | DOM 綁定、引擎／地圖組裝、六站觀測卡更新、錯誤與可見性 |
 | `js/core/GameEngine.js` | requestAnimationFrame loop、update/render 分離與生命週期 |
@@ -81,7 +84,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/core/StateMachine.js` | 八種遊戲狀態及合法轉換 |
 | `js/core/EventBus.js` | 具順序 ID、同一步順序與 dedupe 的事件傳遞 |
 | `js/ui/CanvasViewport.js` | 高 DPI backing store 與 resize |
-| `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、診斷 overlay、鏡頭轉換與所有圖層共用的有效地理邊界 |
+| `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、鏡頭轉換與所有圖層共用的有效地理邊界；不在 Canvas 繪製 FPS、步次或其他開發診斷 |
 | `js/rendering/MapCamera.js` | 純函式地圖鏡頭；1～4 倍縮放、邊界限制、錨點縮放、平移、雙指轉換與重設 |
 | `js/rendering/FieldRenderer.js` | 分層海洋背景、連續海面溫度場、環境場及座標標示 |
 | `js/rendering/MapRenderer.js` | Natural Earth II 真實地形貼圖的鏡頭裁切、簡化地形降級、教育判定海岸線及依視角修訂的離屏快取 |
@@ -108,7 +111,7 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/rendering/FieldRenderer.js` | 海面溫度底圖、等壓線、太平洋副熱帶高壓、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
 | `js/ui/MapInteractionController.js` | 滾輪、滑鼠／單指拖曳、雙指縮放平移、按鈕、鍵盤與節流視角狀態播報 |
-| `js/ui/StationMapOverlay.js` | 六站觀測快照的正式氣象用語、有色毛玻璃 DOM 卡、定位引線、碰撞避讓與窄螢幕三欄二列佈局 |
+| `js/ui/StationMapOverlay.js` | 六站觀測快照的正式氣象用語、高密度有色毛玻璃 DOM 卡、真實定位點與引線；以正規化畫面座標處理低干擾預設區、Pointer Events 拖曳、鍵盤微調／歸位、碰撞與地圖控制避讓；定位點以卡片上方獨立圖層維持可見，窄螢幕兩欄、淺橫向四欄兩列並保留右下控制區 |
 | `js/data/levels.js` | Level 等效 schema、DSL 白名單、站群／警戒區及三關資料 |
 | `js/data/sandbox.js` | 沙盒 preset schema、預設值及無勝敗 Level adapter |
 | `js/persistence/StorageManager.js` | localStorage v1 驗證、遷移入口與損壞回復 |
@@ -156,7 +159,9 @@ CanvasRenderer
 
 ObservationModel read-only snapshots
   ↓ StationMapOverlay
-六站毛玻璃 HTML 卡／定位點／引線
+六站毛玻璃 HTML 卡（正規化呈現位置）
+  ↔ Pointer Events／鍵盤只改卡位
+真實測站定位點／相機重投影引線
 ```
 
 - 渲染器不決定海陸；它只讀受驗證的資料。
@@ -164,6 +169,8 @@ ObservationModel read-only snapshots
 - pointer 與鏡頭使用 CSS pixel rect 轉換，與 Canvas backing-store DPR 分離。
 - 全部 Canvas 世界圖層與 DOM 測站卡必須使用相同有效 bounds；鏡頭不存入
   simulation snapshot、重播、匯出或 fingerprint。
+- 六站卡位只保存在 `StationMapOverlay` 呈現層；拖曳與鍵盤事件不傳入
+  `MapInteractionController`，不改測站座標、相機、步數或 fingerprint。
 - 玩家地圖查詢與選取游標已依 `DEC-0039` 退場；座標雙向轉換與最近
   測站純函式保留，供鏡頭與模型幾何使用。
 - Phase 2 採地理經緯度的線性 equirectangular 顯示；測地距離另用
@@ -309,7 +316,7 @@ requestAnimationFrame
       ├─ optional same-origin Natural Earth II terrain WebP
       ├─ camera-revision-aware DPR offscreen static map canvas
       ├─ dynamic environment / storm / observation halos
-      ├─ DOM station glass cards sharing visible bounds
+      ├─ draggable DOM station glass cards sharing visible bounds
       └─ deterministic 300 / 700 / 1200 visual particles
 
 source tree
@@ -319,7 +326,8 @@ source tree
 ```
 
 - `PerformanceMonitor` 的 bounded window 最多保存 600 筆；百分位與摘要
-  每 30 次 snapshot 才重算，避免每幀排序與大量短命配置。
+  每 30 次 snapshot 才重算，避免每幀排序與大量短命配置。摘要只寫入
+  `[hidden]` runtime telemetry 供測試與量測，不進入玩家視覺或無障礙樹。
 - `loadGeography` 共用 Promise／已驗證資料，失敗時清除 cache 以便重試。
 - `MapRenderer` 只在 geography identity、地形影像 identity、viewport 尺寸、
   裝置像素比或 camera revision／有效 bounds 改變時重畫同一個離屏

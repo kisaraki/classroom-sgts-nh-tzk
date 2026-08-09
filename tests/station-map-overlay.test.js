@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  DEFAULT_CARD_PLACEMENTS,
   layoutStationCards,
+  normalizedPlacementToPosition,
+  positionToNormalizedPlacement,
   stationObservationPresentation
 } from "../js/ui/StationMapOverlay.js";
 
@@ -76,7 +79,7 @@ test("station presentation uses complete meteorological terms without mutation",
   assert.equal(JSON.stringify(observation), before);
 });
 
-test("desktop station callouts stay inside the map and never overlap", () => {
+test("desktop station cards use bounded low-interference default zones", () => {
   const viewport = Object.freeze({
     height: 620,
     padding: Object.freeze({ bottom: 26, left: 38, right: 12, top: 14 }),
@@ -100,28 +103,35 @@ test("desktop station callouts stay inside the map and never overlap", () => {
     layoutStationCards({ anchors, sizes, viewport }),
     positions
   );
+  const byId = new Map(positions.map((position) => [position.id, position]));
+  for (const id of ["taichung", "sun-moon-lake", "penghu"]) {
+    assert.ok(byId.get(id).x < 250, `${id} is not in the China-side zone`);
+  }
+  for (const id of ["naha", "taipei", "hualien"]) {
+    assert.ok(byId.get(id).y > 400, `${id} is not in the southern zone`);
+  }
 });
 
-test("compact station cards form a bounded three-by-two map overlay", () => {
+test("narrow station cards form a readable bounded two-column overlay", () => {
   const viewport = Object.freeze({
-    height: 336,
+    height: 512,
     padding: Object.freeze({ bottom: 26, left: 38, right: 12, top: 14 }),
     width: 358
   });
   const compactWidth =
-    (viewport.width - viewport.padding.left - viewport.padding.right - 32) / 3;
+    (viewport.width - viewport.padding.left - viewport.padding.right - 24) / 2;
   const anchors = STATION_IDS.map((id, index) =>
     Object.freeze({
       id,
       visible: true,
       x: 130 + index * 8,
-      y: 145 + index * 4
+      y: 200 + index * 4
     })
   );
   const sizes = Object.fromEntries(
     STATION_IDS.map((id) => [
       id,
-      Object.freeze({ height: 74, width: compactWidth })
+      Object.freeze({ height: 100, width: compactWidth })
     ])
   );
   const positions = layoutStationCards({
@@ -132,7 +142,6 @@ test("compact station cards form a bounded three-by-two map overlay", () => {
   });
 
   assertLayout(positions, viewport);
-  assert.equal(new Set(positions.map((position) => position.y)).size, 2);
   for (const anchor of anchors) {
     assert.equal(
       positions.some(
@@ -146,6 +155,101 @@ test("compact station cards form a bounded three-by-two map overlay", () => {
       `${anchor.id} marker is covered by a compact station card`
     );
   }
+});
+
+test("shallow landscape station cards use a bounded four-column layout", () => {
+  const viewport = Object.freeze({
+    height: 400,
+    padding: Object.freeze({ bottom: 26, left: 38, right: 12, top: 14 }),
+    width: 700
+  });
+  const compactWidth =
+    (viewport.width - viewport.padding.left - viewport.padding.right - 40) / 4;
+  const anchors = STATION_IDS.map((id, index) =>
+    Object.freeze({ id, visible: true, x: 300 + index * 6, y: 190 })
+  );
+  const sizes = Object.fromEntries(
+    STATION_IDS.map((id) => [
+      id,
+      Object.freeze({ height: 100, width: compactWidth })
+    ])
+  );
+  const positions = layoutStationCards({
+    anchors,
+    compact: true,
+    compactColumns: 4,
+    sizes,
+    viewport
+  });
+
+  assertLayout(positions, viewport);
+  assert.equal(new Set(positions.map((position) => position.y)).size, 2);
+  const top = Math.min(...positions.map((position) => position.y));
+  assert.equal(
+    new Set(
+      positions
+        .filter((position) => position.y === top)
+        .map((position) => position.x)
+    ).size,
+    4
+  );
+});
+
+test("drag placements normalize across resize and clamp to the map", () => {
+  const viewport = Object.freeze({
+    height: 620,
+    padding: Object.freeze({ bottom: 26, left: 38, right: 12, top: 14 }),
+    width: 1000
+  });
+  const size = Object.freeze({ height: 92, width: 172 });
+  const placement = Object.freeze({ x: 0.63, y: 0.41 });
+  const position = normalizedPlacementToPosition({
+    placement,
+    size,
+    viewport
+  });
+
+  const roundTrip = positionToNormalizedPlacement({
+    position,
+    size,
+    viewport
+  });
+  assert.ok(Math.abs(roundTrip.x - placement.x) < 1e-12);
+  assert.ok(Math.abs(roundTrip.y - placement.y) < 1e-12);
+  assert.deepEqual(
+    positionToNormalizedPlacement({
+      position: { x: -500, y: 5000 },
+      size,
+      viewport
+    }),
+    { x: 0, y: 1 }
+  );
+  assert.equal(Object.isFrozen(DEFAULT_CARD_PLACEMENTS), true);
+});
+
+test("camera-projected station markers do not move screen-space cards", () => {
+  const viewport = Object.freeze({
+    height: 620,
+    padding: Object.freeze({ bottom: 26, left: 38, right: 12, top: 14 }),
+    width: 1000
+  });
+  const sizes = Object.fromEntries(
+    STATION_IDS.map((id) => [id, Object.freeze({ height: 96, width: 172 })])
+  );
+  const firstAnchors = STATION_IDS.map((id, index) =>
+    Object.freeze({ id, visible: true, x: 390 + index * 4, y: 220 })
+  );
+  const movedAnchors = firstAnchors.map((anchor, index) =>
+    Object.freeze({ ...anchor, x: 760 - index * 7, y: 510 - index * 8 })
+  );
+  const screenPositions = (anchors) =>
+    layoutStationCards({ anchors, sizes, viewport }).map(({ id, x, y }) => ({
+      id,
+      x,
+      y
+    }));
+
+  assert.deepEqual(screenPositions(movedAnchors), screenPositions(firstAnchors));
 });
 
 test("desktop right rail stays above the map controls", () => {

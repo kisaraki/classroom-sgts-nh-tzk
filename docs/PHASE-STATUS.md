@@ -510,3 +510,60 @@
 - 版本設定：第一版定為 `1.0.0`；依主規格建立 annotated tag `v1.0.0`
   與 release notes。GitHub repository 保持公開、`main` only 與 Pages 可用；
   未經另行指示不封存 repository。
+
+## v1.0.1 結案後介面維護（Phase 9 發布後維護）
+
+- `completedAt`：2026-08-09T11:00:43+08:00。
+- 狀態：`completed`；這是本機維護候選完成，不是 `approved`、commit、push
+  或發布。Phase 9 第一版仍維持 `approved`，Phase 10 維持 `pending` 且不執行。
+- 分支：`main`；本輪完成 commit 尚未建立。
+- 使用者原文：
+
+> 發現修正點，重新啟動修正。
+> 一、六站模型觀測數據會遮擋地圖主視線，請移到地圖空白區域，例如中國大陸內陸或新幾內亞區域。並可以以滑鼠進行拖曳，放置到使用者期望的位置。
+> 二、六站模型觀測數據文字請做好排版，空間過於浪費。
+> 三、請刪除畫面上的開發用資訊。
+
+- 規格／版本：主規格更新至 1.0.7；`package.json` 與 lockfile 更新為
+  `1.0.1`。既有 annotated tag `v1.0.0`、Release 與第一版結案史實不變。
+- 六站卡位：六站真實 `lon`／`lat`、模型觀測、定位點及引線保留；資訊卡
+  以正規化畫面座標預設分置中國大陸內陸直列與南側低干擾橫列。卡片可用
+  滑鼠、觸控筆、單指拖曳、方向鍵微調，並以 Home 鍵或按兩下個別歸位；
+  地圖邊界、卡片碰撞及地圖控制列均納入避讓；真實定位點另置於卡片上方
+  圖層，相機移動時保持可見但不推動卡位。
+- 資訊排版：六卡改採高密度語意資料格，完整顯示測站名稱、持續風、最大
+  陣風、當前雨率、累積雨量、與颱風中心距離、地形修正及模擬更新時間；
+  窄螢幕採兩欄，淺橫向採四欄兩列並保留右下控制空間；核心標籤與數值
+  字級至少為 10 px／11 px，未以不明縮寫或極小字壓縮；模擬前進後的完整
+  更新時間亦不會造成卡片裁切。
+- 玩家診斷：DOM 與 Canvas 移除頁面可見性、FPS、固定步長、步次、更新／
+  繪製耗時、Long Task、粒子數、顯示像素比例、部署平台、地理／網格數、
+  fingerprint、U／V 導引向量及內部目標風速。`PerformanceMonitor`、固定步進、
+  fingerprint、後台 I/O、Canvas 無障礙摘要及 `[hidden]` runtime telemetry
+  仍保留，不進入玩家視覺及無障礙樹。
+- 隔離：卡位只屬工作階段呈現狀態，不進入 localStorage、匯出 schema、
+  測站觀測、地圖鏡頭、物理、step、重播或 fingerprint。
+- Schema／資料：`schemaVersion=1`、`modelVersion=0.7.0-taiwan-wayne`；測站、
+  地理、關卡、沙盒、儲存與後台 I/O 契約均未變，`passed`。TypeScript：
+  `not_applicable`。
+- 本機驗證：Homebrew Node.js 24.18.1、npm 11.16.0；lint、build、130 unit、
+  6 integration、16 scenario、19 actual Google Chrome E2E、1 artifact test
+  全部通過。
+- Codex in-app Browser：`passed`。本機正式子路徑可見六卡低干擾配置與完整
+  文字，玩家診斷不再出現；實際拖曳臺中卡約 160×20 px 時，地圖中心、縮放
+  與 step 不變，按兩下可精確恢復預設位置。
+- 效能：本輪中畫質中位 59.88 FPS、1% low 59.52、render 0.850／2.2 ms、
+  update 1.687／3.7 ms、Long Task 0，全部符合門檻，`passed`。這是 `v1.0.1`
+  候選的新量測；`v1.0.0` 結案時 update p95 6.1 ms 的 `failed` 歷史證據仍
+  保留，不作回溯改寫。
+- 相容性：Microsoft Edge、iPadOS Safari 保持 `not_verified`，未以 Chromium、
+  Chrome 觸控事件或桌面窄視窗冒充實機證據。
+- GitHub Actions：`not_run`；本輪未 commit、push 或手動觸發 workflow。
+- GitHub Pages／部署：`not_run`；本輪未部署。
+- 公開網站：`not_verified`；現有網站仍是已發布第一版，不是本輪本機候選
+  的驗證證據。
+- 遠端邊界：本輪未取得 commit、push、新 tag、GitHub Release、GitHub 設定、
+  Actions 手動觸發或 Pages 部署授權，故全數未執行。
+- 需求追蹤：`UI-MAP-STATION-PLACEMENT-001`、`UI-MAP-STATION-DRAG-001`、
+  `UI-MAP-STATION-DENSITY-001`、`SIM-STATION-PRESENTATION-ISOLATION-001`、
+  `UI-DEV-DIAGNOSTIC-RETIRE-001` 均為 `passed`。

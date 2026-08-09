@@ -1,9 +1,6 @@
 import { MAP_BOUNDS } from "../data/geography.js";
 import { WEATHER_STATIONS } from "../data/stations.js";
-import {
-  CanvasViewport,
-  formatSimulationTime
-} from "../ui/CanvasViewport.js";
+import { CanvasViewport } from "../ui/CanvasViewport.js";
 import {
   clientPointToGeo,
   geoToCanvas,
@@ -30,17 +27,6 @@ export const MAP_PADDING = Object.freeze({
   left: 38,
   right: 12,
   top: 14
-});
-
-const STATE_LABELS = Object.freeze({
-  BOOT: "啟動中",
-  ERROR: "發生錯誤",
-  FAILURE: "任務失敗",
-  MENU: "待命",
-  PAUSED: "已暫停",
-  RUNNING: "任務進行中",
-  TUTORIAL: "教學引導",
-  VICTORY: "任務完成"
 });
 
 export class CanvasRenderer {
@@ -294,7 +280,7 @@ export class CanvasRenderer {
     });
   }
 
-  draw({ fps, simulationMinutes, speed, state, stepIndex }) {
+  draw({ simulationMinutes }) {
     const dimensions = this.#viewport.dimensions ?? this.#viewport.resize();
 
     if (!dimensions) {
@@ -398,50 +384,10 @@ export class CanvasRenderer {
       context.fillText("載入地理資料…", 56, 48);
     }
 
-    this.#drawDiagnostics({
-      context,
-      fps,
-      height,
-      simulationMinutes,
-      speed,
-      state,
-      stepIndex,
-      width
-    });
   }
 
   destroy() {
     this.#viewport.destroy();
   }
 
-  #drawDiagnostics({
-    context,
-    fps,
-    height,
-    simulationMinutes,
-    speed,
-    state,
-    stepIndex,
-    width
-  }) {
-    const lines = [
-      `狀態 ${STATE_LABELS[state] ?? state}`,
-      `時間 ${formatSimulationTime(simulationMinutes)} · 步次 ${stepIndex}`,
-      `速度 ${speed}× · 每秒畫面格數 ${Number.isFinite(fps) ? fps.toFixed(0) : "0"}`
-    ];
-    const boxWidth = Math.min(340, width - 32);
-    const boxHeight = 66;
-    const boxX = 16;
-    const boxY = height - boxHeight - 32;
-
-    context.fillStyle = "rgba(6, 17, 31, 0.82)";
-    context.fillRect(boxX, boxY, boxWidth, boxHeight);
-    context.fillStyle = "#eef7ff";
-    context.font = "650 11px ui-monospace, monospace";
-
-    lines.forEach((line, index) => {
-      context.fillText(line, boxX + 10, boxY + 17 + index * 18);
-    });
-
-  }
 }

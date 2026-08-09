@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Phase 9 exposes performance profiles, diagnostics, and Canvas text", async ({
+test("internal telemetry remains testable without developer information in the player view", async ({
   page
 }) => {
   await page.goto("/classroom-sgts-nh-tzk/");
@@ -20,6 +20,11 @@ test("Phase 9 exposes performance profiles, diagnostics, and Canvas text", async
   await page.locator(".display-settings summary").click();
   await page.locator("#particle-profile").selectOption("high");
   await expect(page.locator("#particle-readout")).toHaveText("高｜1200");
+  await expect(page.locator("#runtime-telemetry")).toBeHidden();
+  await expect(page.locator(".developer-diagnostics, .time-strip")).toHaveCount(0);
+  await expect(page.locator("#storm-fingerprint")).toBeHidden();
+  await expect(page.getByText("模擬驗證碼", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("效能診斷", { exact: true })).toHaveCount(0);
   await page.locator("#start-button").click();
   await expect
     .poll(async () =>
@@ -221,4 +226,50 @@ test("keyboard focus, labels, and non-color state text remain available", async 
     "aria-label",
     "重設完整西北太平洋視角"
   );
+  const card = page.locator('[data-station-id="taipei"]');
+  await card.focus();
+  await expect(card).toHaveAttribute(
+    "aria-keyshortcuts",
+    "ArrowUp ArrowDown ArrowLeft ArrowRight Home Escape"
+  );
+  const before = await card.boundingBox();
+  const defaultRelativePosition = await card.evaluate((element) => {
+    const cardRect = element.getBoundingClientRect();
+    const frameRect = element.closest(".canvas-frame").getBoundingClientRect();
+    return {
+      x: cardRect.left - frameRect.left,
+      y: cardRect.top - frameRect.top
+    };
+  });
+  const zoomBeforeCardMove = await page
+    .locator("#simulation-canvas")
+    .getAttribute("data-map-zoom");
+  await page.keyboard.press("ArrowRight");
+  const after = await card.boundingBox();
+  expect(after.x).toBeGreaterThan(before.x + 7);
+  await page.keyboard.press("Shift+ArrowRight");
+  const afterLargeStep = await card.boundingBox();
+  expect(afterLargeStep.x).toBeGreaterThan(after.x + 31);
+  await expect(card).toHaveAttribute("data-placement", "custom");
+  await expect(page.locator("#simulation-canvas")).toHaveAttribute(
+    "data-map-zoom",
+    zoomBeforeCardMove
+  );
+  await page.keyboard.press("Home");
+  await expect(card).toHaveAttribute("data-placement", "default");
+  await expect(page.locator("[data-station-placement-status]")).toContainText(
+    "臺北模型觀測卡已回到預設位置"
+  );
+  await expect
+    .poll(async () =>
+      card.evaluate((element, expected) => {
+        const cardRect = element.getBoundingClientRect();
+        const frameRect = element.closest(".canvas-frame").getBoundingClientRect();
+        return Math.max(
+          Math.abs(cardRect.left - frameRect.left - expected.x),
+          Math.abs(cardRect.top - frameRect.top - expected.y)
+        );
+      }, defaultRelativePosition)
+    )
+    .toBeLessThan(1);
 });
