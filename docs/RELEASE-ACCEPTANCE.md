@@ -49,11 +49,11 @@
 2. iPadOS 依使用者指示暫不測試，維持 `not_verified`。
 3. 主規格 1.0.5 本機效能量測的中畫質 update p95 為 6.1 ms，高於
    `<4 ms` 門檻；FPS、1% low 與 Long Task 雖通過，仍不得掩蓋此失敗。
-4. 本次 1.0.5 差異尚未 commit／push／部署，GitHub Actions、Pages API 與公開網站
-   狀態分別為 `not_run`、`not_run`、`not_verified`。
-5. 因此 Phase 9 仍不得在缺少第 24 項證據、效能門檻與本次發布證據時標記正式完成。
+4. 本次 1.0.5 差異已由 `d1ea886` 提交並推送；GitHub Actions run `31287364008`
+   的 test、build、deploy 皆成功，Pages workflow／HTTPS 與公開根頁、新鏡頭模組、
+   真實地形資產均已驗證 HTTP 200。
+5. 因此 Phase 9 仍不得在缺少第 24 項證據與效能門檻時標記正式完成。
 
-最新既有已發布基線為 source commit
-`73e5a3676db1787b9ff4147cd05f8b34a18759b1`、Actions run `31080240842`、
-deployment `5775272960`；它們不包含本次 1.0.5 差異。解除阻擋仍需補齊
-Edge／iPadOS、效能門檻、本次遠端發布與最終 Phase 9 使用者批准。
+最新 1.0.5 功能發布 source commit 為 `d1ea886aeeaef4ed3ff19e2d33b52d75e78015fe`，
+Actions run 為 `31287364008`。解除阻擋仍需補齊 Edge／iPadOS、效能門檻與
+最終 Phase 9 使用者批准。

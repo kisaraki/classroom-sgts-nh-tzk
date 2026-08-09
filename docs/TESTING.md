@@ -52,17 +52,17 @@ npm run serve
 | Codex in-app Browser | not_run | 管理員安全政策無法驗證 localhost，未繞過且未以 Chrome E2E 冒充 |
 | Microsoft Edge | not_verified | 未安裝，未以 Chromium 代替 |
 | iPadOS Safari | not_verified | Chrome 多點觸控事件不代表 iPadOS 實體裝置 |
-| GitHub Actions | not_run | 本次差異未 commit、未 push |
-| Pages API／部署 | not_run | 本次差異未部署 |
-| 公開網站 | not_verified | 既有正式網站不是本次未發布差異的證據 |
+| GitHub Actions | passed | 手動觸發 run `31287364008`；test、build、deploy 均成功，source `d1ea886` |
+| Pages API／部署 | passed | `build_type=workflow`、HTTPS enforced；deploy job `93178759245` 成功 |
+| 公開網站 | passed | 根頁、`MapCamera.js` 與真實地形 WebP 均為 HTTPS HTTP 200 |
 
 效能結果為當次 15 秒低／中／高畫質實際 Chrome 量測；中畫質 FPS與
 Long Task 通過，但 update p95 仍失敗，所以 Phase 9 維持 `in_progress`。
 
 需求追蹤：`UI-MAP-PROBE-RETIRE-001`、`UI-MAP-STATION-CARD-001`、
 `UI-MAP-CAMERA-001`、`SIM-VIEW-ISOLATION-001`、`A11Y-MAP-CAMERA-001` 與
-`DEPLOY-MAP-INTERACTION-001` 在本機自動化範圍均為 `passed`；遠端發布狀態
-仍依上表分開記錄。
+`DEPLOY-MAP-INTERACTION-001` 均為 `passed`；遠端發布狀態仍依上表與
+本機結果分開記錄。
 
 ### 2026-08-06 生命史、北半球旋轉與真實地形本機驗證
 

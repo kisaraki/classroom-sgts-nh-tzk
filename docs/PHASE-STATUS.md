@@ -476,3 +476,20 @@
   `not_verified`，既有 deployment 不是本次差異的證據。
 - 授權邊界：本次請求未重新授權 commit、push 或部署，故未執行。
   Phase 9 未完成，Phase 10 維持 `pending`。
+
+## Phase 9 1.0.5 發布結果
+
+- 發布日期：2026-08-09。
+- 發布 source：`d1ea886aeeaef4ed3ff19e2d33b52d75e78015fe`；使用者明確授權後，
+  遠端 `main` 由 `c646c56` 快轉更新，未建立其他分支。
+- GitHub Actions：push event 已接收但未自動建立 run，故依既有流程以
+  `workflow_dispatch` 手動啟動 Pages workflow；run `31287364008` passed。
+  test job `93178520862`、build job `93178722454`、deploy job `93178759245`
+  皆成功。
+- GitHub Pages：Pages API 顯示 `build_type=workflow`、HTTPS enforced；根頁、
+  `js/rendering/MapCamera.js` 與 `assets/maps/northwest-pacific-terrain-v1.webp`
+  於正式網址皆取得 HTTPS HTTP 200。deployments REST 端點回傳 404，未將其
+  視為部署失敗，部署證據以成功的 Actions deploy job 與公開資產回應為準。
+- 狀態：本次遠端發布證據已補齊；效能 update p95 6.1 ms、Microsoft Edge 與
+  iPadOS Safari 仍分別為 failed、`not_verified`，故 Phase 9 維持 `in_progress`，
+  Phase 10 維持 `pending`。
