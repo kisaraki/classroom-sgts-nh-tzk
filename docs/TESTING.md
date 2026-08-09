@@ -58,9 +58,9 @@ schema 或 fingerprint。
 | Codex in-app Browser | passed | 本機正式子路徑 DOM／視覺 smoke；六卡低干擾配置與完整文字可見、玩家診斷不可見；實際拖曳臺中卡約 160×20 px，地圖中心／縮放與 step 不變，按兩下精確歸位 |
 | Microsoft Edge | not_verified | 本機未安裝，未以 Chromium 代替 |
 | iPadOS Safari | not_verified | 無實體裝置證據，未以桌面窄視窗或 Chrome 觸控事件代替 |
-| GitHub Actions | not_run | 本輪差異未 commit、未 push，未手動觸發 workflow |
-| Pages API／部署 | not_run | 本輪差異未部署 |
-| 公開網站 | not_verified | 現有正式網址仍是已發布第一版，不是本機 `v1.0.1` 維護候選的證據 |
+| GitHub Actions | passed | `31292327492` 以 `37e2b213a9c86686f058e12d270804a408949d19` 執行；test、build、deploy 全部 success |
+| Pages API／部署 | passed | deployment `5815084626`、來源 `37e2b213a9c86686f058e12d270804a408949d19`、state `success` |
+| 公開網站 | passed | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` HTTP 200，且回應本次站點的六站觀測與隱藏 telemetry 結構；瀏覽器視覺 smoke 受管理端安全檢查阻擋，保持 `not_verified` |
 
 需求追蹤：`UI-MAP-STATION-PLACEMENT-001` 低干擾預設卡位與定位點上層可見、
 `UI-MAP-STATION-DRAG-001` 個別拖曳與歸位、
@@ -68,8 +68,9 @@ schema 或 fingerprint。
 10 px／11 px 字級下限、
 `SIM-STATION-PRESENTATION-ISOLATION-001` 卡位與相機／物理隔離，以及
 `UI-DEV-DIAGNOSTIC-RETIRE-001` 玩家開發診斷退場均為 `passed`。
-本輪維護狀態為 `completed`，尚未取得 `approved` 或遠端發布授權；Phase 9
-第一版 `approved` 史實與 Phase 10 `pending` 狀態均不改變。
+本輪維護狀態為 `completed`，已依明確操作授權推送及部署，但尚未取得產品
+`approved`、未建立版本標籤或 GitHub Release；Phase 9 第一版 `approved` 史實與
+Phase 10 `pending` 狀態均不改變。
 本輪效能通過是 `v1.0.1` 候選的新量測；`v1.0.0` 結案時的 update p95
 6.1 ms `failed` 仍保留為歷史證據，不作回溯改寫。
 

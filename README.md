@@ -20,7 +20,7 @@ SGTS-NH 是以西北太平洋熱帶氣旋為題材的互動式科學教育模擬
 | GitHub Pages URL | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.7 |
 | 第一版 | `v1.0.0` 西北太平洋篇 |
-| 目前階段 | Phase 9 已批准並正式結案；`v1.0.1` 本機介面維護候選已 `completed`、尚未 `approved` 或發布；Phase 10 維持 `pending` 且不執行 |
+| 目前階段 | Phase 9 已批准並正式結案；`v1.0.1` 介面維護候選已 `completed` 並部署至 Pages，尚未取得產品 `approved`、未建立版本標籤或 GitHub Release；Phase 10 維持 `pending` 且不執行 |
 
 正式網站是純靜態 GitHub Pages 應用，只使用 HTML、CSS、原生 ES
 Modules、Canvas 2D、JSON、localStorage 與瀏覽器下載 API。正式執行不需要
@@ -130,9 +130,8 @@ DOM controls
 
 第一版已依正式結案決定建立 `v1.0.0` annotated tag 與 release notes；
 Microsoft Edge、iPadOS Safari 及既有效能門檻結果仍按原始證據記錄，不因
-結案而改寫為通過。目前本機來源為已 `completed`、尚未 `approved` 的
-`v1.0.1` 介面維護候選；尚未取得新一輪遠端發布授權，不代表 GitHub Pages
-已更新。
+結案而改寫為通過。目前 `v1.0.1` 介面維護候選已依本次明確授權推送並部署至
+GitHub Pages；尚未取得產品 `approved`，亦未建立版本標籤或 GitHub Release。
 完整程序及回復方法見 [部署文件](docs/DEPLOYMENT.md)。
 
 ## 授權

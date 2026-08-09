@@ -416,7 +416,7 @@
   後台 I/O、`canvas-summary` 與 `[hidden]` runtime telemetry 保留供測試、
   重播驗證及無障礙，不把歷史效能證據改寫為通過。
 - 治理：本項 `accepted` 只表示 DEC-0041 的設計決策成立；`v1.0.1` Phase 9
-  發布後介面維護候選已在本機 `completed`，尚未 `approved` 或發布。Phase 9
-  `approved` 與 `v1.0.0` tag／Release 史實不倒退，Phase 10 維持 `pending` 且
-  不執行。本次未取得 push、新 tag、Release、GitHub 設定、Actions 手動觸發
-  或 Pages 部署授權。
+  發布後介面維護候選已 `completed` 並部署至 Pages，尚未取得產品 `approved`、
+  未建立版本標籤或 GitHub Release。Phase 9 `approved` 與 `v1.0.0` tag／Release
+  史實不倒退，Phase 10 維持 `pending` 且不執行。本次僅取得 commit、push、
+  Actions 手動觸發與 Pages 部署授權。

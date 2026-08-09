@@ -7,8 +7,8 @@
 
 - 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.7。
 - 目前 Phase：Phase 9 已由使用者按現況接受已知例外並批准，第一版正式結案；
-  `v1.0.1` 結案後介面維護候選已在本機 `completed`、尚未 `approved` 或發布，
-  Phase 10 維持 `pending` 且不執行。
+  `v1.0.1` 結案後介面維護候選已 `completed` 並部署至 Pages，尚未取得產品
+  `approved`、未建立版本標籤或 GitHub Release；Phase 10 維持 `pending` 且不執行。
 - 第一版結案歷史：`v1.0.0` 中畫質 update p95 6.1 ms 保持 `failed`；
   Microsoft Edge 與 iPadOS Safari 保持 `not_verified`，不得回溯改寫。
 - 維護候選新證據：`v1.0.1` 本機中畫質 update p95 3.7 ms 為 `passed`；

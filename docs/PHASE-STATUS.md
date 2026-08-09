@@ -514,9 +514,10 @@
 ## v1.0.1 結案後介面維護（Phase 9 發布後維護）
 
 - `completedAt`：2026-08-09T11:00:43+08:00。
-- 狀態：`completed`；這是本機維護候選完成，不是 `approved`、commit、push
-  或發布。Phase 9 第一版仍維持 `approved`，Phase 10 維持 `pending` 且不執行。
-- 分支：`main`；本輪完成 commit 尚未建立。
+- 狀態：`completed`；本輪已依明確操作授權 commit、push 及部署，但尚未取得產品
+  `approved`、未建立版本標籤或 GitHub Release。Phase 9 第一版仍維持 `approved`，
+  Phase 10 維持 `pending` 且不執行。
+- 分支：`main`；本輪實作 commit 為 `37e2b213a9c86686f058e12d270804a408949d19`。
 - 使用者原文：
 
 > 發現修正點，重新啟動修正。
@@ -558,12 +559,15 @@
   保留，不作回溯改寫。
 - 相容性：Microsoft Edge、iPadOS Safari 保持 `not_verified`，未以 Chromium、
   Chrome 觸控事件或桌面窄視窗冒充實機證據。
-- GitHub Actions：`not_run`；本輪未 commit、push 或手動觸發 workflow。
-- GitHub Pages／部署：`not_run`；本輪未部署。
-- 公開網站：`not_verified`；現有網站仍是已發布第一版，不是本輪本機候選
-  的驗證證據。
-- 遠端邊界：本輪未取得 commit、push、新 tag、GitHub Release、GitHub 設定、
-  Actions 手動觸發或 Pages 部署授權，故全數未執行。
+- GitHub Actions：`passed`；run `31292327492` 以本輪實作 commit 執行，test
+  `93191510026`、build `93191692272`、deploy `93191721828` 全部 success。
+- GitHub Pages／部署：`passed`；deployment `5815084626`、來源 commit
+  `37e2b213a9c86686f058e12d270804a408949d19`、state `success`。
+- 公開網站：HTTP 驗證 `passed`；公開網址回應 200 並提供本輪站點結構。受管理端
+  安全檢查阻擋，瀏覽器視覺 smoke 為 `not_verified`，未以其他瀏覽器冒充。
+- 遠端邊界：使用者原文「同意准予 commt、push及部署至 Github 及 github pages」
+  授權本輪 commit、push、Actions 手動觸發與 Pages 部署；未授權新 tag、GitHub
+  Release 或設定變更，故未執行。
 - 需求追蹤：`UI-MAP-STATION-PLACEMENT-001`、`UI-MAP-STATION-DRAG-001`、
   `UI-MAP-STATION-DENSITY-001`、`SIM-STATION-PRESENTATION-ISOLATION-001`、
   `UI-DEV-DIAGNOSTIC-RETIRE-001` 均為 `passed`。
