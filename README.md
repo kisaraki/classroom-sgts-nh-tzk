@@ -18,9 +18,9 @@ SGTS-NH 是以西北太平洋熱帶氣旋為題材的互動式科學教育模擬
 | Repository | `classroom-sgts-nh-tzk` |
 | Repository URL | `https://github.com/kisaraki/classroom-sgts-nh-tzk` |
 | GitHub Pages URL | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
-| 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.5 |
-| 第一版 | 西北太平洋篇 |
-| 目前階段 | Phase 9 執行中；既有 Pages 已發布，本次介面修正僅在本機 |
+| 主規格 | `SGTS-NH_MASTER_SPEC.md` 1.0.6 |
+| 第一版 | `v1.0.0` 西北太平洋篇 |
+| 目前階段 | Phase 9 已批准並正式結案；Phase 10 不執行 |
 
 正式網站是純靜態 GitHub Pages 應用，只使用 HTML、CSS、原生 ES
 Modules、Canvas 2D、JSON、localStorage 與瀏覽器下載 API。正式執行不需要
@@ -112,6 +112,7 @@ DOM controls
 - [沙盒與匯出](docs/SANDBOX-EXPORT.md)
 - [測試與相容性](docs/TESTING.md)
 - [第一版逐項驗收](docs/RELEASE-ACCEPTANCE.md)
+- [v1.0.0 發布說明](docs/RELEASE-NOTES-v1.0.0.md)
 - [部署、artifact 與回復](docs/DEPLOYMENT.md)
 - [資料來源與授權](docs/SOURCES.md)
 - [設計決策](docs/DECISIONS.md)
@@ -124,7 +125,9 @@ DOM controls
 測試失敗時不能部署。Phase 9 的本機工作不等於 GitHub Actions 或 Pages
 已執行；遠端 push、Pages 設定與部署必須另有明確授權。
 
-正式發布結果獲批准後才會建立 `v1.0.0` annotated tag 與 release notes。
+第一版已依正式結案決定建立 `v1.0.0` annotated tag 與 release notes；
+Microsoft Edge、iPadOS Safari 及既有效能門檻結果仍按原始證據記錄，不因
+結案而改寫為通過。
 完整程序及回復方法見 [部署文件](docs/DEPLOYMENT.md)。
 
 ## 授權

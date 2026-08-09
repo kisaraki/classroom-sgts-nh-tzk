@@ -5,8 +5,11 @@
 
 ## 文件狀態
 
-- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.5。
-- 目前 Phase：Phase 9 in progress；既有版本已發布，本次介面修正只在本機。
+- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.6。
+- 目前 Phase：Phase 9 已由使用者按現況接受已知例外並批准，第一版正式結案；
+  Phase 10 不執行。
+- 結案例外：中畫質 update p95 6.1 ms 保持 `failed`；Microsoft Edge 與
+  iPadOS Safari 保持 `not_verified`，不影響架構事實但不得冒充通過。
 - Phase 9 不改物理模型；加入可觀測效能、靜態地圖快取、無障礙與
   可重現 Pages artifact／deployment workflow，並在呈現邊界加入六站地圖卡與
   純視角地圖鏡頭。
@@ -328,5 +331,5 @@ source tree
 - `TyphoonRenderer` 與 `ParticleRenderer` 共用只讀生命史視覺尺度；物理
   `galeRadius` 不變。北半球粒子以負 Canvas 角速度呈逆時針旋轉。
 - `prefers-reduced-motion` 只停用動畫粒子，不更動物理或使用者已保存偏好。
-- 既有 Pages 部署不是本次 1.0.5 尚未提交差異的發布證據；架構定義也不等於
-  本次差異已通過 GitHub Actions、Pages API 或公開網站驗證。
+- 第一版 Pages 已由 Actions run `31287524683` 完成 test、build、deploy；
+  架構定義本身仍不得取代個別測試、Pages API 或公開網站驗證證據。

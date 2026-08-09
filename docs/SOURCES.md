@@ -22,7 +22,7 @@ Phase 9 沒有新增第三方執行期程式碼、字型或圖示。2026-08-06 �
 
 | 名稱 | 類型 | 發布者／來源 | 存取日期 | 用途 | 授權／狀態 |
 |---|---|---|---|---|---|
-| `SGTS-NH_MASTER_SPEC.md` 1.0.5 | 內部主規格 | KOSMOS TOOLKIT｜探真拓知酷 | 2026-08-06 | 產品與工程需求 | 專案內部來源 |
+| `SGTS-NH_MASTER_SPEC.md` 1.0.6 | 內部主規格 | KOSMOS TOOLKIT｜探真拓知酷 | 2026-08-09 | 產品與工程需求及正式結案例外治理 | 專案內部來源 |
 | Node.js Releases | 開發工具參考 | `https://nodejs.org/` | 2026-07-30 | 確認 Node.js 24 LTS | Node.js 官方資料；不部署至網站 |
 | ESLint | 開發工具 | `https://eslint.org/` | 2026-07-30 | JavaScript 靜態檢查 | MIT；僅 devDependency |
 | Natural Earth 1:50m coastline | 地圖向量參考 | `https://www.naturalearthdata.com/downloads/50m-physical-vectors/` | 2026-07-30 | 西北太平洋陸地輪廓參考 | Public domain；人工大幅簡化並重繪，非導航資料 |

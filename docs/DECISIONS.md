@@ -378,3 +378,17 @@
   所有 Canvas 世界圖層與測站卡共用同一份有效地理邊界。
 - 隔離邊界：鏡頭是純呈現狀態，不寫入 Typhoon、Environment、WeatherStation、
   步數、正式操作紀錄、重播、匯出 schema 或 fingerprint；不改變物理模型版本。
+
+## DEC-0040｜已知例外下的第一版正式結案
+
+- 日期：2026-08-09。
+- 狀態：accepted。
+- 使用者決定：「本案截至目前算是正式結案，請做好相關設定。」
+- 決策：Phase 9 依專案所有者的明確決定更新為 `approved`，第一版定為
+  `1.0.0`，建立 annotated tag `v1.0.0` 與 release notes；Phase 10 未獲
+  執行批准，結案後不執行。
+- 已知例外：中畫質 update p95 6.1 ms 仍為 `failed`；Microsoft Edge 與
+  iPadOS Safari 仍為 `not_verified`。正式結案表示使用者知情接受截至目前
+  的狀態，不構成補測，也不得將例外改寫為 passed。
+- Repository：維持公開、GitHub Pages 啟用、預設且唯一分支為 `main`。
+  結案不等於封存；封存、停用 Pages、改可見性或刪除功能仍需另行明確授權。

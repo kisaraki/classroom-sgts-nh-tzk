@@ -20,7 +20,7 @@
 | GitHub Pages | `https://kisaraki.github.io/classroom-sgts-nh-tzk/` |
 | 創作團隊 | KOSMOS TOOLKIT｜探真拓知酷 |
 | 文件定位 | 專案唯一主規格、Codex 長期指令與分階段驗收依據 |
-| 文件版本 | 1.0.5 |
+| 文件版本 | 1.0.6 |
 | 預定授權 | MIT License；第三方資料與素材依各自授權標示 |
 | 主要執行環境 | GitHub Pages 靜態網站、現代桌面與平板瀏覽器 |
 | 文件建議位置 | 倉庫根目錄：`SGTS-NH_MASTER_SPEC.md` |
@@ -2244,6 +2244,16 @@ docs: update SGTS-NH master specification
 34. Requirement ID 與測試、Phase、驗收證據可追蹤。
 35. 發布 artifact 不含測試、本機設定、Secrets 或開發依賴。
 
+若第 24、27 或 30 項仍有未通過或未驗證內容，原則上不得正式完成。
+唯一例外是專案所有者在完整揭露個別 `failed`／`not_verified` 證據後，
+以明確原文指示「按現況接受已知例外並正式結案」。此例外必須同時：
+
+- 在 `docs/PHASE-STATUS.md` 逐字記錄批准原文、時間與已知例外。
+- 在 `docs/RELEASE-ACCEPTANCE.md`、測試文件與 release notes 保留原始狀態，
+  不得將 `failed`／`not_verified` 改寫成 `passed`。
+- 將 Phase 9 標記 `approved`，但不得因此自動批准或執行 Phase 10。
+- 在版本標籤與 GitHub Release 中揭露已知例外，讓結案決定可追蹤。
+
 ---
 
 # 25. Codex 共通執行指令
@@ -2996,6 +3006,9 @@ GitHub：
 
 最終驗收逐項檢查本文件第 24 節全部條件。
 任何必要項目未通過，不得宣稱正式完成。
+若專案所有者依第 24 節的唯一例外，在完整揭露後明確接受現況並指示
+正式結案，Codex 可據該原文將 Phase 9 標記 `approved`；未通過項目仍保持
+原狀，且 Phase 10 不得自動開始。
 
 完成後：
 - Phase 9 標記 completed，不得自行標記 approved。
@@ -3286,6 +3299,14 @@ Phase 【編號與名稱】
   - 非預報用途定位
 
 ## 33.1 版本紀錄
+
+### 1.0.6｜2026-08-09
+
+- 新增「按現況接受已知例外並正式結案」的專案所有者例外程序。
+- 要求效能 `failed` 與 Microsoft Edge／iPadOS `not_verified` 保持原始證據，
+  不得因結案批准改寫為通過。
+- Phase 9 可依使用者明確結案原文標記 `approved`；Phase 10 未獲另行批准時
+  不執行，並以 `v1.0.0` annotated tag 與 release notes 完成第一版版本化。
 
 ### 1.0.5｜2026-08-06
 

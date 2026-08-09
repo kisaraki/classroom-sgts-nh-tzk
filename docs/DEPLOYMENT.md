@@ -13,15 +13,17 @@
 
 ## 發布狀態
 
-Phase 9 已完成本機 workflow 與 artifact 準備。使用者於
-2026-07-30T23:19:37+08:00 明確批准 commit、push、GitHub Pages 設定、
-deployment 與公開網站驗證；實際遠端結果仍須在執行後記錄。
+Phase 9 已於 2026-08-09 獲使用者正式結案批准。正式網站由 `main` 的
+GitHub Actions Pages workflow 發布；結案前最終部署 run `31287524683`
+的 test、build、deploy 全部成功，公開根頁、鏡頭模組與地形資產均為
+HTTPS HTTP 200。
 
 已用唯讀檢查確認：
 
 - `origin` 指向 `https://github.com/kisaraki/classroom-sgts-nh-tzk.git`。
 - GitHub CLI 目前登入 `kisaraki`。
-- 同名公開 repository 存在且遠端尚無 branch／tag／既有內容。
+- 同名公開 repository 存在，預設分支及唯一分支為 `main`。
+- 第一版結案建立 annotated tag `v1.0.0` 與 GitHub Release。
 
 這些唯讀結果與本次明確授權共同界定寫入目標，不得擴張至其他 repository。
 
@@ -94,8 +96,8 @@ Actions major 版本已於 2026-07-30 以 GitHub API 對照最新 release：
 9. 公開驗證首頁、ES Modules、JSON、Console、品牌、聲明、關卡、沙盒、
    localStorage、觸控／鍵盤及五種匯出。
 
-`v1.0.0` annotated tag 與 release notes 只能在 Phase 9 第一版發布結果
-另獲正式批准後建立，且 tag push 仍須明確授權。
+`v1.0.0` annotated tag 與 release notes 已依 Phase 9 第一版正式結案批准
+建立；其已知例外與測試證據不得因版本發布而改寫。
 
 ## 回復程序
 

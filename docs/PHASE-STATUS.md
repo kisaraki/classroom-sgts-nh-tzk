@@ -16,8 +16,8 @@
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
 | 8 | approved | `phase/08-sandbox-export` | `c831f13` | `8642956` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
-| 9 | in_progress | `phase/09-release` |  |  | lint、109 unit、6 integration、16 scenario、15 Chrome E2E、Safari、Actions、Pages、公開站 passed；Edge／iPadOS not_verified |  |  |  | 完整跨瀏覽器證據待補 |
-| 10 | pending |  |  |  | not_run |  |  |  |  |
+| 9 | approved | `main` | `8ecd40b` | 待補 | lint、build、127 unit、6 integration、16 scenario、19 Chrome E2E、artifact、Actions、Pages、公開站 passed；update p95 failed；Edge／iPadOS not_verified | 2026-08-09T09:10:52+08:00 | 2026-08-09T09:10:52+08:00 | 本案截至目前算是正式結案，請做好相關設定。 | 使用者接受已知例外後正式結案；不得解讀為未執行項目已通過 |
+| 10 | pending |  |  |  | not_run |  |  |  | 本案已正式結案；未批准且不執行 |
 
 ## Phase 0 執行授權
 
@@ -490,6 +490,23 @@
   `js/rendering/MapCamera.js` 與 `assets/maps/northwest-pacific-terrain-v1.webp`
   於正式網址皆取得 HTTPS HTTP 200。deployments REST 端點回傳 404，未將其
   視為部署失敗，部署證據以成功的 Actions deploy job 與公開資產回應為準。
-- 狀態：本次遠端發布證據已補齊；效能 update p95 6.1 ms、Microsoft Edge 與
-  iPadOS Safari 仍分別為 failed、`not_verified`，故 Phase 9 維持 `in_progress`，
-  Phase 10 維持 `pending`。
+- 當時狀態：本次遠端發布證據已補齊；效能 update p95 6.1 ms、Microsoft Edge
+  與 iPadOS Safari 仍分別為 failed、`not_verified`，故在尚未取得結案裁示時
+  Phase 9 維持 `in_progress`，Phase 10 維持 `pending`。
+
+## Phase 9 正式結案批准
+
+- 批准時間：2026-08-09T09:10:52+08:00。
+- 使用者原文：
+
+> 本案截至目前算是正式結案，請做好相關設定。
+
+- 解讀：使用者以專案所有者身分接受截至結案時的現況與已知例外，批准
+  Phase 9 第一版發布結果並指示正式結案。Phase 9 更新為 `approved`。
+- 證據誠信：中畫質 update p95 6.1 ms 仍為 `failed`；Microsoft Edge 與
+  iPadOS Safari 仍為 `not_verified`。結案批准是對已揭露例外的接受，
+  不得改寫或冒充技術驗證通過。
+- 選配範圍：Phase 10 未獲執行批准，維持 `pending` 並標示結案後不執行。
+- 版本設定：第一版定為 `1.0.0`；依主規格建立 annotated tag `v1.0.0`
+  與 release notes。GitHub repository 保持公開、`main` only 與 Pages 可用；
+  未經另行指示不封存 repository。

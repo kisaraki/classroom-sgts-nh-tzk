@@ -30,6 +30,10 @@ npm run serve
 
 ## Phase 9 本機發布驗收
 
+2026-08-09 使用者在完整知悉中畫質 update p95 失敗，以及 Microsoft Edge、
+iPadOS Safari 尚未驗證後，指示本案截至目前正式結案。以下測試結果保持
+原始狀態；結案批准不等於將 `failed` 或 `not_verified` 改列 `passed`。
+
 ### 2026-08-06 六站地圖卡、查詢退場與鏡頭操作本機驗證
 
 主規格 1.0.5 將六站模型觀測移入地圖內的有色毛玻璃卡，取消玩家
@@ -57,7 +61,8 @@ npm run serve
 | 公開網站 | passed | 根頁、`MapCamera.js` 與真實地形 WebP 均為 HTTPS HTTP 200 |
 
 效能結果為當次 15 秒低／中／高畫質實際 Chrome 量測；中畫質 FPS與
-Long Task 通過，但 update p95 仍失敗，所以 Phase 9 維持 `in_progress`。
+Long Task 通過，但 update p95 仍失敗；這項技術結論不因後續正式結案批准
+而改變。
 
 需求追蹤：`UI-MAP-PROBE-RETIRE-001`、`UI-MAP-STATION-CARD-001`、
 `UI-MAP-CAMERA-001`、`SIM-VIEW-ISOLATION-001`、`A11Y-MAP-CAMERA-001` 與
