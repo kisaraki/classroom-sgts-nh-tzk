@@ -24,6 +24,8 @@ HTTPS HTTP 200。
 - GitHub CLI 目前登入 `kisaraki`。
 - 同名公開 repository 存在，預設分支及唯一分支為 `main`。
 - 第一版結案建立 annotated tag `v1.0.0` 與 GitHub Release。
+- GitHub Release 固定網址為
+  `https://github.com/kisaraki/classroom-sgts-nh-tzk/releases/tag/v1.0.0`。
 
 這些唯讀結果與本次明確授權共同界定寫入目標，不得擴張至其他 repository。
 

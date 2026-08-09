@@ -16,7 +16,7 @@
 | 6 | approved | `phase/06-level-naha` | `5f6efda` | `add97b0` | lint、87 unit、5 integration、14 scenario、9 Chrome E2E、8/8 browser harness、browser smoke passed；Actions not_run | 2026-07-30T21:26:02+08:00 | 2026-07-30T21:29:46+08:00 | 批准 Phase 6，並進入 Phase 7 |  |
 | 7 | approved | `phase/07-levels-taiwan-wayne` | `6d0f123` | `b5276d6` | lint、92 unit、5 integration、16 scenario、10 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:21:56+08:00 | 2026-07-30T22:23:19+08:00 | 批准 Phase 7，並進入 Phase 8 |  |
 | 8 | approved | `phase/08-sandbox-export` | `c831f13` | `8642956` | lint、102 unit、6 integration、16 scenario、12 Chrome E2E、browser smoke passed；Actions not_run | 2026-07-30T22:43:45+08:00 | 2026-07-30T22:52:31+08:00 | 批准 Phase 8，並進入 Phase 9 |  |
-| 9 | approved | `main` | `8ecd40b` | 待補 | lint、build、127 unit、6 integration、16 scenario、19 Chrome E2E、artifact、Actions、Pages、公開站 passed；update p95 failed；Edge／iPadOS not_verified | 2026-08-09T09:10:52+08:00 | 2026-08-09T09:10:52+08:00 | 本案截至目前算是正式結案，請做好相關設定。 | 使用者接受已知例外後正式結案；不得解讀為未執行項目已通過 |
+| 9 | approved | `main` | `8ecd40b` | `00fb94b` | lint、build、127 unit、6 integration、16 scenario、19 Chrome E2E、artifact、Actions、Pages、公開站 passed；update p95 failed；Edge／iPadOS not_verified | 2026-08-09T09:10:52+08:00 | 2026-08-09T09:10:52+08:00 | 本案截至目前算是正式結案，請做好相關設定。 | 使用者接受已知例外後正式結案；不得解讀為未執行項目已通過 |
 | 10 | pending |  |  |  | not_run |  |  |  | 本案已正式結案；未批准且不執行 |
 
 ## Phase 0 執行授權
