@@ -3,16 +3,8 @@ import {
   TerrainZone,
   taiwanRidgeLongitude
 } from "../data/terrain.js";
+import { PROJECT_CONFIG } from "../config.js";
 import { destinationPoint, geoToCanvas } from "../utils/geo.js";
-
-const STATION_LABEL_OFFSETS = Object.freeze({
-  hualien: Object.freeze({ x: 9, y: 17 }),
-  naha: Object.freeze({ x: 8, y: -7 }),
-  penghu: Object.freeze({ x: -34, y: 26 }),
-  "sun-moon-lake": Object.freeze({ x: -43, y: 15 }),
-  taichung: Object.freeze({ x: -39, y: -6 }),
-  taipei: Object.freeze({ x: 9, y: -12 })
-});
 
 const traceRing = (context, ring, viewport) => {
   ring.forEach(([lon, lat], index) => {
@@ -42,6 +34,7 @@ const traceLine = (context, coordinates, viewport) => {
 export class MapRenderer {
   #canvasFactory;
   #staticLayer = null;
+  #terrainTexture = null;
 
   constructor({
     canvasFactory = () => globalThis.document.createElement("canvas")
@@ -49,18 +42,40 @@ export class MapRenderer {
     this.#canvasFactory = canvasFactory;
   }
 
-  draw({ context, geography, height, padding, selection, stations, width }) {
+  setTerrainTexture(texture) {
+    if (texture !== null && !texture?.image) {
+      throw new TypeError("Terrain texture must contain a decoded image.");
+    }
+
+    if (this.#terrainTexture !== texture) {
+      this.#terrainTexture = texture;
+    }
+  }
+
+  draw({
+    bounds,
+    cameraRevision = 0,
+    context,
+    geography,
+    height,
+    padding,
+    scale = 1,
+    width
+  }) {
     const viewport = {
-      bounds: geography.bounds,
+      bounds,
       height,
       padding,
       width
     };
 
     const staticLayer = this.#getStaticLayer({
+      bounds,
+      cameraRevision,
       geography,
       height,
       padding,
+      scale,
       width
     });
 
@@ -71,98 +86,99 @@ export class MapRenderer {
       this.#drawStaticMap(context, geography, viewport, width);
     }
 
-    for (const station of stations) {
-      const point = geoToCanvas(station, viewport);
-      const labelOffset = STATION_LABEL_OFFSETS[station.id] ?? {
-        x: 6,
-        y: -4
-      };
-      context.beginPath();
-      context.arc(point.x, point.y, 3.5, 0, Math.PI * 2);
-      context.fillStyle = "#ffd27d";
-      context.fill();
-      context.strokeStyle = "#06111f";
-      context.lineWidth = 1;
-      context.stroke();
-
-      if (width >= 600) {
-        context.beginPath();
-        context.moveTo(point.x, point.y);
-        context.lineTo(
-          point.x + labelOffset.x * 0.78,
-          point.y + labelOffset.y * 0.78
-        );
-        context.strokeStyle = "rgba(255, 210, 125, 0.72)";
-        context.lineWidth = 0.8;
-        context.stroke();
-        context.fillStyle = "#eef7ff";
-        context.font = "650 9px system-ui, sans-serif";
-        context.fillText(
-          station.name,
-          point.x + labelOffset.x,
-          point.y + labelOffset.y
-        );
-      }
-    }
-
-    if (selection) {
-      const point = geoToCanvas(selection.point, viewport);
-      context.strokeStyle = selection.isLand ? "#ff9c9c" : "#76e4f7";
-      context.lineWidth = 2;
-      context.beginPath();
-      context.arc(point.x, point.y, 7, 0, Math.PI * 2);
-      context.moveTo(point.x - 11, point.y);
-      context.lineTo(point.x + 11, point.y);
-      context.moveTo(point.x, point.y - 11);
-      context.lineTo(point.x, point.y + 11);
-      context.stroke();
-    }
-
     context.restore();
   }
 
-  #getStaticLayer({ geography, height, padding, width }) {
+  #getStaticLayer({
+    bounds,
+    cameraRevision,
+    geography,
+    height,
+    padding,
+    scale,
+    width
+  }) {
+    const boundsKey = [
+      bounds.minLon,
+      bounds.maxLon,
+      bounds.minLat,
+      bounds.maxLat
+    ].join(":");
     if (
       this.#staticLayer?.geography === geography &&
+      this.#staticLayer.boundsKey === boundsKey &&
+      this.#staticLayer.cameraRevision === cameraRevision &&
       this.#staticLayer.height === height &&
+      this.#staticLayer.scale === scale &&
+      this.#staticLayer.terrainTexture === this.#terrainTexture &&
       this.#staticLayer.width === width
     ) {
       return this.#staticLayer.canvas;
     }
 
-    let canvas;
+    let canvas = this.#staticLayer?.canvas;
+    let context = this.#staticLayer?.context;
 
-    try {
-      canvas = this.#canvasFactory();
-    } catch {
-      return null;
+    if (!canvas || !context) {
+      try {
+        canvas = this.#canvasFactory();
+      } catch {
+        return null;
+      }
+
+      context = canvas?.getContext?.("2d");
+
+      if (!context) {
+        return null;
+      }
     }
 
-    const context = canvas?.getContext?.("2d");
-
-    if (!context) {
-      return null;
+    const pixelWidth = Math.ceil(width * scale);
+    const pixelHeight = Math.ceil(height * scale);
+    if (canvas.width !== pixelWidth) {
+      canvas.width = pixelWidth;
     }
-
-    canvas.width = Math.ceil(width);
-    canvas.height = Math.ceil(height);
+    if (canvas.height !== pixelHeight) {
+      canvas.height = pixelHeight;
+    }
+    context.setTransform?.(scale, 0, 0, scale, 0, 0);
+    context.clearRect?.(0, 0, width, height);
     this.#drawStaticMap(
       context,
       geography,
       {
-        bounds: geography.bounds,
+        bounds,
         height,
         padding,
         width
       },
       width
     );
-    this.#staticLayer = { canvas, geography, height, width };
+    this.#staticLayer = {
+      boundsKey,
+      canvas,
+      cameraRevision,
+      context,
+      geography,
+      height,
+      scale,
+      terrainTexture: this.#terrainTexture,
+      width
+    };
     return canvas;
   }
 
   #drawStaticMap(context, geography, viewport, width) {
     context.save();
+    context.beginPath();
+    context.rect(
+      viewport.padding.left,
+      viewport.padding.top,
+      viewport.width - viewport.padding.left - viewport.padding.right,
+      viewport.height - viewport.padding.top - viewport.padding.bottom
+    );
+    context.clip();
+    const hasTerrainTexture = this.#drawTerrainTexture(context, viewport);
     const land = context.createLinearGradient(
       viewport.padding.left,
       viewport.padding.top,
@@ -182,31 +198,45 @@ export class MapRenderer {
         traceRing(context, ring, viewport);
       }
 
-      context.save();
-      context.shadowBlur = 12;
-      context.shadowColor = "rgba(1, 7, 13, 0.72)";
-      context.shadowOffsetX = 3;
-      context.shadowOffsetY = 5;
-      context.fillStyle = land;
-      context.fill("evenodd");
-      context.restore();
+      if (!hasTerrainTexture) {
+        context.save();
+        context.shadowBlur = 12;
+        context.shadowColor = "rgba(1, 7, 13, 0.72)";
+        context.shadowOffsetX = 3;
+        context.shadowOffsetY = 5;
+        context.fillStyle = land;
+        context.fill("evenodd");
+        context.restore();
+      }
 
-      context.strokeStyle = "rgba(2, 12, 18, 0.86)";
-      context.lineWidth = 3.4;
+      context.strokeStyle = hasTerrainTexture
+        ? "rgba(2, 12, 18, 0.66)"
+        : "rgba(2, 12, 18, 0.86)";
+      context.lineWidth = hasTerrainTexture ? 1.35 : 3.4;
       context.stroke();
-      context.strokeStyle = "rgba(220, 239, 218, 0.76)";
-      context.lineWidth = 0.85;
+      context.strokeStyle = hasTerrainTexture
+        ? "rgba(235, 244, 222, 0.42)"
+        : "rgba(220, 239, 218, 0.76)";
+      context.lineWidth = hasTerrainTexture ? 0.45 : 0.85;
       context.stroke();
     }
 
-    this.#drawLandRelief(context, geography, viewport);
+    if (!hasTerrainTexture) {
+      this.#drawLandRelief(context, geography, viewport);
+    }
 
     const taiwan = geography.features.find(
       (feature) => feature.properties.regionId === "taiwan-main"
     );
 
     if (taiwan) {
-      this.#drawTaiwanTerrain(context, taiwan, viewport, width);
+      this.#drawTaiwanTerrain(
+        context,
+        taiwan,
+        viewport,
+        width,
+        hasTerrainTexture
+      );
     }
 
     for (const segment of taiwan?.properties.coastSegments ?? []) {
@@ -218,6 +248,86 @@ export class MapRenderer {
     }
 
     context.restore();
+  }
+
+  #drawTerrainTexture(context, viewport) {
+    const texture = this.#terrainTexture;
+
+    if (!texture?.image) {
+      return false;
+    }
+
+    const sourceBounds = texture.source.bounds;
+    const visibleBounds = Object.freeze({
+      maxLat: Math.min(viewport.bounds.maxLat, sourceBounds.maxLat),
+      maxLon: Math.min(viewport.bounds.maxLon, sourceBounds.maxLon),
+      minLat: Math.max(viewport.bounds.minLat, sourceBounds.minLat),
+      minLon: Math.max(viewport.bounds.minLon, sourceBounds.minLon)
+    });
+
+    if (
+      visibleBounds.minLon >= visibleBounds.maxLon ||
+      visibleBounds.minLat >= visibleBounds.maxLat
+    ) {
+      return false;
+    }
+
+    const northWest = geoToCanvas(
+      {
+        lat: visibleBounds.maxLat,
+        lon: visibleBounds.minLon
+      },
+      viewport
+    );
+    const southEast = geoToCanvas(
+      {
+        lat: visibleBounds.minLat,
+        lon: visibleBounds.maxLon
+      },
+      viewport
+    );
+    const sourceWidthDegrees = sourceBounds.maxLon - sourceBounds.minLon;
+    const sourceHeightDegrees = sourceBounds.maxLat - sourceBounds.minLat;
+    const sourceX =
+      ((visibleBounds.minLon - sourceBounds.minLon) / sourceWidthDegrees) *
+      texture.source.width;
+    const sourceY =
+      ((sourceBounds.maxLat - visibleBounds.maxLat) / sourceHeightDegrees) *
+      texture.source.height;
+    const sourceWidth =
+      ((visibleBounds.maxLon - visibleBounds.minLon) / sourceWidthDegrees) *
+      texture.source.width;
+    const sourceHeight =
+      ((visibleBounds.maxLat - visibleBounds.minLat) / sourceHeightDegrees) *
+      texture.source.height;
+
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.globalAlpha =
+      PROJECT_CONFIG.renderingConfig.terrainTextureOpacity;
+    context.drawImage(
+      texture.image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      northWest.x,
+      northWest.y,
+      southEast.x - northWest.x,
+      southEast.y - northWest.y
+    );
+    context.globalCompositeOperation = "source-atop";
+    context.globalAlpha = 1;
+    context.fillStyle = "rgba(4, 17, 22, 0.18)";
+    context.fillRect(
+      northWest.x,
+      northWest.y,
+      southEast.x - northWest.x,
+      southEast.y - northWest.y
+    );
+    context.restore();
+    return true;
   }
 
   #drawLandRelief(context, geography, viewport) {
@@ -399,54 +509,62 @@ export class MapRenderer {
     context.restore();
   }
 
-  #drawTaiwanTerrain(context, taiwan, viewport, width) {
+  #drawTaiwanTerrain(
+    context,
+    taiwan,
+    viewport,
+    width,
+    hasTerrainTexture
+  ) {
     const ring = taiwan.geometry.coordinates[0];
-    const west = geoToCanvas(
-      { lat: 23.5, lon: 120 },
-      viewport
-    );
-    const east = geoToCanvas(
-      { lat: 23.5, lon: 121.9 },
-      viewport
-    );
-    const gradient = context.createLinearGradient(west.x, 0, east.x, 0);
-    gradient.addColorStop(0, "rgba(216, 190, 111, 0.42)");
-    gradient.addColorStop(0.45, "rgba(104, 78, 52, 0.82)");
-    gradient.addColorStop(0.68, "rgba(83, 126, 85, 0.48)");
-    gradient.addColorStop(1, "rgba(134, 86, 66, 0.66)");
-
-    context.save();
-    context.beginPath();
-    traceRing(context, ring, viewport);
-    context.clip();
-    context.fillStyle = gradient;
-    context.fillRect(
-      Math.min(west.x, east.x),
-      0,
-      Math.abs(east.x - west.x),
-      viewport.height
-    );
-
-    const ridgePoints = [22.1, 22.7, 23.3, 23.9, 24.5, 25.1].map((lat) =>
-      geoToCanvas(
-        { lat, lon: taiwanRidgeLongitude(lat) },
+    if (!hasTerrainTexture) {
+      const west = geoToCanvas(
+        { lat: 23.5, lon: 120 },
         viewport
-      )
-    );
-    context.beginPath();
-    ridgePoints.forEach((point, index) => {
-      if (index === 0) {
-        context.moveTo(point.x, point.y);
-      } else {
-        context.lineTo(point.x, point.y);
-      }
-    });
-    context.strokeStyle = "rgba(255, 225, 167, 0.92)";
-    context.lineWidth = 2.2;
-    context.shadowBlur = 7;
-    context.shadowColor = "rgba(255, 210, 125, 0.72)";
-    context.stroke();
-    context.restore();
+      );
+      const east = geoToCanvas(
+        { lat: 23.5, lon: 121.9 },
+        viewport
+      );
+      const gradient = context.createLinearGradient(west.x, 0, east.x, 0);
+      gradient.addColorStop(0, "rgba(216, 190, 111, 0.42)");
+      gradient.addColorStop(0.45, "rgba(104, 78, 52, 0.82)");
+      gradient.addColorStop(0.68, "rgba(83, 126, 85, 0.48)");
+      gradient.addColorStop(1, "rgba(134, 86, 66, 0.66)");
+
+      context.save();
+      context.beginPath();
+      traceRing(context, ring, viewport);
+      context.clip();
+      context.fillStyle = gradient;
+      context.fillRect(
+        Math.min(west.x, east.x),
+        0,
+        Math.abs(east.x - west.x),
+        viewport.height
+      );
+
+      const ridgePoints = [22.1, 22.7, 23.3, 23.9, 24.5, 25.1].map((lat) =>
+        geoToCanvas(
+          { lat, lon: taiwanRidgeLongitude(lat) },
+          viewport
+        )
+      );
+      context.beginPath();
+      ridgePoints.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point.y);
+        } else {
+          context.lineTo(point.x, point.y);
+        }
+      });
+      context.strokeStyle = "rgba(255, 225, 167, 0.92)";
+      context.lineWidth = 2.2;
+      context.shadowBlur = 7;
+      context.shadowColor = "rgba(255, 210, 125, 0.72)";
+      context.stroke();
+      context.restore();
+    }
 
     if (width >= 720) {
       const central = TAIWAN_TERRAIN_LABELS.find(

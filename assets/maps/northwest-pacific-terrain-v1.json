@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "natural-earth-ii-northwest-pacific-v1",
+  "asset": "northwest-pacific-terrain-v1.webp",
+  "bounds": {
+    "minLon": 100,
+    "minLat": 0,
+    "maxLon": 160,
+    "maxLat": 40
+  },
+  "dimensions": {
+    "width": 2400,
+    "height": 1600
+  },
+  "projection": "equirectangular",
+  "generatedAt": "2026-08-06",
+  "sha256": "5dcdff02060a26c87646f0c8f16b778dbcfa2eac9190fd143837d89e86d1230d",
+  "source": {
+    "name": "Natural Earth II with Shaded Relief and Water, 1:10m medium size",
+    "publisher": "Natural Earth",
+    "version": "2.0.0",
+    "url": "https://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/",
+    "downloadUrl": "https://naciscdn.org/naturalearth/10m/raster/NE2_LR_LC_SR_W.zip",
+    "downloadSha256": "d724cb6718d506e4c63c829a635bbdc88872eadfc186131c6ce252aff4beb1c7",
+    "sourceSha256": "23a70c30876dc4a8a1d09b3009dbf12512b5137093f7f6bf4327c09d6405a842"
+  },
+  "landMaskSource": {
+    "name": "Natural Earth 1:10m Land",
+    "publisher": "Natural Earth",
+    "version": "5.1.1",
+    "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/",
+    "downloadUrl": "https://naciscdn.org/naturalearth/10m/physical/ne_10m_land.zip",
+    "downloadSha256": "e547d749445eaa0964aba76738090ec88f5e63c4585122170f98c67a7ea922dc"
+  },
+  "license": {
+    "name": "Public domain",
+    "url": "https://www.naturalearthdata.com/about/terms-of-use/"
+  },
+  "processing": "Crop 100E-160E and 0N-40N from the 16200x8100 equirectangular raster, resize to 2400x1600, and apply an antialiased 1:10m land-polygon alpha mask. No political boundaries, place names, or runtime tile service are included.",
+  "limitations": "Visual terrain only. The validated SGTS educational polygons remain authoritative for simulation land-sea and terrain calculations; this asset is not suitable for navigation or surveying."
+}

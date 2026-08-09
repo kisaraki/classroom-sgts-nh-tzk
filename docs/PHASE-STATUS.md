@@ -419,3 +419,60 @@
   `main`。
 - Phase 狀態：仍為 `in_progress`；Microsoft Edge、iPadOS Safari 與本輪
   公開站實際瀏覽器 smoke test 維持 `not_verified`，Phase 10 維持 `pending`。
+
+## Phase 9 生命史、旋轉與真實地形本機修正紀錄
+
+- 紀錄時間：2026-08-06T16:06:52+08:00。
+- 狀態：仍為 `in_progress`；主規格更新至 1.0.4，本次差異尚未 commit、
+  push 或部署。
+- 颱風尺寸：渲染端依 `active`、`structureStage` 與物理暴風半徑產生可辨識
+  生命史尺度；未寫回 `Typhoon`，模型版本與黃金重播不變。
+- 旋轉：北半球 Canvas 粒子改為負角速度，畫面由東向北呈逆時針；移動
+  方向角未反號。
+- 地形：加入 Natural Earth II 1:10m、2,400×1,600、透明海洋 WebP，並以
+  Natural Earth 1:10m 陸地多邊形建立海岸遮罩；物理海陸與地形判定仍由
+  既有資料負責。載入、解碼或尺寸失敗時沿用簡化地形。
+- 本機驗證：Node.js 24.18.1；lint、build、116 unit、6 integration、
+  16 scenario、16 actual Chrome E2E、1 artifact test 全部通過。
+- 效能：中畫質中位 59.88 FPS、1% low 56.82 FPS、Long Task 0；但 update
+  p95 6.1 ms 高於主規格 <4 ms 門檻，故效能接受標為 `failed`，仍需處理。
+- Codex in-app Browser：管理政策無法完成 localhost 安全檢查，`not_run`；
+  未以實際 Chrome 自動化冒充。
+- Schema／資料：新地形 metadata、來源、授權、尺寸、bounds、MIME 與
+  SHA-256 passed；既有地圖、關卡、沙盒、儲存與後台 I/O 契約未變。
+- TypeScript：`not_applicable`；原生 JavaScript ES Modules。
+- GitHub Actions／Pages API／部署：本次差異 `not_run`；公開網站
+  `not_verified`。既有 deployment `5775272960` 不是本輪證據。
+- Microsoft Edge／iPadOS Safari：維持 `not_verified`。
+- 授權邊界：本次請求沒有重新授權 commit、push 或部署，故未執行；
+  Phase 10 維持 `pending`。
+
+## Phase 9 六站地圖卡、查詢退場與鏡頭操作本機修正紀錄
+
+- 紀錄日期：2026-08-06。
+- 狀態：仍為 `in_progress`；主規格更新至 1.0.5，本次差異尚未 commit、
+  push 或部署。
+- 六站觀測：那霸、臺北、臺中、日月潭、花蓮與澎湖模型觀測改為地圖內
+  有色毛玻璃卡與定位引線；窄螢幕採地圖內三欄二列緊湊佈局。
+- 查詢退場：玩家前端查詢面板、點選／Enter 查詢與選取游標已移除；
+  Phase 2 的座標轉換、commit／批准與 `GEO-POINTER-001 passed` 保留為歷史證據。
+- 視角操作：支援指標錨定滾輪縮放、滑鼠／單指拖曳、雙指縮放平移、
+  放大／縮小／重設按鈕，以及加號、減號、方向鍵與 Home／0 鍵盤操作。
+- 隔離：全部 Canvas 世界圖層與 DOM 測站卡共用同一有效地理邊界；
+  視角不進入物理、step、重播、匯出或 fingerprint。
+- Schema／資料：`schemaVersion=1`、`modelVersion=0.7.0-taiwan-wayne`、測站、
+  地理、關卡、儲存與後台 I/O 契約均未變，passed。
+- 本機驗證：Node.js 24.18.1；lint、build、127 unit、6 integration、
+  16 scenario、19 actual Google Chrome E2E、1 artifact test 全部通過。
+- 觸控證據：Chrome DevTools Protocol 雙指事件通過，但不代表 iPadOS
+  Safari 實體裝置；iPadOS 維持 `not_verified`。
+- 效能：移除每畫格版面量測後，中畫質中位 59.88 FPS、1% low 57.80、
+  render 1.178／1.7 ms、Long Task 0 通過；update p95 6.1 ms 仍高於 <4 ms 門檻，
+  故維持 `failed`。
+- Codex in-app Browser：管理員安全政策無法驗證 localhost，`not_run`；
+  未繞過政策，也未以 Chrome E2E 冒充。
+- TypeScript：`not_applicable`；Microsoft Edge：`not_verified`。
+- GitHub Actions／Pages API／部署：本次差異 `not_run`；公開網站
+  `not_verified`，既有 deployment 不是本次差異的證據。
+- 授權邊界：本次請求未重新授權 commit、push 或部署，故未執行。
+  Phase 9 未完成，Phase 10 維持 `pending`。

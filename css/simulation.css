@@ -26,6 +26,8 @@
 }
 
 .canvas-frame {
+  position: relative;
+  isolation: isolate;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -41,13 +43,69 @@
   display: block;
   width: 100%;
   height: 100%;
-  cursor: crosshair;
-  touch-action: manipulation;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
-.map-query-help {
+#simulation-canvas[data-map-dragging="true"] {
+  cursor: grabbing;
+}
+
+.map-caption {
   color: var(--color-muted);
   font-size: 0.76rem;
+}
+
+.map-controls {
+  position: absolute;
+  z-index: 5;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  display: grid;
+  justify-items: end;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+#map-view-status {
+  max-width: min(18rem, calc(100vw - 5rem));
+  padding: 0.28rem 0.5rem;
+  color: var(--color-cyan-100);
+  border: 1px solid rgb(118 228 247 / 34%);
+  border-radius: 999px;
+  background: rgb(4 17 31 / 76%);
+  box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 24%);
+  font-family: ui-monospace, monospace;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+
+.map-control-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, auto));
+  gap: 0.32rem;
+  pointer-events: auto;
+}
+
+.map-control-buttons button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.3rem 0.55rem;
+  color: var(--color-cyan-100);
+  border-color: rgb(118 228 247 / 46%);
+  background: rgb(6 29 48 / 82%);
+  box-shadow: 0 0.45rem 1rem rgb(0 0 0 / 28%);
+  font-size: 1.05rem;
+  line-height: 1;
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+
+#map-view-reset {
+  font-size: 0.68rem;
 }
 
 .time-strip {
@@ -88,11 +146,26 @@
   }
 
   .canvas-frame {
-    min-height: 18rem;
+    min-height: 24rem;
     aspect-ratio: auto;
+  }
+
+  .map-controls {
+    right: 0.45rem;
+    bottom: 0.45rem;
+  }
+
+  #map-view-status {
+    display: none;
   }
 
   .time-strip {
     grid-template-columns: 1fr;
   }
+}
+
+.canvas-frame[data-station-layout="compact"] .map-controls {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
 }

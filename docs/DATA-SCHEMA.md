@@ -14,6 +14,8 @@ Phase 8 已建立地圖、Typhoon、GridCell、Environment、WeatherStation、
 海陸事件、三關 Level、沙盒 preset、localStorage v1 與匯入匯出契約。
 
 Phase 9 沒有改變持久化或匯出資料形狀，因此不提升 schema／model version。
+`MapCamera`、地圖平移／縮放及六站毛玻璃卡均為呈現狀態，不寫入
+localStorage、模擬 JSON、沙盒設定、重播、CSV 或 fingerprint。
 效能 snapshot 是暫時診斷資料，不寫入 localStorage 或模擬匯出。粒子層級
 是當次 UI／render 設定，不屬物理資料。地圖 cache 只重用已通過
 `validateMapData` 的同一份物件；失敗 request 不留在 cache。
@@ -82,6 +84,26 @@ Feature 規則：
 - Phase 2 以 `validateMapData` 作為主規格允許的等效自動驗證：
   拒絕未知欄位、不支援版本、非 HTTPS 來源／授權 URL、錯誤 bounds、
   非閉合／逆向／越界 ring、重複 `regionId` 及不完整岸段。
+
+### `northwest-pacific-terrain-v1.json`
+
+真實地形柵格中繼資料不參與物理 schema，只作來源、建置與成品完整性契約：
+
+| 欄位 | 規則 |
+|---|---|
+| `schemaVersion` | 整數，目前為 `1` |
+| `id`、`asset` | 穩定識別及同目錄相對 WebP 檔名 |
+| `bounds` | 與正式地圖同為東經 100°～160°、北緯 0°～40° |
+| `dimensions` | 固定 2,400×1,600 |
+| `projection` | 固定 `equirectangular`（等距圓柱投影） |
+| `source`、`landMaskSource` | 名稱、發布者、版本、HTTPS URL 與 SHA-256 |
+| `license` | `Public domain` 及 Natural Earth 使用條款 URL |
+| `generatedAt` | `YYYY-MM-DD` |
+| `sha256` | 64 位小寫十六進位成品摘要 |
+| `processing`、`limitations` | 裁切、縮放、透明遮罩及視覺／物理精度邊界 |
+
+柵格像素不得作為 `GridCell.landFraction`、地形高度、登陸或海陸事件輸入；
+影像載入失敗也不得改變上述資料契約。
 
 ### 測站位置
 

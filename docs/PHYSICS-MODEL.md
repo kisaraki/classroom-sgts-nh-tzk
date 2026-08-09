@@ -20,8 +20,12 @@ Phase 8 沙盒不另建物理模型。SST、OHC 與地形倍率從受驗證 pres
 
 Phase 9 只更動效能觀測、靜態地圖呈現、粒子數與無障礙。300／700／1200
 粒子使用獨立、具種子的視覺狀態，不進入 physics snapshot、PRNG 物理子流
-或 fingerprint。`schemaVersion=1` 與 `modelVersion=0.7.0-taiwan-wayne`
-均不變，三份黃金重播保持完全一致。
+或 fingerprint。生命史視覺半徑是在渲染邊界由 `active`、`structureStage`
+與 `galeRadius` 派生；Natural Earth II 地形柵格只供貼圖，均不得寫回物理。
+`MapCamera`、拖曳、滾輪、雙指及六站毛玻璃 DOM 卡同樣只屬呈現邊界；
+視角不寫入颱風、環境、測站、步數、重播、匯出或 fingerprint。
+`schemaVersion=1` 與 `modelVersion=0.7.0-taiwan-wayne` 均不變，三份黃金
+重播保持完全一致。
 
 ## 模型定位
 
@@ -74,6 +78,7 @@ Phase 5 已依上述分類集中在 `js/config.js`，並新增
 - 所有因子及輸出必須限制於 schema 範圍。
 - 物理模組不得直接使用 `Math.random()`。
 - 粒子、畫質、FPS 與 Canvas resize 不得改變物理結果。
+- 生命史視覺縮放、氣旋旋轉方向與地形像素不得改變物理暴風半徑或海陸判定。
 - 地形作用、雨量及冷水尾流必須依固定模擬時間積分。
 
 ## 實作 Phase

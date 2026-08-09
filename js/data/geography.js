@@ -1,11 +1,9 @@
 import { PROJECT_CONFIG } from "../config.js";
 import {
   distanceToPolygonBoundaryKm,
-  findNearestStation,
   isPointInBounds,
   pointInPolygon
 } from "../utils/geo.js";
-import { WEATHER_STATIONS } from "./stations.js";
 
 export const MAP_BOUNDS = PROJECT_CONFIG.geography.bounds;
 
@@ -344,21 +342,4 @@ export const getRegionInlandDepthKm = (point, regionId, mapData) => {
     distanceToPolygonBoundaryKm(point, outerRing),
     ...holes.map((hole) => distanceToPolygonBoundaryKm(point, hole))
   );
-};
-
-export const describeGeographicPoint = (
-  point,
-  mapData,
-  stations = WEATHER_STATIONS
-) => {
-  const landRegion = findLandRegion(point, mapData);
-  const nearest = findNearestStation(point, stations);
-
-  return Object.freeze({
-    isLand: Boolean(landRegion),
-    landRegion,
-    nearestStation: nearest.station,
-    nearestStationDistanceKm: nearest.distanceKm,
-    point: Object.freeze({ ...point })
-  });
 };

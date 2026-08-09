@@ -5,10 +5,11 @@
 
 ## 文件狀態
 
-- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.3。
+- 適用主規格：`SGTS-NH_MASTER_SPEC.md` 1.0.5。
 - 目前 Phase：Phase 9 in progress；既有版本已發布，本次介面修正只在本機。
 - Phase 9 不改物理模型；加入可觀測效能、靜態地圖快取、無障礙與
-  可重現 Pages artifact／deployment workflow。
+  可重現 Pages artifact／deployment workflow，並在呈現邊界加入六站地圖卡與
+  純視角地圖鏡頭。
 
 ## 正式執行邊界
 
@@ -69,18 +70,20 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 
 | 檔案 | 責任 |
 |---|---|
-| `index.html` | 上方橫跨第一、二象限的地圖、第三象限戰況資訊、第四象限參數與遊戲指令、地圖查詢、品牌與聲明；後台 I/O 控制保持隱藏 |
+| `index.html` | 上方橫跨第一、二象限的地圖與六站毛玻璃觀測卡、第三象限戰況資訊、第四象限參數與遊戲指令、品牌與聲明；後台 I/O 控制保持隱藏 |
 | `js/config.js` | 不可變的專案身份、版本及引擎常數 |
-| `js/app.js` | DOM 綁定、引擎／地圖組裝、查詢呈現、錯誤與可見性 |
+| `js/app.js` | DOM 綁定、引擎／地圖組裝、六站觀測卡更新、錯誤與可見性 |
 | `js/core/GameEngine.js` | requestAnimationFrame loop、update/render 分離與生命週期 |
 | `js/core/SimulationClock.js` | 累積器、固定步進、倍速、截斷與補算上限 |
 | `js/core/StateMachine.js` | 八種遊戲狀態及合法轉換 |
 | `js/core/EventBus.js` | 具順序 ID、同一步順序與 dedupe 的事件傳遞 |
 | `js/ui/CanvasViewport.js` | 高 DPI backing store 與 resize |
-| `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、診斷 overlay 與 pointer 轉換 |
+| `js/rendering/CanvasRenderer.js` | Canvas 圖層編排、診斷 overlay、鏡頭轉換與所有圖層共用的有效地理邊界 |
+| `js/rendering/MapCamera.js` | 純函式地圖鏡頭；1～4 倍縮放、邊界限制、錨點縮放、平移、雙指轉換與重設 |
 | `js/rendering/FieldRenderer.js` | 分層海洋背景、連續海面溫度場、環境場及座標標示 |
-| `js/rendering/MapRenderer.js` | 陸地明暗、地形紋理、雙層海岸線、臺灣山脈脊線、測站及查詢游標 |
-| `js/data/geography.js` | JSON 載入、驗證、海陸與位置描述 |
+| `js/rendering/MapRenderer.js` | Natural Earth II 真實地形貼圖的鏡頭裁切、簡化地形降級、教育判定海岸線及依視角修訂的離屏快取 |
+| `js/data/terrainTexture.js` | 同源地形影像 URL、尺寸驗證、共享載入 Promise、失敗逐出與重試 |
+| `js/data/geography.js` | JSON 載入、驗證與海陸判定 |
 | `js/data/stations.js` | 六站不可變位置與來源 |
 | `js/model/Typhoon.js` | 颱風完整欄位、結構 enum、路徑／事件歷史及物理 snapshot |
 | `js/model/GridCell.js` | 單一環境取樣點的數值範圍與單位契約 |
@@ -96,10 +99,13 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 | `js/utils/geo.js` | 座標、測地線、polygon、segment 與最近站純函式 |
 | `js/utils/random.js` | `mulberry32-v1`、種子衍生、四子流及穩定 fingerprint |
 | `js/rendering/TyphoonRenderer.js` | 五種颱風結構的 Canvas 表現 |
+| `js/rendering/TyphoonVisuals.js` | 生命史視覺半徑／透明度與北、南半球 Canvas 氣旋方向純函式 |
 | `js/rendering/TrackRenderer.js` | 只讀 trackHistory 的路徑線 |
 | `js/rendering/ParticleRenderer.js` | 可關閉的純視覺粒子，不回寫物理 |
 | `js/rendering/FieldRenderer.js` | 海面溫度底圖、等壓線、太平洋副熱帶高壓、季風槽及導引箭頭 |
 | `js/ui/ControlPanel.js` | 目標滑桿、實際值、趨勢文字及反應時間 |
+| `js/ui/MapInteractionController.js` | 滾輪、滑鼠／單指拖曳、雙指縮放平移、按鈕、鍵盤與節流視角狀態播報 |
+| `js/ui/StationMapOverlay.js` | 六站觀測快照的正式氣象用語、有色毛玻璃 DOM 卡、定位引線、碰撞避讓與窄螢幕三欄二列佈局 |
 | `js/data/levels.js` | Level 等效 schema、DSL 白名單、站群／警戒區及三關資料 |
 | `js/data/sandbox.js` | 沙盒 preset schema、預設值及無勝敗 Level adapter |
 | `js/persistence/StorageManager.js` | localStorage v1 驗證、遷移入口與損壞回復 |
@@ -133,15 +139,30 @@ CanvasViewport／TyphoonRenderer／TrackRenderer／ParticleRenderer／DOM dashbo
 northwest-pacific.json
   ↓ fetch + validateMapData
 geography.js（權威 bounds／海陸）
-  ├─ describeGeographicPoint → DOM 查詢結果
   └─ read-only map data → CanvasRenderer
-       ├─ FieldRenderer（背景／經緯線）
-       └─ MapRenderer（陸地／岸段／測站／選取）
+
+滾輪／pointer／雙指／按鈕／鍵盤
+  ↓ MapInteractionController
+MapCamera（純呈現狀態）
+  ↓ 唯一有效 bounds + camera revision
+CanvasRenderer
+  ├─ FieldRenderer（背景／經緯線／環境／降雨光暈）
+  ├─ MapRenderer（鏡頭裁切地形／陸地／岸段）
+  ├─ TrackRenderer／TyphoonRenderer／ParticleRenderer／目標區
+  └─ projectGeographicPoint → StationMapOverlay
+
+ObservationModel read-only snapshots
+  ↓ StationMapOverlay
+六站毛玻璃 HTML 卡／定位點／引線
 ```
 
 - 渲染器不決定海陸；它只讀受驗證的資料。
 - 所有公開經度欄位只使用 `lon`。
-- pointer 使用 CSS pixel rect 反轉座標，與 Canvas backing-store DPR 分離。
+- pointer 與鏡頭使用 CSS pixel rect 轉換，與 Canvas backing-store DPR 分離。
+- 全部 Canvas 世界圖層與 DOM 測站卡必須使用相同有效 bounds；鏡頭不存入
+  simulation snapshot、重播、匯出或 fingerprint。
+- 玩家地圖查詢與選取游標已依 `DEC-0039` 退場；座標雙向轉換與最近
+  測站純函式保留，供鏡頭與模型幾何使用。
 - Phase 2 採地理經緯度的線性 equirectangular 顯示；測地距離另用
   Haversine，不以 Canvas pixel 距離代替。
 
@@ -282,8 +303,10 @@ requestAnimationFrame
   ├─ fixed update：正式物理，不受粒子層級影響
   └─ render
       ├─ cached GeoJSON object
-      ├─ offscreen static map canvas
-      ├─ dynamic environment / storm / stations
+      ├─ optional same-origin Natural Earth II terrain WebP
+      ├─ camera-revision-aware DPR offscreen static map canvas
+      ├─ dynamic environment / storm / observation halos
+      ├─ DOM station glass cards sharing visible bounds
       └─ deterministic 300 / 700 / 1200 visual particles
 
 source tree
@@ -295,7 +318,15 @@ source tree
 - `PerformanceMonitor` 的 bounded window 最多保存 600 筆；百分位與摘要
   每 30 次 snapshot 才重算，避免每幀排序與大量短命配置。
 - `loadGeography` 共用 Promise／已驗證資料，失敗時清除 cache 以便重試。
-- `MapRenderer` 只在 geography identity 或 viewport 尺寸改變時重畫固定
-  地圖離屏 Canvas；測站、選取、環境、風暴與目標仍為動態圖層。
+- `MapRenderer` 只在 geography identity、地形影像 identity、viewport 尺寸、
+  裝置像素比或 camera revision／有效 bounds 改變時重畫同一個離屏
+  Canvas；鏡頭不變時繼續重用。環境、風暴、測站降雨光暈、軌跡與目標
+  仍為動態圖層；六站文字資料改由 DOM overlay 呈現。地形影像失敗時沿用
+  程式化地形，不阻斷物理資料載入。
+- 真實地形 WebP 具有透明海洋，故海面溫度、冷水尾流與經緯線仍由動態
+  Canvas 圖層呈現；影像與網站同源，PNG 匯出不會污染 Canvas。
+- `TyphoonRenderer` 與 `ParticleRenderer` 共用只讀生命史視覺尺度；物理
+  `galeRadius` 不變。北半球粒子以負 Canvas 角速度呈逆時針旋轉。
 - `prefers-reduced-motion` 只停用動畫粒子，不更動物理或使用者已保存偏好。
-- 正式 Pages deployment 尚未執行；架構定義不等於線上狀態。
+- 既有 Pages 部署不是本次 1.0.5 尚未提交差異的發布證據；架構定義也不等於
+  本次差異已通過 GitHub Actions、Pages API 或公開網站驗證。

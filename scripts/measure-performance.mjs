@@ -16,6 +16,13 @@ try {
     const page = await browser.newPage({ viewport: { height: 900, width: 1440 } });
     await page.goto(baseURL);
     await page.locator("#start-button").waitFor({ state: "visible" });
+    await page.waitForFunction(
+      "() => document.querySelector('#map-data-status')?.textContent" +
+        ".includes('Natural Earth II 真實地形圖層')"
+    );
+    if (!await page.locator("#particle-profile").isVisible()) {
+      await page.locator(".display-settings summary").click();
+    }
     await page.locator("#particle-profile").selectOption(profile);
     await page.locator("#start-button").click();
     await page.waitForTimeout(durationMs);

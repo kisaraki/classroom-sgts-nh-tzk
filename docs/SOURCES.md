@@ -12,21 +12,23 @@ Phase 7 延續既有來源，加入 JMA 2015 與 1986 最佳路徑資料，分�
 Phase 8 的 localStorage 與檔案匯入匯出只使用瀏覽器標準 API，沒有新增
 外部資料來源或第三方執行期套件。
 
-Phase 9 沒有新增第三方執行期程式碼、字型、圖示、圖片或資料。效能量測
-使用既有 Playwright／Chrome；Safari 驗收使用系統 Safari。GitHub 官方
-Actions 僅用於 CI／Pages：`actions/checkout`、`actions/setup-node`、
-`actions/configure-pages`、`actions/upload-pages-artifact`、
-`actions/deploy-pages`，不進入網站 artifact。
+Phase 9 沒有新增第三方執行期程式碼、字型或圖示。2026-08-06 依使用者
+指示新增 Natural Earth II 公眾領域地形影像與 Natural Earth 1:10m 陸地
+遮罩的本機衍生 WebP；網站不在執行期連線至外部圖磚服務。效能量測使用
+既有 Playwright／Chrome；Safari 驗收使用系統 Safari。GitHub 官方 Actions
+僅用於 CI／Pages，不進入網站 artifact。
 
 ## 目前紀錄
 
 | 名稱 | 類型 | 發布者／來源 | 存取日期 | 用途 | 授權／狀態 |
 |---|---|---|---|---|---|
-| `SGTS-NH_MASTER_SPEC.md` 1.0.1 | 內部主規格 | KOSMOS TOOLKIT｜探真拓知酷 | 2026-07-30 | 產品與工程需求 | 專案內部來源 |
+| `SGTS-NH_MASTER_SPEC.md` 1.0.5 | 內部主規格 | KOSMOS TOOLKIT｜探真拓知酷 | 2026-08-06 | 產品與工程需求 | 專案內部來源 |
 | Node.js Releases | 開發工具參考 | `https://nodejs.org/` | 2026-07-30 | 確認 Node.js 24 LTS | Node.js 官方資料；不部署至網站 |
 | ESLint | 開發工具 | `https://eslint.org/` | 2026-07-30 | JavaScript 靜態檢查 | MIT；僅 devDependency |
 | Natural Earth 1:50m coastline | 地圖向量參考 | `https://www.naturalearthdata.com/downloads/50m-physical-vectors/` | 2026-07-30 | 西北太平洋陸地輪廓參考 | Public domain；人工大幅簡化並重繪，非導航資料 |
 | Natural Earth Terms of Use | 地圖授權 | `https://www.naturalearthdata.com/about/terms-of-use/` | 2026-07-30 | 確認地圖資料可修改及散布 | Public domain |
+| Natural Earth II with Shaded Relief and Water 1:10m | 真實地形柵格 | `https://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/` | 2026-08-06 | 西北太平洋島嶼與陸地地形陰影 | Public domain；下載包內版本 2.0.0；ZIP SHA-256 `d724cb6718d506e4c63c829a635bbdc88872eadfc186131c6ce252aff4beb1c7` |
+| Natural Earth 1:10m Land | 真實海岸透明遮罩 | `https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-land/` | 2026-08-06 | 只保留陸地貼圖、避免遮蔽動態海洋層 | Public domain；5.1.1；ZIP SHA-256 `e547d749445eaa0964aba76738090ec88f5e63c4585122170f98c67a7ea922dc` |
 | 臺灣氣象觀測要素排序集／附錄測站表 | 測站位置 | `https://www.cwa.gov.tw/Data/service/notice/download/Publish_20241021111320.pdf` | 2026-07-30 | 臺北、臺中、日月潭、花蓮、澎湖站碼、座標與高度 | 中央氣象署；專案註明出處 |
 | JMA GAW station table | 測站位置 | `https://www.data.jma.go.jp/env/ozonehp/en/nmhs/station.html` | 2026-07-30 | 那霸站座標、高度與 WMO station number | Japan Meteorological Agency；專案註明出處 |
 | JMA RSMC Tokyo 2018 Annual Report | 歷史情境參考 | `https://www.jma.go.jp/jma/jma-eng/jma-center/rsmc-hp-pub-eg/AnnualReport/2018/Text/Text2018.pdf` | 2026-07-30 | 確認 2018 潭美及西北太平洋歷史脈絡 | JMA 官方報告；只作靈感與來源註記 |
@@ -49,6 +51,15 @@ Actions 僅用於 CI／Pages：`actions/checkout`、`actions/setup-node`、
 
 本地衍生檔案：`assets/maps/northwest-pacific.json`。其 metadata 記錄
 來源、Public Domain 授權、手工簡化方式、產生日期、座標順序及精度限制。
+
+本地地形衍生檔案：`assets/maps/northwest-pacific-terrain-v1.webp` 及
+`assets/maps/northwest-pacific-terrain-v1.json`。處理方式為從 16,200×8,100
+等距圓柱柵格裁切東經 100°～160°、北緯 0°～40°，縮放為 2,400×1,600，
+再以 2 倍解析度繪製的 1:10m 陸地多邊形建立反鋸齒透明遮罩；沒有加入國界、
+行政界、地名或外部圖磚。成品 SHA-256 為
+`5dcdff02060a26c87646f0c8f16b778dbcfa2eac9190fd143837d89e86d1230d`，
+以 `scripts/build-terrain-raster.py`、Homebrew `uv`、Pillow 與 pyshp 重建。
+影像只供視覺呈現，既有地理 JSON 仍為模擬海陸與地形判定依據。
 
 ## 後續資料登錄格式
 

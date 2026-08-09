@@ -8,7 +8,7 @@ import {
 import { MAP_BOUNDS } from "../js/data/geography.js";
 import { geoToCanvas } from "../js/utils/geo.js";
 
-test("CanvasRenderer maps a geographic click correctly after resize", () => {
+test("CanvasRenderer maps CSS client coordinates correctly after resize", () => {
   let rect = { height: 400, left: 20, top: 30, width: 600 };
   const canvas = {
     getBoundingClientRect: () => rect,
@@ -43,4 +43,39 @@ test("CanvasRenderer maps a geographic click correctly after resize", () => {
     assert.ok(Math.abs(result.lat - coordinate.lat) < 1e-10);
     assert.ok(Math.abs(result.lon - coordinate.lon) < 1e-10);
   }
+});
+
+test("CanvasRenderer camera preserves zoom anchors and rejects padding input", () => {
+  const rect = { height: 400, left: 20, top: 30, width: 600 };
+  const canvas = {
+    getBoundingClientRect: () => rect,
+    getContext: () => ({}),
+    height: 0,
+    width: 0
+  };
+  const renderer = new CanvasRenderer(canvas, {
+    viewportOptions: {
+      ResizeObserverClass: null,
+      getDevicePixelRatio: () => 2
+    }
+  });
+  const clientPoint = { clientX: 280, clientY: 210 };
+  const before = renderer.clientPointToGeo(clientPoint);
+
+  renderer.zoomMapAtClientPoint(clientPoint, 2);
+  const after = renderer.clientPointToGeo(clientPoint);
+  assert.ok(Math.abs(after.lat - before.lat) < 1e-10);
+  assert.ok(Math.abs(after.lon - before.lon) < 1e-10);
+  assert.equal(renderer.mapView.zoom, 2);
+
+  const centerBeforePan = renderer.mapView.centerLon;
+  renderer.panMapByPixels({ deltaX: 40, deltaY: 0 });
+  assert.ok(renderer.mapView.centerLon < centerBeforePan);
+  assert.equal(
+    renderer.clientPointToGeo({ clientX: rect.left + 5, clientY: 100 }),
+    null
+  );
+  renderer.resetMapView();
+  assert.equal(renderer.mapView.zoom, 1);
+  assert.deepEqual(renderer.mapView.bounds, MAP_BOUNDS);
 });

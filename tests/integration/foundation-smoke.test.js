@@ -84,6 +84,27 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
   );
   assert.equal(mapData.metadata.formatVersion, "sgts-map-1");
 
+  const terrainResponse = await fetch(
+    `${baseUrl}/classroom-sgts-nh-tzk/` +
+      "assets/maps/northwest-pacific-terrain-v1.webp"
+  );
+  const terrainBytes = await terrainResponse.arrayBuffer();
+  assert.equal(terrainResponse.status, 200);
+  assert.match(
+    terrainResponse.headers.get("content-type") ?? "",
+    /image\/webp/u
+  );
+  assert.ok(terrainBytes.byteLength > 500_000);
+
+  const terrainMetadataResponse = await fetch(
+    `${baseUrl}/classroom-sgts-nh-tzk/` +
+      "assets/maps/northwest-pacific-terrain-v1.json"
+  );
+  const terrainMetadata = await terrainMetadataResponse.json();
+  assert.equal(terrainMetadataResponse.status, 200);
+  assert.equal(terrainMetadata.projection, "equirectangular");
+  assert.equal(terrainMetadata.license.name, "Public domain");
+
   const steeringResponse = await fetch(
     `${baseUrl}/classroom-sgts-nh-tzk/js/simulation/SteeringModel.js`
   );
@@ -103,8 +124,11 @@ test("static server supports root and GitHub Pages subpath", async (context) => 
     "js/simulation/OceanCoolingModel.js",
     "js/simulation/RainfallModel.js",
     "js/simulation/ObservationModel.js",
+    "js/rendering/MapCamera.js",
     "js/ui/Dashboard.js",
+    "js/ui/MapInteractionController.js",
     "js/ui/ResultDialog.js",
+    "js/ui/StationMapOverlay.js",
     "js/ui/Tutorial.js"
   ]) {
     const response = await fetch(

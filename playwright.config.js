@@ -8,6 +8,7 @@ export default defineConfig({
   reporter: [["list"]],
   testDir: "./tests/e2e",
   testIgnore: ["**/._*"],
+  workers: 2,
   use: {
     baseURL: "http://127.0.0.1:4173/classroom-sgts-nh-tzk/",
     browserName: "chromium",

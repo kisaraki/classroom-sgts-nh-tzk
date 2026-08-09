@@ -1,5 +1,8 @@
-import { PROJECT_CONFIG } from "../config.js";
 import { geoToCanvas } from "../utils/geo.js";
+import {
+  STRUCTURE_VISUAL_LABELS,
+  resolveTyphoonVisualMetrics
+} from "./TyphoonVisuals.js";
 
 const TAU = Math.PI * 2;
 
@@ -29,19 +32,13 @@ export class TyphoonRenderer {
       padding,
       width
     });
-    const renderConfig = PROJECT_CONFIG.renderingConfig;
-    const radius = Math.min(
-      renderConfig.stormMaximumPixelRadius,
-      Math.max(
-        renderConfig.stormMinimumPixelRadius,
-        typhoon.galeRadius / renderConfig.stormRadiusKilometreScale
-      )
-    );
+    const visual = resolveTyphoonVisualMetrics(typhoon);
+    const radius = visual.radius;
 
     context.save();
     context.translate(center.x, center.y);
     context.rotate((typhoon.heading * Math.PI) / 180);
-    context.globalAlpha = typhoon.active ? 1 : 0.58;
+    context.globalAlpha = visual.opacity;
     context.shadowColor = "rgba(118, 232, 255, 0.64)";
     context.shadowBlur = 12;
 
@@ -61,7 +58,7 @@ export class TyphoonRenderer {
     context.fillStyle = "#eef7ff";
     context.font = "700 11px system-ui, sans-serif";
     context.fillText(
-      `${typhoon.name} · ${typhoon.structureStage.toUpperCase()}`,
+      `${typhoon.name} · ${STRUCTURE_VISUAL_LABELS[visual.lifecycle]}`,
       center.x + radius * 0.55,
       center.y - radius * 0.62
     );

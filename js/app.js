@@ -6,7 +6,6 @@ import { ObjectiveEvaluator } from "./core/ObjectiveEvaluator.js";
 import { GameState } from "./core/StateMachine.js";
 import { SimulationClock } from "./core/SimulationClock.js";
 import {
-  describeGeographicPoint,
   findLandRegion,
   getRegionInlandDepthKm,
   loadGeography
@@ -22,6 +21,7 @@ import {
   validateSandboxPreset
 } from "./data/sandbox.js";
 import { getTerrainProfile } from "./data/terrain.js";
+import { loadTerrainTexture } from "./data/terrainTexture.js";
 import {
   createPngBlob,
   createSandboxPresetExport,
@@ -55,7 +55,9 @@ import { SteeringModel } from "./simulation/SteeringModel.js";
 import { formatSimulationTime } from "./ui/CanvasViewport.js";
 import { ControlPanel } from "./ui/ControlPanel.js";
 import { Dashboard } from "./ui/Dashboard.js";
+import { MapInteractionController } from "./ui/MapInteractionController.js";
 import { ResultDialog } from "./ui/ResultDialog.js";
+import { StationMapOverlay } from "./ui/StationMapOverlay.js";
 import { Tutorial } from "./ui/Tutorial.js";
 import {
   createFingerprint,
@@ -254,14 +256,16 @@ const bootstrap = async () => {
     importJson: requireElement("#import-json"),
     ioStatus: requireElement("#io-status"),
     mapDataStatus: requireElement("#map-data-status"),
+    mapViewAnnouncement: requireElement("#map-view-announcement"),
+    mapViewReset: requireElement("#map-view-reset"),
+    mapViewStatus: requireElement("#map-view-status"),
+    mapZoomIn: requireElement("#map-zoom-in"),
+    mapZoomOut: requireElement("#map-zoom-out"),
     longTask: requireElement("#long-task-readout"),
     pauseButton: requireElement("#pause-button"),
     particlesEnabled: requireElement("#particles-enabled"),
     particleProfile: requireElement("#particle-profile"),
     particleReadout: requireElement("#particle-readout"),
-    probeCoordinate: requireElement("#probe-coordinate"),
-    probeStation: requireElement("#probe-station"),
-    probeSurface: requireElement("#probe-surface"),
     resetButton: requireElement("#reset-button"),
     resultDialog: requireElement("#result-dialog"),
     simulationTime: requireElement("#sim-time"),
@@ -350,7 +354,10 @@ const bootstrap = async () => {
   let mapReady = false;
   let updateCount = 0;
   let importedReplay = null;
-  const stationElements = new Map();
+  let mapInteractionController = null;
+  const stationMapOverlay = new StationMapOverlay(
+    elements.stationObservations
+  );
   const dashboard = new Dashboard(elements.levelDashboard, {
     level: activeLevel
   });
@@ -428,47 +435,6 @@ const bootstrap = async () => {
   writeSandboxFields(sandboxPreset);
   applyStoredSettings();
   applyParticlePreferences();
-
-  const ensureStationElements = () => {
-    for (const observation of session.observations) {
-      const station = observation.station;
-
-      if (stationElements.has(station.id)) {
-        continue;
-      }
-
-      const article = document.createElement("article");
-      const title = document.createElement("h4");
-      const metrics = document.createElement("p");
-      const rain = document.createElement("p");
-      title.textContent = station.name;
-      metrics.dataset.stationWind = station.id;
-      rain.dataset.stationRain = station.id;
-      article.dataset.stationId = station.id;
-      article.append(title, metrics, rain);
-      elements.stationObservations.append(article);
-      stationElements.set(
-        station.id,
-        Object.freeze({ article, metrics, rain, title })
-      );
-    }
-  };
-
-  const renderStationObservations = () => {
-    ensureStationElements();
-
-    for (const observation of session.observations) {
-      const station = observation.station;
-      const row = stationElements.get(station.id);
-      row.metrics.textContent =
-        `持續風 ${station.sustainedWind.toFixed(1)} · ` +
-        `陣風 ${station.gust.toFixed(1)} 公尺／秒`;
-      row.rain.textContent =
-        `雨率 ${station.hourlyRainRate.toFixed(1)} 毫米／小時 · ` +
-        `累積 ${station.accumulatedRain.toFixed(1)} 毫米 · ` +
-        `地形 ×${station.terrainCorrection.toFixed(2)}`;
-    }
-  };
 
   const createActiveSession = ({ targetControls } = {}) =>
     createLevelSession(mapData, {
@@ -583,7 +549,6 @@ const bootstrap = async () => {
       element.textContent =
         `${(session.factors[name] * 100).toFixed(0)}%`;
     }
-    renderStationObservations();
     dashboard.render({
       levelState: session.levelState,
       simulationMinutes: clockState.simulationMinutes
@@ -628,6 +593,14 @@ const bootstrap = async () => {
       state,
       stepIndex: clockState.stepIndex
     });
+    elements.stationObservations.hidden = !mapReady;
+    if (mapReady) {
+      stationMapOverlay.render({
+        observations: session.observations,
+        storm,
+        viewport: canvasRenderer.getMapViewport()
+      });
+    }
   };
 
   const engine = new GameEngine({
@@ -826,6 +799,17 @@ const bootstrap = async () => {
     engine.enterError(error);
   };
 
+  mapInteractionController = new MapInteractionController({
+    announcement: elements.mapViewAnnouncement,
+    canvas: elements.canvas,
+    onError: handleError,
+    renderer: canvasRenderer,
+    resetButton: elements.mapViewReset,
+    status: elements.mapViewStatus,
+    zoomInButton: elements.mapZoomIn,
+    zoomOutButton: elements.mapZoomOut
+  });
+
   controlPanel = new ControlPanel(elements.environmentControls, {
     allowedControls: activeLevel.allowedControls,
     environment: session.environment,
@@ -839,29 +823,6 @@ const bootstrap = async () => {
     },
     onError: handleError
   });
-
-  const selectMapPoint = (point) => {
-    if (!mapData) {
-      return;
-    }
-
-    const description = describeGeographicPoint(point, mapData);
-    const { landRegion, nearestStation, nearestStationDistanceKm } =
-      description;
-    elements.probeCoordinate.textContent = formatCoordinate(point);
-    elements.probeSurface.textContent = landRegion
-      ? `陸地｜${landRegion.properties.name}`
-      : "海洋";
-    elements.probeStation.textContent =
-      `${nearestStation.name}｜${nearestStationDistanceKm.toFixed(1)} 公里`;
-    elements.canvas.setAttribute(
-      "aria-label",
-      `查詢位置 ${elements.probeCoordinate.textContent}，` +
-        `${elements.probeSurface.textContent}，最近測站` +
-        `${elements.probeStation.textContent}`
-    );
-    canvasRenderer.setSelection(description);
-  };
 
   const applySessionToView = () => {
     controlPanel.setEnvironment(session.environment);
@@ -894,7 +855,8 @@ const bootstrap = async () => {
     );
     elements.canvas.setAttribute(
       "aria-label",
-      `「${session.level.title}」戰況地圖；點選或觸控以查詢位置`
+      `「${session.level.title}」戰況地圖；可拖曳平移，並以滑鼠滾輪、` +
+        "雙指手勢或鍵盤縮放"
     );
   };
 
@@ -1245,21 +1207,6 @@ const bootstrap = async () => {
     }
   });
 
-  elements.canvas.addEventListener("pointerup", (event) => {
-    try {
-      selectMapPoint(canvasRenderer.clientPointToGeo(event));
-    } catch (error) {
-      handleError(error);
-    }
-  });
-
-  elements.canvas.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      selectMapPoint({ lat: 23.7, lon: 121 });
-    }
-  });
-
   document.addEventListener("visibilitychange", () => {
     engine.setVisibilityHidden(document.hidden);
   });
@@ -1277,6 +1224,7 @@ const bootstrap = async () => {
     () => {
       canvasRenderer.destroy();
       controlPanel.destroy();
+      mapInteractionController?.destroy();
       resultDialog?.destroy();
       reducedMotionQuery.removeEventListener(
         "change",
@@ -1298,19 +1246,26 @@ const bootstrap = async () => {
   engine.boot();
 
   try {
-    mapData = await loadGeography();
+    const [loadedMapData, terrainTexture] = await Promise.all([
+      loadGeography(),
+      loadTerrainTexture().catch(() => null)
+    ]);
+    mapData = loadedMapData;
     canvasRenderer.setGeography(mapData);
+    canvasRenderer.setTerrainTexture(terrainTexture);
     session = createActiveSession({
       targetControls: session.level.environmentPreset
     });
     applySessionToView();
     mapReady = true;
     elements.mapDataStatus.textContent =
-      `${mapData.features.length} 個地理區域 · 格式版本 ${mapData.metadata.formatVersion}`;
+      `${mapData.features.length} 個地理區域 · ` +
+      (terrainTexture
+        ? "Natural Earth II 真實地形圖層"
+        : "簡化地形（地形影像載入失敗）");
     elements.environmentGridStatus.textContent =
       `${session.environment.cells.length} 個網格 · ` +
       `${session.environment.gridResolution}° 間距`;
-    selectMapPoint({ lat: 23.7, lon: 121 });
   } catch (error) {
     elements.mapDataStatus.textContent = "載入失敗";
     handleError(error);

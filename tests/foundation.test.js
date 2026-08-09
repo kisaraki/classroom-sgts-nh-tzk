@@ -44,13 +44,13 @@ test("project identity is stable and frozen", () => {
   assert.equal(Object.isFrozen(PROJECT_CONFIG), true);
 });
 
-test("main specification is version 1.0.3", async () => {
+test("main specification is version 1.0.5", async () => {
   const specification = await readFile(
     path.join(PROJECT_ROOT, "SGTS-NH_MASTER_SPEC.md"),
     "utf8"
   );
 
-  assert.match(specification, /\| 文件版本 \| 1\.0\.3 \|/);
+  assert.match(specification, /\| 文件版本 \| 1\.0\.5 \|/);
   assert.match(specification, new RegExp(BRAND, "u"));
 });
 
@@ -62,4 +62,9 @@ test("foundation page uses relative resources and required identity", async () =
   assert.match(html, /不適用於真實天氣預報/);
   assert.doesNotMatch(html, /(?:href|src)=["']\/(?!\/)/);
   assert.match(html, /type="module" src="\.\/js\/app\.js"/);
+  assert.match(html, /id="station-observations"/);
+  assert.match(html, /id="map-zoom-in"/);
+  assert.match(html, /id="map-view-reset"/);
+  assert.doesNotMatch(html, /id="map-probe"|id="probe-/);
+  assert.doesNotMatch(html, /點選或觸控地圖以查詢/);
 });

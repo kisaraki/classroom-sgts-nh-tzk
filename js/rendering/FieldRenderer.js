@@ -78,6 +78,15 @@ export class FieldRenderer {
 
     this.#drawOceanTexture({ context, height, padding, width });
 
+    context.save();
+    context.beginPath();
+    context.rect(
+      padding.left,
+      padding.top,
+      width - padding.left - padding.right,
+      height - padding.top - padding.bottom
+    );
+    context.clip();
     if (environment?.cells.length > 0) {
       this.#drawTemperatureField({
         bounds,
@@ -87,15 +96,8 @@ export class FieldRenderer {
         padding,
         width
       });
-      this.#drawColdWakeField({
-        bounds,
-        context,
-        environment,
-        height,
-        padding,
-        width
-      });
     }
+    context.restore();
 
     this.#drawGraticule({ bounds, context, height, padding, width });
   }
@@ -115,14 +117,6 @@ export class FieldRenderer {
       return;
     }
 
-    this.#drawRainfall({
-      bounds,
-      context,
-      height,
-      observations,
-      padding,
-      width
-    });
     this.#drawPressureSystems({
       bounds,
       context,
@@ -160,6 +154,23 @@ export class FieldRenderer {
       context.fillText("NEXT", start.x + vector.x + 5, start.y + vector.y - 4);
       context.restore();
     }
+
+    this.#drawColdWakeField({
+      bounds,
+      context,
+      environment,
+      height,
+      padding,
+      width
+    });
+    this.#drawRainfall({
+      bounds,
+      context,
+      height,
+      observations,
+      padding,
+      width
+    });
   }
 
   #drawColdWakeField({
@@ -343,8 +354,15 @@ export class FieldRenderer {
     context.lineWidth = 1;
     context.font = "600 10px ui-monospace, monospace";
 
+    const firstLongitude =
+      Math.ceil(bounds.minLon / this.#graticuleDegrees) *
+      this.#graticuleDegrees;
+    const firstLatitude =
+      Math.ceil(bounds.minLat / this.#graticuleDegrees) *
+      this.#graticuleDegrees;
+
     for (
-      let lon = bounds.minLon;
+      let lon = firstLongitude;
       lon <= bounds.maxLon;
       lon += this.#graticuleDegrees
     ) {
@@ -365,7 +383,7 @@ export class FieldRenderer {
     }
 
     for (
-      let lat = bounds.minLat;
+      let lat = firstLatitude;
       lat <= bounds.maxLat;
       lat += this.#graticuleDegrees
     ) {
@@ -383,7 +401,7 @@ export class FieldRenderer {
       context.lineTo(right.x, right.y);
       context.stroke();
 
-      if (lat > bounds.minLat) {
+      if (lat > bounds.minLat + 1e-9) {
         context.fillText(`北緯 ${lat}°`, 5, left.y - 3);
       }
     }
@@ -489,16 +507,18 @@ export class FieldRenderer {
     width
   }) {
     const spacing = PROJECT_CONFIG.renderingConfig.fieldArrowSpacingDegrees;
+    const firstLatitude = Math.ceil(bounds.minLat / spacing) * spacing;
+    const firstLongitude = Math.ceil(bounds.minLon / spacing) * spacing;
 
     context.save();
 
     for (
-      let lat = bounds.minLat + spacing;
+      let lat = firstLatitude;
       lat < bounds.maxLat;
       lat += spacing
     ) {
       for (
-        let lon = bounds.minLon + spacing;
+        let lon = firstLongitude;
         lon < bounds.maxLon;
         lon += spacing
       ) {

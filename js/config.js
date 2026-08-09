@@ -275,9 +275,28 @@ export const PROJECT_CONFIG = Object.freeze({
     coldWakeTileMinimum: 0.04,
     rainfallMaximumDisplayRate: 45,
     particlesEnabled: true,
+    stormLifecycleOpacity: Object.freeze({
+      cluster: 0.76,
+      comma: 0.94,
+      decaying: 0.58,
+      eye: 1,
+      inactive: 0.36,
+      spiral: 0.86
+    }),
+    stormLifecycleScale: Object.freeze({
+      cluster: 0.78,
+      comma: 1.06,
+      decaying: 0.64,
+      eye: 1.14,
+      inactive: 0.46,
+      spiral: 0.92
+    }),
     stormMaximumPixelRadius: 64,
     stormMinimumPixelRadius: 18,
     stormRadiusKilometreScale: 7,
+    stormVisualMaximumPixelRadius: 73,
+    stormVisualMinimumPixelRadius: 8,
+    terrainTextureOpacity: 0.9,
     temperatureTileDegrees: 5,
     trackMaximumPoints: 360
   }),

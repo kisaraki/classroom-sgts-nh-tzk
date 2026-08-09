@@ -601,9 +601,7 @@ button:disabled {
   font-weight: 700;
 }
 
-.map-probe,
-.storm-dashboard,
-.station-dashboard {
+.storm-dashboard {
   margin-top: 1rem;
   padding: 0.85rem;
   border: 1px solid var(--color-border);
@@ -611,11 +609,8 @@ button:disabled {
   background: rgb(6 17 31 / 48%);
 }
 
-.map-probe h3,
 .storm-dashboard h3,
-.storm-dashboard h4,
-.station-dashboard h3,
-.station-dashboard h4 {
+.storm-dashboard h4 {
   margin: 0 0 0.45rem;
   color: var(--color-cyan-100);
   font-size: 0.92rem;
@@ -662,60 +657,237 @@ button:disabled {
   border-bottom-color: rgb(255 210 125 / 36%);
 }
 
-.station-dashboard {
-  margin-top: 1rem;
-}
-
-.station-dashboard > p {
-  margin: -0.2rem 0 0.65rem;
-  color: var(--color-muted);
-  font-size: 0.68rem;
-}
-
 .station-observations {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.station-card-layer,
+.station-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.station-card-layer {
+  z-index: 2;
+}
+
+.station-leaders {
+  z-index: 1;
+}
+
+.station-leaders {
+  overflow: visible;
+}
+
+.station-leaders line {
+  stroke: rgb(217 249 255 / 54%);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.station-leaders circle {
+  fill: var(--color-warning);
+  stroke: rgb(6 17 31 / 92%);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.station-card {
+  --station-accent: #76e4f7;
+  --station-glass: rgb(12 67 88 / 62%);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11.5rem;
+  min-height: 6.45rem;
+  padding: 0.48rem 0.55rem;
+  overflow: hidden;
+  color: var(--color-cloud);
+  border: 1px solid color-mix(in srgb, var(--station-accent) 62%, transparent);
+  border-left: 3px solid var(--station-accent);
+  border-radius: 0.72rem;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 10%), transparent 52%),
+    var(--station-glass);
+  box-shadow:
+    0 0.65rem 1.5rem rgb(0 0 0 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 14%);
+  pointer-events: none;
+  backdrop-filter: blur(12px) saturate(145%);
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
+  contain: layout paint style;
+}
+
+.station-card[data-station-id="naha"] {
+  --station-accent: #c5b5ff;
+  --station-glass: rgb(73 55 130 / 64%);
+}
+
+.station-card[data-station-id="taipei"] {
+  --station-accent: #76e4f7;
+  --station-glass: rgb(10 78 98 / 64%);
+}
+
+.station-card[data-station-id="taichung"] {
+  --station-accent: #ffd27d;
+  --station-glass: rgb(105 71 20 / 64%);
+}
+
+.station-card[data-station-id="sun-moon-lake"] {
+  --station-accent: #9ce6ad;
+  --station-glass: rgb(35 91 64 / 65%);
+}
+
+.station-card[data-station-id="hualien"] {
+  --station-accent: #ffaaa1;
+  --station-glass: rgb(111 53 57 / 64%);
+}
+
+.station-card[data-station-id="penghu"] {
+  --station-accent: #90bfff;
+  --station-glass: rgb(37 71 125 / 64%);
+}
+
+.station-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--station-accent) 28%, transparent);
+}
+
+.station-card h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 0.77rem;
+  line-height: 1.2;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 42%);
+}
+
+.station-card-update,
+.station-card-distance,
+.station-card-terrain {
+  color: rgb(238 247 255 / 88%);
+  font-family: ui-monospace, monospace;
+  font-size: 0.55rem;
+  line-height: 1.35;
+}
+
+.station-card-update,
+.station-card-distance,
+.station-card-terrain,
+.station-card-metric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.24rem;
+  align-items: baseline;
+}
+
+.station-card-label {
+  min-width: 0;
+}
+
+.station-card-value {
+  color: #fff;
+  text-align: right;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.station-card-distance {
+  margin-top: 0.24rem;
+}
+
+.station-card-wind,
+.station-card-rain {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
-}
-
-.station-observations article {
-  padding: 0.48rem 0.55rem;
-  border-left: 2px solid rgb(118 232 255 / 48%);
-  background: rgb(13 43 64 / 56%);
-}
-
-.station-observations article h4 {
-  margin: 0 0 0.12rem;
-  color: var(--color-cyan-100);
-  font-size: 0.75rem;
-}
-
-.station-observations article p {
-  color: var(--color-muted);
+  gap: 0.22rem;
+  margin-top: 0.2rem;
+  color: #fff;
   font-family: ui-monospace, monospace;
-  font-size: 0.64rem;
-  line-height: 1.45;
+  font-size: 0.56rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
 }
 
-.map-probe dl {
-  display: grid;
-  gap: 0.5rem;
+.station-card-metric {
+  overflow-wrap: anywhere;
 }
 
-.map-probe dl div {
+.station-card-terrain {
+  margin-top: 0.2rem;
+  color: color-mix(in srgb, var(--station-accent) 58%, white);
+}
+
+.station-observations[data-layout="compact"] .station-card {
+  min-height: 5.05rem;
+  padding: 0.3rem 0.34rem;
+  border-radius: 0.55rem;
+}
+
+.station-observations[data-layout="compact"] .station-card header {
   display: grid;
   gap: 0.08rem;
+  align-items: start;
 }
 
-.map-probe dt {
-  color: var(--color-muted);
-  font-size: 0.72rem;
+.station-observations[data-layout="compact"] .station-card h4 {
+  font-size: 0.58rem;
 }
 
-.map-probe dd {
-  overflow-wrap: anywhere;
-  font-size: 0.82rem;
-  font-weight: 650;
+.station-observations[data-layout="compact"] .station-card-update,
+.station-observations[data-layout="compact"] .station-card-distance,
+.station-observations[data-layout="compact"] .station-card-terrain {
+  gap: 0.12rem;
+  font-size: 0.36rem;
+  line-height: 1.12;
+}
+
+.station-observations[data-layout="compact"] .station-card-wind,
+.station-observations[data-layout="compact"] .station-card-rain {
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 0.08rem;
+  font-size: 0.39rem;
+  line-height: 1.12;
+}
+
+.station-observations[data-layout="compact"] .station-card-metric {
+  gap: 0.12rem;
+}
+
+.station-observations[data-layout="compact"] .station-card-distance {
+  margin-top: 0.12rem;
+}
+
+.station-observations[data-layout="compact"] .station-card-terrain {
+  margin-top: 0.08rem;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .station-card {
+    background: color-mix(in srgb, var(--station-glass) 92%, #06111f);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .station-card {
+    background: color-mix(in srgb, var(--station-glass) 88%, #06111f);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .disclaimer h3 {
@@ -826,7 +998,6 @@ button:disabled {
   .diagnostic-list,
   .storm-metrics,
   .factor-grid,
-  .station-observations,
   .result-metrics,
   .score-breakdown {
     grid-template-columns: 1fr;

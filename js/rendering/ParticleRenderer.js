@@ -1,6 +1,10 @@
 import { PROJECT_CONFIG } from "../config.js";
 import { geoToCanvas } from "../utils/geo.js";
 import { SeededRandom } from "../utils/random.js";
+import {
+  particleAngleAt,
+  resolveTyphoonVisualMetrics
+} from "./TyphoonVisuals.js";
 
 const TAU = Math.PI * 2;
 
@@ -84,26 +88,21 @@ export class ParticleRenderer {
       padding,
       width
     });
-    const config = PROJECT_CONFIG.renderingConfig;
-    const stormRadius = Math.min(
-      config.stormMaximumPixelRadius,
-      Math.max(
-        config.stormMinimumPixelRadius,
-        typhoon.galeRadius / config.stormRadiusKilometreScale
-      )
-    );
+    const visual = resolveTyphoonVisualMetrics(typhoon);
+    const stormRadius = visual.radius;
 
     context.save();
     context.fillStyle = "#d9f9ff";
 
     for (const particle of this.#particles) {
-      const angle =
-        particle.angle +
-        simulationMinutes *
-          config.particleAngularSpeed *
-          particle.speedScale;
+      const angle = particleAngleAt({
+        angle: particle.angle,
+        lat: typhoon.lat,
+        simulationMinutes,
+        speedScale: particle.speedScale
+      });
       const radius = stormRadius * particle.radiusScale;
-      context.globalAlpha = particle.alpha * (typhoon.active ? 1 : 0.45);
+      context.globalAlpha = particle.alpha * visual.opacity;
       context.beginPath();
       context.arc(
         center.x + Math.cos(angle) * radius,

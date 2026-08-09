@@ -4,8 +4,22 @@ import {
   CanvasViewport,
   formatSimulationTime
 } from "../ui/CanvasViewport.js";
-import { clientPointToGeo } from "../utils/geo.js";
+import {
+  clientPointToGeo,
+  geoToCanvas,
+  isPointInBounds
+} from "../utils/geo.js";
 import { FieldRenderer } from "./FieldRenderer.js";
+import {
+  createMapCamera,
+  isCanvasPointInMapViewport,
+  mapCameraSnapshot,
+  mapCameraViewBounds,
+  panMapCameraByPixels,
+  resetMapCamera,
+  transformMapCameraByPinch,
+  zoomMapCameraAtCanvasPoint
+} from "./MapCamera.js";
 import { MapRenderer } from "./MapRenderer.js";
 import { ParticleRenderer } from "./ParticleRenderer.js";
 import { TrackRenderer } from "./TrackRenderer.js";
@@ -31,6 +45,7 @@ const STATE_LABELS = Object.freeze({
 
 export class CanvasRenderer {
   #canvas;
+  #camera;
   #fieldRenderer;
   #environment = null;
   #geography = null;
@@ -43,7 +58,6 @@ export class CanvasRenderer {
   #mapRenderer;
   #observations = [];
   #particleRenderer;
-  #selection = null;
   #stations;
   #steeringDiagnostic = null;
   #trackRenderer;
@@ -64,6 +78,7 @@ export class CanvasRenderer {
     } = {}
   ) {
     this.#canvas = canvas;
+    this.#camera = createMapCamera({ worldBounds: MAP_BOUNDS });
     this.#fieldRenderer = fieldRenderer;
     this.#mapRenderer = mapRenderer;
     this.#particleRenderer = particleRenderer;
@@ -75,6 +90,10 @@ export class CanvasRenderer {
 
   setGeography(geography) {
     this.#geography = geography;
+  }
+
+  setTerrainTexture(texture) {
+    this.#mapRenderer.setTerrainTexture(texture);
   }
 
   setEnvironment(environment) {
@@ -98,10 +117,6 @@ export class CanvasRenderer {
     }
 
     this.#layers = next;
-  }
-
-  setSelection(selection) {
-    this.#selection = selection;
   }
 
   setParticlesEnabled(enabled) {
@@ -130,16 +145,157 @@ export class CanvasRenderer {
     this.#steeringDiagnostic = diagnostic;
   }
 
-  clientPointToGeo(event) {
-    return clientPointToGeo(event, {
-      bounds: MAP_BOUNDS,
+  get mapView() {
+    return mapCameraSnapshot(this.#camera);
+  }
+
+  getMapViewport() {
+    const dimensions = this.#viewport.dimensions ?? this.#viewport.resize();
+
+    if (!dimensions) {
+      return null;
+    }
+
+    return Object.freeze({
+      bounds: mapCameraViewBounds(this.#camera),
+      cameraRevision: this.#camera.revision,
+      height: dimensions.cssHeight,
       padding: MAP_PADDING,
-      rect: this.#canvas.getBoundingClientRect()
+      width: dimensions.cssWidth
+    });
+  }
+
+  #clientPointToCanvasPoint({ clientX, clientY }) {
+    const rect = this.#canvas.getBoundingClientRect();
+
+    return Object.freeze({
+      point: Object.freeze({
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      }),
+      rect
+    });
+  }
+
+  isClientPointInMap(event) {
+    const { point, rect } = this.#clientPointToCanvasPoint(event);
+
+    return isCanvasPointInMapViewport(point, {
+      height: rect.height,
+      padding: MAP_PADDING,
+      width: rect.width
+    });
+  }
+
+  clientPointToGeo(event) {
+    const { point, rect } = this.#clientPointToCanvasPoint(event);
+    const viewport = {
+      height: rect.height,
+      padding: MAP_PADDING,
+      width: rect.width
+    };
+
+    if (!isCanvasPointInMapViewport(point, viewport)) {
+      return null;
+    }
+
+    return clientPointToGeo(event, {
+      bounds: mapCameraViewBounds(this.#camera),
+      padding: MAP_PADDING,
+      rect
+    });
+  }
+
+  zoomMapAtClientPoint(event, factor) {
+    const { point, rect } = this.#clientPointToCanvasPoint(event);
+    this.#camera = zoomMapCameraAtCanvasPoint(this.#camera, {
+      factor,
+      point,
+      viewport: {
+        height: rect.height,
+        padding: MAP_PADDING,
+        width: rect.width
+      }
+    });
+    return this.mapView;
+  }
+
+  zoomMapAtCenter(factor) {
+    const rect = this.#canvas.getBoundingClientRect();
+    this.#camera = zoomMapCameraAtCanvasPoint(this.#camera, {
+      factor,
+      point: {
+        x:
+          MAP_PADDING.left +
+          (rect.width - MAP_PADDING.left - MAP_PADDING.right) / 2,
+        y:
+          MAP_PADDING.top +
+          (rect.height - MAP_PADDING.top - MAP_PADDING.bottom) / 2
+      },
+      viewport: {
+        height: rect.height,
+        padding: MAP_PADDING,
+        width: rect.width
+      }
+    });
+    return this.mapView;
+  }
+
+  panMapByPixels({ deltaX, deltaY }) {
+    const rect = this.#canvas.getBoundingClientRect();
+    this.#camera = panMapCameraByPixels(this.#camera, {
+      deltaX,
+      deltaY,
+      viewport: {
+        height: rect.height,
+        padding: MAP_PADDING,
+        width: rect.width
+      }
+    });
+    return this.mapView;
+  }
+
+  transformMapByPinch({ currentPoints, previousPoints }) {
+    const rect = this.#canvas.getBoundingClientRect();
+    const toCanvasPoint = ({ clientX, clientY }) =>
+      Object.freeze({
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      });
+    this.#camera = transformMapCameraByPinch(this.#camera, {
+      currentPoints: currentPoints.map(toCanvasPoint),
+      previousPoints: previousPoints.map(toCanvasPoint),
+      viewport: {
+        height: rect.height,
+        padding: MAP_PADDING,
+        width: rect.width
+      }
+    });
+    return this.mapView;
+  }
+
+  resetMapView() {
+    this.#camera = resetMapCamera(this.#camera);
+    return this.mapView;
+  }
+
+  projectGeographicPoint(point) {
+    const viewport = this.getMapViewport();
+
+    if (!viewport) {
+      return null;
+    }
+
+    const projected = geoToCanvas(point, viewport);
+
+    return Object.freeze({
+      ...projected,
+      visible: isPointInBounds(point, viewport.bounds)
     });
   }
 
   draw({ fps, simulationMinutes, speed, state, stepIndex }) {
-    const dimensions = this.#viewport.resize();
+    const dimensions = this.#viewport.dimensions ?? this.#viewport.resize();
 
     if (!dimensions) {
       return;
@@ -152,11 +308,19 @@ export class CanvasRenderer {
     }
 
     const { cssHeight: height, cssWidth: width, scale } = dimensions;
+    const bounds = mapCameraViewBounds(this.#camera);
+    const mapViewport = Object.freeze({
+      bounds,
+      cameraRevision: this.#camera.revision,
+      height,
+      padding: MAP_PADDING,
+      width
+    });
     context.setTransform(scale, 0, 0, scale, 0, 0);
     context.clearRect(0, 0, width, height);
 
     this.#fieldRenderer.draw({
-      bounds: MAP_BOUNDS,
+      bounds,
       context,
       environment: this.#environment,
       height,
@@ -165,19 +329,29 @@ export class CanvasRenderer {
     });
 
     if (this.#geography) {
+      context.save();
+      context.beginPath();
+      context.rect(
+        MAP_PADDING.left,
+        MAP_PADDING.top,
+        width - MAP_PADDING.left - MAP_PADDING.right,
+        height - MAP_PADDING.top - MAP_PADDING.bottom
+      );
+      context.clip();
       this.#mapRenderer.draw({
+        bounds,
+        cameraRevision: mapViewport.cameraRevision,
         context,
         geography: this.#geography,
         height,
         padding: MAP_PADDING,
-        selection: this.#selection,
-        stations: this.#stations,
+        scale,
         width
       });
 
       if (this.#layers.environment) {
         this.#fieldRenderer.drawOverlay({
-          bounds: MAP_BOUNDS,
+          bounds,
           context,
           environment: this.#environment,
           height,
@@ -191,7 +365,7 @@ export class CanvasRenderer {
 
       if (this.#typhoon) {
         const shared = {
-          bounds: MAP_BOUNDS,
+          bounds,
           context,
           height,
           padding: MAP_PADDING,
@@ -217,6 +391,7 @@ export class CanvasRenderer {
           });
         }
       }
+      context.restore();
     } else {
       context.fillStyle = "#d9f9ff";
       context.font = "700 16px system-ui, sans-serif";
@@ -268,10 +443,5 @@ export class CanvasRenderer {
       context.fillText(line, boxX + 10, boxY + 17 + index * 18);
     });
 
-    context.fillStyle = "rgba(217, 249, 255, 0.72)";
-    context.font = "600 11px system-ui, sans-serif";
-    const hint = "點選或觸控地圖以查詢";
-    const measured = context.measureText(hint);
-    context.fillText(hint, width - measured.width - 18, height - 36);
   }
 }

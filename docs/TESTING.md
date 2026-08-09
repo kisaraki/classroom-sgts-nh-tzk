@@ -30,6 +30,71 @@ npm run serve
 
 ## Phase 9 本機發布驗收
 
+### 2026-08-06 六站地圖卡、查詢退場與鏡頭操作本機驗證
+
+主規格 1.0.5 將六站模型觀測移入地圖內的有色毛玻璃卡，取消玩家
+點選地圖查詢與選取游標，並新增滑鼠滾輪、拖曳、雙指、按鈕與鍵盤
+視角操作。鏡頭只屬呈現狀態，`schemaVersion=1`、
+`modelVersion=0.7.0-taiwan-wayne`、三份黃金重播與正式 fingerprint 不變。
+
+| 類別 | 本次結果 | 證據 |
+|---|---|---|
+| Schema／資料 | passed | 測站、地理、關卡、儲存與後台 I/O 契約未變；鏡頭不進入匯出 schema |
+| lint | passed | ESLint 0 errors、0 warnings |
+| TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
+| 單元 | passed | 127 passed、0 failed；鏡頭錨點／clamp／雙指、DPR 轉換、離屏快取、六站佈局、正式用語及視角控制避讓 |
+| 整合 | passed | 6 passed、0 failed；三個新模組均由 Pages 子路徑以 JavaScript MIME 回應 |
+| 情境／黃金重播 | passed | 16 passed、0 failed；三份既有 fixture 未變 |
+| 實際 Google Chrome E2E | passed | 19 passed、0 failed；六站卡、查詢 DOM 不存在、滾輪、滑鼠拖曳、按鈕、鍵盤、重設、Chrome DevTools Protocol 雙指事件與 idle 版面量測快取 |
+| 視角／物理隔離 | passed | 視角操作前後 step 與 fingerprint 不變；既有情境重播全數通過 |
+| build／Pages artifact | passed | 5 個允許根項目；新模組存在、查詢 ID／字串不存在；artifact 1 passed |
+| 效能門檻 | failed | 中畫質中位 59.88 FPS、1% low 57.80、render 1.178／1.7 ms、Long Task 0 通過；update p95 6.1 ms 高於 <4 ms |
+| Codex in-app Browser | not_run | 管理員安全政策無法驗證 localhost，未繞過且未以 Chrome E2E 冒充 |
+| Microsoft Edge | not_verified | 未安裝，未以 Chromium 代替 |
+| iPadOS Safari | not_verified | Chrome 多點觸控事件不代表 iPadOS 實體裝置 |
+| GitHub Actions | not_run | 本次差異未 commit、未 push |
+| Pages API／部署 | not_run | 本次差異未部署 |
+| 公開網站 | not_verified | 既有正式網站不是本次未發布差異的證據 |
+
+效能結果為當次 15 秒低／中／高畫質實際 Chrome 量測；中畫質 FPS與
+Long Task 通過，但 update p95 仍失敗，所以 Phase 9 維持 `in_progress`。
+
+需求追蹤：`UI-MAP-PROBE-RETIRE-001`、`UI-MAP-STATION-CARD-001`、
+`UI-MAP-CAMERA-001`、`SIM-VIEW-ISOLATION-001`、`A11Y-MAP-CAMERA-001` 與
+`DEPLOY-MAP-INTERACTION-001` 在本機自動化範圍均為 `passed`；遠端發布狀態
+仍依上表分開記錄。
+
+### 2026-08-06 生命史、北半球旋轉與真實地形本機驗證
+
+主規格 1.0.4 的颱風生命史視覺尺寸、北半球逆時針粒子及 Natural Earth II
+真實地形貼圖已完成本機實作。物理 `galeRadius`、`schemaVersion=1`、
+`modelVersion=0.7.0-taiwan-wayne` 與三份黃金重播均未改變。地形 WebP 為
+同源、透明海洋、2,400×1,600，失敗時安全降級為既有簡化地形。
+
+| 類別 | 本次結果 | 證據 |
+|---|---|---|
+| Schema／資料 | passed | 地形 metadata、Public Domain 授權、bounds、尺寸與 SHA-256 成品檢查；既有物理地理 schema 不變 |
+| lint | passed | ESLint 0 errors、0 warnings |
+| TypeScript | not_applicable | 原生 JavaScript ES Modules，無 TypeScript |
+| 單元 | passed | 116 passed、0 failed；生命史尺寸、逆時針座標、載入快取／重試、DPR 固定圖層與成品摘要 |
+| 整合 | passed | 6 passed、0 failed；Pages 子路徑 WebP／JSON 200 且 MIME 正確 |
+| 情境／黃金重播 | passed | 16 passed、0 failed；三份既有 fixture 未變 |
+| 實際 Chrome E2E | passed | 16 passed、0 failed；真實地形就緒、Canvas PNG 無污染、影像失敗降級並可繼續模擬 |
+| build／Pages artifact | passed | 529 KiB 地形 WebP 與 metadata 進入既有 allowlist；artifact 1 passed |
+| 效能門檻 | failed | 中畫質中位 59.88 FPS、1% low 56.82、render 2.829／3.4 ms、Long Task 0 均通過；update p95 6.1 ms 高於 <4 ms 門檻 |
+| Codex in-app Browser | not_run | 管理政策無法驗證 localhost 安全檢查；未以 Chrome E2E 冒充 |
+| Microsoft Edge | not_verified | 未安裝，未以 Chromium 代替 |
+| iPadOS Safari | not_verified | 無實體裝置證據，未以桌面縮放代替 |
+| GitHub Actions | not_run | 本次差異未 commit、未 push |
+| Pages API／部署 | not_run | 本次差異未部署 |
+| 公開網站 | not_verified | 既有正式網站不是本次未發布差異的證據 |
+
+需求追蹤：`VIS-STORM-SIZE-001` 生命史可辨識尺寸、
+`VIS-ROTATION-NH-001` 北半球逆時針、`GEO-TERRAIN-RASTER-001` 具來源的
+真實地形柵格、`GEO-TERRAIN-FALLBACK-001` 非致命降級均為 `passed`。
+效能量測工具同步修正為先等待地形就緒並展開收合的顯示設定；正式 Phase 9
+效能接受仍被 update p95 門檻阻擋，不得以其他 passed 項目掩蓋。
+
 ### 2026-08-06 介面修正本機驗證
 
 主規格 1.0.3 的繁體中文完整用語、上方全幅地圖、第三象限戰況資訊、
@@ -156,9 +221,15 @@ success/ocean 13.91:1，均高於一般文字 4.5:1。
 | PERF-METRIC-001 | 平均／最低／中位／1% low、update、render、Long Task | `PerformanceMonitor`、performance run | passed |
 | PERF-PARTICLE-001 | 300／700／1200 粒子層級 | unit、Chrome E2E、performance run | passed |
 | PERF-MAP-001 | GeoJSON 不重複解析、靜態圖離屏快取 | geography unit、code inspection | passed |
+| UI-MAP-PROBE-RETIRE-001 | 玩家地圖查詢、面板與選取游標不存在 | foundation、artifact、Chrome E2E | passed |
+| UI-MAP-STATION-CARD-001 | 六站觀測以地圖內有色毛玻璃卡及引線呈現 | station overlay unit、Chrome E2E | passed |
+| UI-MAP-CAMERA-001 | 滾輪、拖曳、雙指、按鈕、鍵盤與邊界限制 | camera／controller unit、Chrome E2E | passed |
+| SIM-VIEW-ISOLATION-001 | 視角操作不改變 step、物理或 fingerprint | unit、Chrome E2E、黃金重播 | passed |
+| A11Y-MAP-CAMERA-001 | 可見 44 px 控制、鍵盤等價操作與視角文字狀態 | Chrome E2E、CSS inspection | passed |
+| DEPLOY-MAP-INTERACTION-001 | 新模組進入 Pages allowlist，查詢 DOM 不進入 artifact | integration、build、artifact test | passed |
 | A11Y-MOTION-001 | reduced motion 不影響物理 | Chrome E2E | passed |
 | A11Y-CANVAS-001 | Canvas 文字摘要與錯誤 live region | Chrome E2E、Safari AX tree | passed |
-| COMP-CHROME-001 | Chrome 完整 smoke | 15 E2E | passed |
+| COMP-CHROME-001 | Chrome 完整 smoke | 19 E2E | passed |
 | COMP-SAFARI-001 | macOS Safari 實機 smoke | Safari 26.5.2 UI evidence | passed |
 | COMP-EDGE-001 | Edge 實機 smoke | 無環境 | not_verified |
 | COMP-IPAD-001 | iPadOS Safari 實機與效能 | 無環境 | not_verified |
@@ -501,6 +572,10 @@ Phase 8：
 - 公開網站：未驗證。
 
 ## Phase 2 需求追蹤
+
+> 歷史狀態：下表是 2026-07-30 Phase 2 的真實驗收證據。
+> `GEO-POINTER-001` 維持 passed；自 `DEC-0039` 起退場的是現行玩家查詢
+> 介面、面板與選取游標，不是座標轉換純函式，也不否定歷史通過紀錄。
 
 | Requirement ID | 需求 | 測試／證據 | 狀態 |
 |---|---|---|---|

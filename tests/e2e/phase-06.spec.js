@@ -192,34 +192,132 @@ test("environment target changes are delayed and never directly move the storm",
   );
 });
 
-test("map query identifies Taiwan and stays aligned after resize", async ({
+test("six model stations use non-blocking glass cards on the map", async ({
   page
 }) => {
-  const selectCoordinate = async ({ lat, lon }) => {
-    const canvas = page.locator("#simulation-canvas");
-    const box = await canvas.boundingBox();
-    const x = 38 + ((lon - 100) / 60) * (box.width - 38 - 12);
-    const y = 14 + ((40 - lat) / 40) * (box.height - 14 - 26);
-
-    await page.mouse.click(box.x + x, box.y + y);
-  };
-
   await page.goto("./");
   await expect(page.locator("#map-data-status")).toContainText("地理區域");
-  await selectCoordinate({ lat: 23.7, lon: 121 });
-  await expect(page.locator("#probe-coordinate")).toHaveText(
-    "北緯 23.70°、東經 121.00°"
+  await expect(page.locator("#map-probe, [id^='probe-']")).toHaveCount(0);
+  await expect(
+    page.locator(".canvas-frame > #station-observations .station-card")
+  ).toHaveCount(6);
+  const cardStyle = await page.locator(".station-card").first().evaluate(
+    (card) => {
+      const style = globalThis.getComputedStyle(card);
+      return {
+        backdrop: style.backdropFilter || style.webkitBackdropFilter,
+        pointerEvents: style.pointerEvents
+      };
+    }
   );
-  await expect(page.locator("#probe-surface")).toContainText(
-    "臺灣"
+  expect(cardStyle.backdrop).toContain("blur");
+  expect(cardStyle.pointerEvents).toBe("none");
+  for (const text of [
+    "模擬更新時間",
+    "與颱風中心距離",
+    "持續風",
+    "最大陣風",
+    "當前雨率",
+    "累積雨量",
+    "地形修正"
+  ]) {
+    await expect(page.locator(".station-card").first()).toContainText(text);
+  }
+
+  for (let count = 0; count < 5; count += 1) {
+    await page.locator("#map-zoom-in").click();
+  }
+  await expect(page.locator("#simulation-canvas")).toHaveAttribute(
+    "data-map-zoom",
+    "4.000000"
   );
+  await expect(page.locator(".station-card:visible")).toHaveCount(6);
+  await page.locator("#map-view-reset").click();
 
   await page.setViewportSize({ height: 844, width: 390 });
-  await selectCoordinate({ lat: 23.7, lon: 121 });
-  await expect(page.locator("#probe-coordinate")).toHaveText(
-    "北緯 23.70°、東經 121.00°"
+  await expect(page.locator("#station-observations")).toHaveAttribute(
+    "data-layout",
+    "compact"
   );
-  await expect(page.locator("#probe-station")).toContainText("公里");
+  const compactGeometry = await page.evaluate(() => {
+    const frame = document.querySelector(".canvas-frame").getBoundingClientRect();
+    const cards = [...document.querySelectorAll(".station-card")].map((card) => {
+      const box = card.getBoundingClientRect();
+      return {
+        bottom: box.bottom,
+        clipped:
+          card.scrollHeight > card.clientHeight + 1 ||
+          card.scrollWidth > card.clientWidth + 1,
+        id: card.dataset.stationId,
+        left: box.left,
+        right: box.right,
+        top: box.top
+      };
+    });
+    const controls = document
+      .querySelector(".map-controls")
+      .getBoundingClientRect();
+    const markerPoints = [
+      ...document.querySelectorAll("[data-station-marker]")
+    ].map((marker) => ({
+      id: marker.dataset.stationMarker,
+      x: frame.left + Number(marker.getAttribute("cx")),
+      y: frame.top + Number(marker.getAttribute("cy"))
+    }));
+    const overlap = cards.some((first, firstIndex) =>
+      cards.some(
+        (second, secondIndex) =>
+          secondIndex > firstIndex &&
+          first.left < second.right &&
+          first.right > second.left &&
+          first.top < second.bottom &&
+          first.bottom > second.top
+      )
+    );
+    const controlsOverlap = cards.some(
+      (card) =>
+        card.left < controls.right &&
+        card.right > controls.left &&
+        card.top < controls.bottom &&
+        card.bottom > controls.top
+    );
+    const coveredMarkers = markerPoints.flatMap((point) =>
+      cards
+        .filter(
+          (card) =>
+            point.x > card.left &&
+            point.x < card.right &&
+            point.y > card.top &&
+            point.y < card.bottom
+        )
+        .map((card) => `${point.id}:${card.id}`)
+    );
+    return {
+      cards,
+      clientWidth: document.documentElement.clientWidth,
+      controlsOverlap,
+      frame: {
+        bottom: frame.bottom,
+        left: frame.left,
+        right: frame.right,
+        top: frame.top
+      },
+      coveredMarkers,
+      overlap,
+      scrollWidth: document.documentElement.scrollWidth
+    };
+  });
+  expect(compactGeometry.overlap).toBe(false);
+  expect(compactGeometry.controlsOverlap).toBe(false);
+  expect(compactGeometry.coveredMarkers).toEqual([]);
+  expect(compactGeometry.scrollWidth).toBe(compactGeometry.clientWidth);
+  for (const card of compactGeometry.cards) {
+    expect(card.clipped).toBe(false);
+    expect(card.left).toBeGreaterThanOrEqual(compactGeometry.frame.left);
+    expect(card.right).toBeLessThanOrEqual(compactGeometry.frame.right);
+    expect(card.top).toBeGreaterThanOrEqual(compactGeometry.frame.top);
+    expect(card.bottom).toBeLessThanOrEqual(compactGeometry.frame.bottom);
+  }
 });
 
 test("cold wake and six model stations update, then reset completely", async ({
@@ -251,7 +349,8 @@ test("cold wake and six model stations update, then reset completely", async ({
   for (const row of await page
     .locator("#station-observations article")
     .all()) {
-    await expect(row).toContainText("累積 0.0 毫米");
+    await expect(row).toContainText("累積雨量");
+    await expect(row).toContainText("0.0 毫米");
   }
 });
 
@@ -342,7 +441,8 @@ test("golden browser replay wins, settles once, and restarts cleanly", async ({
   for (const row of await page
     .locator("#station-observations article")
     .all()) {
-    await expect(row).toContainText("累積 0.0 毫米");
+    await expect(row).toContainText("累積雨量");
+    await expect(row).toContainText("0.0 毫米");
   }
 
   expect(consoleErrors).toEqual([]);

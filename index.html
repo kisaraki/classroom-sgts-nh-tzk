@@ -300,15 +300,70 @@
         <div class="canvas-frame">
           <canvas
             id="simulation-canvas"
-            aria-label="Phase 09 關卡與沙盒地圖；點選或觸控以查詢位置"
-            aria-describedby="map-query-help canvas-summary"
+            aria-label="Phase 09 關卡與沙盒戰況地圖；可拖曳平移，並以滑鼠滾輪、雙指手勢或鍵盤縮放"
+            aria-describedby="map-interaction-help canvas-summary station-observations-description"
             data-testid="simulation-canvas"
             tabindex="0"
           ></canvas>
+          <section
+            id="station-observations"
+            class="station-observations"
+            aria-labelledby="station-observations-title"
+            aria-describedby="station-observations-description"
+          >
+            <h3 id="station-observations-title" class="visually-hidden">
+              六站模型觀測
+            </h3>
+            <p id="station-observations-description" class="visually-hidden">
+              地圖上的六個有色毛玻璃資訊卡顯示持續風、最大陣風、當前雨率、
+              累積雨量、距離颱風中心、地形修正及模擬更新時間。
+            </p>
+            <svg
+              class="station-leaders"
+              data-station-leaders
+              aria-hidden="true"
+              focusable="false"
+            ></svg>
+            <div class="station-card-layer" data-station-card-layer></div>
+          </section>
+          <div class="map-controls" aria-label="地圖視角控制">
+            <output id="map-view-status" aria-live="off">
+              縮放 100% · 中心北緯 20.00°、東經 130.00°
+            </output>
+            <div class="map-control-buttons">
+              <button
+                id="map-zoom-in"
+                type="button"
+                aria-label="放大地圖"
+                title="放大地圖"
+              >＋</button>
+              <button
+                id="map-zoom-out"
+                type="button"
+                aria-label="縮小地圖"
+                title="縮小地圖"
+              >−</button>
+              <button
+                id="map-view-reset"
+                type="button"
+                aria-label="重設完整西北太平洋視角"
+                title="重設完整西北太平洋視角"
+              >全域</button>
+            </div>
+          </div>
+          <p
+            id="map-view-announcement"
+            class="visually-hidden"
+            role="status"
+            aria-live="polite"
+          ></p>
         </div>
-        <p id="map-query-help" class="map-query-help">
-          地圖範圍東經 100°～160°、北緯 0°～40°。海岸線與地形陰影為教育用簡化圖，
-          不具導航或測繪精度。
+        <p id="map-interaction-help" class="map-caption">
+          在地圖內拖曳即可平移；使用滑鼠滾輪、觸控板或雙指手勢縮放。
+          鍵盤可使用加號、減號、方向鍵與 Home 鍵；窄螢幕請在地圖外捲動頁面。
+          觀測卡的風速單位為公尺／秒，雨率為毫米／小時，累積雨量為毫米。
+          地圖範圍東經 100°～160°、北緯 0°～40°。島嶼與陸地貼用 Natural Earth II
+          真實地形陰影；海陸判定仍採教育用簡化資料，不具導航或測繪精度。
         </p>
         <p id="canvas-summary" class="visually-hidden">
           模擬尚未開始，風暴與環境摘要準備中。
@@ -413,38 +468,6 @@
             <div class="potential">
               <dt>發展潛勢</dt>
               <dd data-factor="developmentPotential">—</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section
-          class="station-dashboard"
-          aria-labelledby="station-dashboard-title"
-        >
-          <h3 id="station-dashboard-title">六站模型觀測</h3>
-          <p>持續風與陣風單位為公尺／秒；雨率為毫米／小時，累積雨量為毫米。</p>
-          <div id="station-observations" class="station-observations"></div>
-        </section>
-
-        <section
-          id="map-probe"
-          class="map-probe"
-          aria-labelledby="map-probe-title"
-          aria-live="polite"
-        >
-          <h3 id="map-probe-title">地圖查詢</h3>
-          <dl>
-            <div>
-              <dt>座標</dt>
-              <dd id="probe-coordinate">等待地圖載入</dd>
-            </div>
-            <div>
-              <dt>海陸</dt>
-              <dd id="probe-surface">—</dd>
-            </div>
-            <div>
-              <dt>最近測站</dt>
-              <dd id="probe-station">—</dd>
             </div>
           </dl>
         </section>
